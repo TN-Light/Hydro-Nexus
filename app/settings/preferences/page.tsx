@@ -10,17 +10,11 @@ import { useToast } from "@/hooks/use-toast"
 import { usePreferencesStore } from "@/lib/stores/preferences-store"
 import { useTheme } from "next-themes"
 import { Settings, Palette, Thermometer, BarChart3 } from "lucide-react"
-import { useEffect, useState } from "react"
 
 export default function PreferencesPage() {
   const { preferences, updatePreferences } = usePreferencesStore()
   const { theme, setTheme } = useTheme()
   const { toast } = useToast()
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handleThemeChange = (checked: boolean) => {
     const newTheme = checked ? "dark" : "light"
@@ -65,18 +59,6 @@ export default function PreferencesPage() {
       title: "Preferences Synced",
       description: "All settings have been synchronized across devices",
     })
-  }
-
-  if (!mounted) {
-    return (
-      <div className="space-y-6">
-        <div className="animate-pulse">
-          <div className="h-32 bg-gray-200 rounded-lg mb-6"></div>
-          <div className="h-48 bg-gray-200 rounded-lg mb-6"></div>
-          <div className="h-32 bg-gray-200 rounded-lg"></div>
-        </div>
-      </div>
-    )
   }
 
   return (
