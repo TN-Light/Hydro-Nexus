@@ -47,23 +47,25 @@ export default function LoginPage() {
         <div className="text-center mb-6 sm:mb-8">
           <Link href="/" className="inline-flex items-center space-x-2 mb-4">
             <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-700" />
-            <span className="text-xl sm:text-2xl font-bold text-soil-950">Hydro Nexus</span>
+            <span className="text-xl sm:text-2xl font-bold text-soil-950 dark:text-white">Hydro Nexus</span>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-soil-950">Welcome Back</h1>
-          <p className="text-soil-950/70 mt-2 text-sm sm:text-base">Sign in to your precision agriculture dashboard</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-soil-950 dark:text-white">Welcome Back</h1>
+          <p className="text-soil-950/70 mt-2 text-sm sm:text-base dark:text-gray-300">
+            Sign in to your precision agriculture dashboard
+          </p>
         </div>
 
-        <Card className="border-green-100">
+        <Card className="border-green-100 dark:border-gray-800">
           <CardHeader className="p-4 sm:p-6">
-            <CardTitle className="text-lg sm:text-xl">Sign In</CardTitle>
-            <CardDescription className="text-sm sm:text-base">
+            <CardTitle className="text-lg sm:text-xl dark:text-white">Sign In</CardTitle>
+            <CardDescription className="text-sm sm:text-base dark:text-gray-300">
               Enter your credentials to access the platform
             </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-sm sm:text-base">
+                <Label htmlFor="username" className="text-sm sm:text-base dark:text-gray-300">
                   Username
                 </Label>
                 <Input
@@ -73,12 +75,12 @@ export default function LoginPage() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
                   required
-                  className="border-green-200 focus:border-green-500 text-sm sm:text-base"
+                  className="border-green-200 focus:border-green-500 text-sm sm:text-base dark:bg-gray-800 dark:text-white"
                 />
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="password" className="text-sm sm:text-base">
+                <Label htmlFor="password" className="text-sm sm:text-base dark:text-gray-300">
                   Password
                 </Label>
                 <div className="relative">
@@ -89,7 +91,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     required
-                    className="border-green-200 focus:border-green-500 pr-10 text-sm sm:text-base"
+                    className="border-green-200 focus:border-green-500 pr-10 text-sm sm:text-base dark:bg-gray-800 dark:text-white"
                   />
                   <Button
                     type="button"
@@ -122,20 +124,23 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 p-3 sm:p-4 bg-green-50 rounded-lg">
-              <p className="text-sm font-medium text-green-800 mb-2">Demo Credentials:</p>
-              <p className="text-xs sm:text-sm text-green-700">
-                Username: <code className="bg-green-100 px-1 rounded text-xs">admin</code>
+            <div className="mt-6 p-3 sm:p-4 bg-green-50 rounded-lg dark:bg-gray-800">
+              <p className="text-sm font-medium text-green-800 mb-2 dark:text-green-400">Demo Credentials:</p>
+              <p className="text-xs sm:text-sm text-green-700 dark:text-green-300">
+                Username: <code className="bg-green-100 px-1 rounded text-xs dark:bg-gray-700">admin</code>
               </p>
-              <p className="text-xs sm:text-sm text-green-700">
-                Password: <code className="bg-green-100 px-1 rounded text-xs">hydro123</code>
+              <p className="text-xs sm:text-sm text-green-700 dark:text-green-300">
+                Password: <code className="bg-green-100 px-1 rounded text-xs dark:bg-gray-700">hydro123</code>
               </p>
             </div>
           </CardContent>
         </Card>
 
         <div className="text-center mt-4 sm:mt-6">
-          <Link href="/" className="text-green-700 hover:text-green-800 text-sm transition-colors">
+          <Link
+            href="/"
+            className="text-green-700 hover:text-green-800 text-sm transition-colors dark:text-green-400 dark:hover:text-green-300"
+          >
             ← Back to Home
           </Link>
         </div>
