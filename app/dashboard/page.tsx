@@ -19,6 +19,7 @@ export default function DashboardPage() {
   const [selectedGrowBag, setSelectedGrowBag] = useState("grow-bag-1")
   const [sensorChartData, setSensorChartData] = useState<Record<string, Array<{ time: string; value: number }>>>({})
   const [sensorTrends, setSensorTrends] = useState<Record<string, "up" | "down">>({})
+  const [isDataReady, setIsDataReady] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -79,6 +80,7 @@ export default function DashboardPage() {
     
     setSensorChartData(chartData)
     setSensorTrends(trends)
+    setIsDataReady(true)
   }, [])
   if (isLoading) {
     return (
@@ -166,7 +168,7 @@ export default function DashboardPage() {
         </Card>
 
         {/* Sensor Data Grid */}
-        {currentData && (
+        {currentData && isDataReady && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <SensorCard
               title="Water Temperature"
@@ -227,6 +229,23 @@ export default function DashboardPage() {
               trend={sensorTrends.humidity || "up"}
               data={sensorChartData.humidity || []}
             />
+          </div>
+        )}
+
+        {/* Loading state for sensor data */}
+        {currentData && !isDataReady && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {Array.from({ length: 6 }).map((_, index) => (
+              <Card key={index}>
+                <CardContent className="p-6">
+                  <div className="animate-pulse">
+                    <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                    <div className="h-8 bg-gray-200 rounded w-1/2 mb-4"></div>
+                    <div className="h-20 bg-gray-200 rounded"></div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
         )}
 

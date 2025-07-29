@@ -52,6 +52,7 @@ export default function AnalyticsPage() {
   const [growBag, setGrowBag] = useState("All")
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
   const [extendedMockData, setExtendedMockData] = useState<HistoricalDataPoint[]>([])
+  const [isDataReady, setIsDataReady] = useState(false)
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -94,11 +95,12 @@ export default function AnalyticsPage() {
       }
     }
     setExtendedMockData(data)
+    setIsDataReady(true)
   }, [])
 
   // Filter and aggregate data
   const processedData = useMemo(() => {
-    if (extendedMockData.length === 0) return []
+    if (!isDataReady || extendedMockData.length === 0) return []
     
     const filtered = extendedMockData.filter((point) => {
       const pointDate = new Date(point.timestamp)
@@ -348,51 +350,60 @@ export default function AnalyticsPage() {
               <CardHeader className="p-4 sm:p-6">
                 <CardTitle className="text-lg sm:text-xl">Time Series Analysis</CardTitle>
                 <CardDescription className="text-sm sm:text-base">
-                  {selectedMetrics.length} metrics over {processedData.length} data points
+                  {selectedMetrics.length} metrics over {isDataReady ? processedData.length : 0} data points
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0">
-                <div className="h-80 sm:h-96 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={processedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
-                      <XAxis
-                        dataKey="timestamp"
-                        tick={{ fontSize: 10 }}
-                        tickFormatter={(value) => {
-                          const date = new Date(value)
-                          return aggregation === "Hourly" ? format(date, "HH:mm") : format(date, "MMM dd")
-                        }}
-                      />
-                      <YAxis tick={{ fontSize: 10 }} />
-                      <Tooltip
-                        labelFormatter={(value) => {
-                          const date = new Date(value as string)
-                          return format(date, "PPP p")
-                        }}
-                        formatter={(value: any, name: string) => {
-                          const metric = METRICS.find((m) => m.id === name)
-                          return [`${value}${metric?.unit || ""}`, metric?.label || name]
-                        }}
-                      />
-                      <Legend />
-                      {selectedMetrics.map((metricId) => {
-                        const metric = METRICS.find((m) => m.id === metricId)
-                        return (
-                          <Line
-                            key={metricId}
-                            type="monotone"
-                            dataKey={metricId}
-                            stroke={metric?.color}
-                            strokeWidth={2}
-                            dot={false}
-                            name={metric?.label}
-                          />
-                        )
-                      })}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
+                {isDataReady ? (
+                  <div className="h-80 sm:h-96 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={processedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                        <XAxis
+                          dataKey="timestamp"
+                          tick={{ fontSize: 10 }}
+                          tickFormatter={(value) => {
+                            const date = new Date(value)
+                            return aggregation === "Hourly" ? format(date, "HH:mm") : format(date, "MMM dd")
+                          }}
+                        />
+                        <YAxis tick={{ fontSize: 10 }} />
+                        <Tooltip
+                          labelFormatter={(value) => {
+                            const date = new Date(value as string)
+                            return format(date, "PPP p")
+                          }}
+                          formatter={(value: any, name: string) => {
+                            const metric = METRICS.find((m) => m.id === name)
+                            return [`${value}${metric?.unit || ""}`, metric?.label || name]
+                          }}
+                        />
+                        <Legend />
+                        {selectedMetrics.map((metricId) => {
+                          const metric = METRICS.find((m) => m.id === metricId)
+                          return (
+                            <Line
+                              key={metricId}
+                              type="monotone"
+                              dataKey={metricId}
+                              stroke={metric?.color}
+                              strokeWidth={2}
+                              dot={false}
+                              name={metric?.label}
+                            />
+                          )
+                        })}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                ) : (
+                  <div className="h-80 sm:h-96 w-full flex items-center justify-center">
+                    <div className="text-center">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-green-700 mx-auto mb-2"></div>
+                      <p className="text-sm text-soil-950/70 dark:text-gray-400">Loading chart data...</p>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -467,36 +478,43 @@ export default function AnalyticsPage() {
                 <CardTitle className="text-base sm:text-lg dark:text-white">Quick Statistics</CardTitle>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0 space-y-3">
-                {selectedMetrics.slice(0, 3).map((metricId) => {
-                  const metric = METRICS.find((m) => m.id === metricId)
-                  const values = processedData.map((d) => d[metricId as keyof typeof d] as number)
-                  const avg = values.reduce((a, b) => a + b, 0) / values.length
-                  const min = Math.min(...values)
-                  const max = Math.max(...values)
+                {isDataReady ? (
+                  selectedMetrics.slice(0, 3).map((metricId) => {
+                    const metric = METRICS.find((m) => m.id === metricId)
+                    const values = processedData.map((d) => d[metricId as keyof typeof d] as number)
+                    const avg = values.reduce((a, b) => a + b, 0) / values.length
+                    const min = Math.min(...values)
+                    const max = Math.max(...values)
 
-                  return (
-                    <div key={metricId} className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs sm:text-sm font-medium dark:text-gray-300">{metric?.label}</span>
-                        <span className="text-xs text-soil-950/70 dark:text-gray-400">{metric?.unit}</span>
+                    return (
+                      <div key={metricId} className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs sm:text-sm font-medium dark:text-gray-300">{metric?.label}</span>
+                          <span className="text-xs text-soil-950/70 dark:text-gray-400">{metric?.unit}</span>
+                        </div>
+                        <div className="grid grid-cols-3 gap-2 text-xs">
+                          <div>
+                            <span className="text-soil-950/70 dark:text-gray-400">Avg:</span>
+                            <span className="ml-1 font-mono dark:text-white">{avg.toFixed(1)}</span>
+                          </div>
+                          <div>
+                            <span className="text-soil-950/70 dark:text-gray-400">Min:</span>
+                            <span className="ml-1 font-mono dark:text-white">{min.toFixed(1)}</span>
+                          </div>
+                          <div>
+                            <span className="text-soil-950/70 dark:text-gray-400">Max:</span>
+                            <span className="ml-1 font-mono dark:text-white">{max.toFixed(1)}</span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div>
-                          <span className="text-soil-950/70 dark:text-gray-400">Avg:</span>
-                          <span className="ml-1 font-mono dark:text-white">{avg.toFixed(1)}</span>
-                        </div>
-                        <div>
-                          <span className="text-soil-950/70 dark:text-gray-400">Min:</span>
-                          <span className="ml-1 font-mono dark:text-white">{min.toFixed(1)}</span>
-                        </div>
-                        <div>
-                          <span className="text-soil-950/70 dark:text-gray-400">Max:</span>
-                          <span className="ml-1 font-mono dark:text-white">{max.toFixed(1)}</span>
-                        </div>
-                      </div>
-                    </div>
-                  )
-                })}
+                    )
+                  })
+                ) : (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-green-700 mx-auto mb-2"></div>
+                    <p className="text-xs text-soil-950/70 dark:text-gray-400">Loading statistics...</p>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
