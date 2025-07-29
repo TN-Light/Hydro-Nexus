@@ -51,6 +51,7 @@ export default function AnalyticsPage() {
   const [cropType, setCropType] = useState("All")
   const [growBag, setGrowBag] = useState("All")
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  const [extendedMockData, setExtendedMockData] = useState<HistoricalDataPoint[]>([])
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -58,8 +59,8 @@ export default function AnalyticsPage() {
     }
   }, [user, isLoading])
 
-  // Generate extended mock data for the last 90 days
-  const extendedMockData = useMemo(() => {
+  // Generate extended mock data for the last 90 days on client side only
+  useEffect(() => {
     const data: HistoricalDataPoint[] = []
     const startDate = subDays(new Date(), 90)
 
@@ -92,11 +93,13 @@ export default function AnalyticsPage() {
         })
       }
     }
-    return data
+    setExtendedMockData(data)
   }, [])
 
   // Filter and aggregate data
   const processedData = useMemo(() => {
+    if (extendedMockData.length === 0) return []
+    
     const filtered = extendedMockData.filter((point) => {
       const pointDate = new Date(point.timestamp)
       const inDateRange = pointDate >= startOfDay(dateRange.from) && pointDate <= endOfDay(dateRange.to)

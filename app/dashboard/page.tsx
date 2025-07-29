@@ -17,6 +17,8 @@ export default function DashboardPage() {
   const { user, isLoading } = useAuth()
   const { sensorData, isConnected, alerts } = useRealtime()
   const [selectedGrowBag, setSelectedGrowBag] = useState("grow-bag-1")
+  const [sensorChartData, setSensorChartData] = useState<Record<string, Array<{ time: string; value: number }>>>({})
+  const [sensorTrends, setSensorTrends] = useState<Record<string, "up" | "down">>({})
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -24,6 +26,60 @@ export default function DashboardPage() {
     }
   }, [user, isLoading])
 
+  // Generate chart data and trends on client side only
+  useEffect(() => {
+    const chartData: Record<string, Array<{ time: string; value: number }>> = {}
+    const trends: Record<string, "up" | "down"> = {}
+    
+    const sensors = ["waterTemp", "pH", "ec", "orp", "do", "humidity"]
+    
+    sensors.forEach(sensor => {
+      chartData[sensor] = Array.from({ length: 24 }, (_, i) => {
+        let baseValue: number
+        let variation: number
+        
+        switch (sensor) {
+          case "waterTemp":
+            baseValue = 22
+            variation = 4
+            break
+          case "pH":
+            baseValue = 6.0
+            variation = 0.6
+            break
+          case "ec":
+            baseValue = 1.8
+            variation = 0.6
+            break
+          case "orp":
+            baseValue = 250
+            variation = 100
+            break
+          case "do":
+            baseValue = 6
+            variation = 2
+            break
+          case "humidity":
+            baseValue = 70
+            variation = 20
+            break
+          default:
+            baseValue = 0
+            variation = 1
+        }
+        
+        return {
+          time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
+          value: baseValue + Math.random() * variation + Math.sin(i / 4) * (variation / 2),
+        }
+      })
+      
+      trends[sensor] = Math.random() > 0.5 ? "up" : "down"
+    })
+    
+    setSensorChartData(chartData)
+    setSensorTrends(trends)
+  }, [])
   if (isLoading) {
     return (
       <div className="min-h-screen bg-cream-50 flex items-center justify-center">
@@ -118,11 +174,8 @@ export default function DashboardPage() {
               unit="°C"
               icon={Thermometer}
               status={currentData.waterTemp >= 20 && currentData.waterTemp <= 28 ? "good" : "warning"}
-              trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 22 + Math.random() * 4 + Math.sin(i / 4) * 2,
-              }))}
+              trend={sensorTrends.waterTemp || "up"}
+              data={sensorChartData.waterTemp || []}
             />
 
             <SensorCard
@@ -131,11 +184,8 @@ export default function DashboardPage() {
               unit=""
               icon={Beaker}
               status={currentData.pH >= 5.5 && currentData.pH <= 6.5 ? "good" : "alert"}
-              trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 6.0 + Math.random() * 0.6 + Math.sin(i / 6) * 0.2,
-              }))}
+              trend={sensorTrends.pH || "up"}
+              data={sensorChartData.pH || []}
             />
 
             <SensorCard
@@ -144,11 +194,8 @@ export default function DashboardPage() {
               unit="mS/cm"
               icon={Zap}
               status={currentData.ec >= 1.2 && currentData.ec <= 2.5 ? "good" : "warning"}
-              trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 1.8 + Math.random() * 0.6 + Math.sin(i / 8) * 0.3,
-              }))}
+              trend={sensorTrends.ec || "up"}
+              data={sensorChartData.ec || []}
             />
 
             <SensorCard
@@ -157,11 +204,8 @@ export default function DashboardPage() {
               unit="mV"
               icon={Activity}
               status={currentData.orp >= 200 ? "good" : "warning"}
-              trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 250 + Math.random() * 100 + Math.sin(i / 5) * 50,
-              }))}
+              trend={sensorTrends.orp || "up"}
+              data={sensorChartData.orp || []}
             />
 
             <SensorCard
@@ -170,11 +214,8 @@ export default function DashboardPage() {
               unit="mg/L"
               icon={Droplets}
               status={currentData.do >= 4.0 ? "good" : "alert"}
-              trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 6 + Math.random() * 2 + Math.sin(i / 7) * 1,
-              }))}
+              trend={sensorTrends.do || "up"}
+              data={sensorChartData.do || []}
             />
 
             <SensorCard
@@ -183,11 +224,8 @@ export default function DashboardPage() {
               unit="%"
               icon={Wind}
               status={currentData.humidity <= 85 ? "good" : "warning"}
-              trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 70 + Math.random() * 20 + Math.sin(i / 3) * 10,
-              }))}
+              trend={sensorTrends.humidity || "up"}
+              data={sensorChartData.humidity || []}
             />
           </div>
         )}
