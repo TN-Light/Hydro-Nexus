@@ -75,11 +75,11 @@ function GreenhouseScene({ onGrowBagClick, selectedBag, sensorData }: any) {
             {/* Info Panel */}
             {isSelected && data && (
               <Html position={[0, 2, 0]} center>
-                <div className="bg-white p-3 rounded-lg shadow-lg border border-green-200 min-w-48">
-                  <h3 className="font-semibold text-sm mb-2 text-soil-950">
+                <div className="bg-white p-3 rounded-lg shadow-lg border border-green-200 min-w-48 dark:bg-gray-800">
+                  <h3 className="font-semibold text-sm mb-2 text-black dark:text-white">
                     {bagId.replace("grow-bag-", "Grow Bag ")}
                   </h3>
-                  <div className="space-y-1 text-xs">
+                  <div className="space-y-1 text-xs dark:text-gray-300">
                     <div className="flex justify-between">
                       <span>pH:</span>
                       <span className="font-mono">{data.pH.toFixed(1)}</span>
@@ -251,12 +251,14 @@ export default function DigitalTwinPage() {
                     step={5}
                     className="w-full"
                   />
-                  <p className="text-xs text-soil-950/70">Adjust LED intensity for photosynthesis optimization</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Adjust LED intensity for photosynthesis optimization
+                  </p>
                 </div>
 
                 {/* Nutrient Dose */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Nutrient Dose: {nutrientDose[0]}%</Label>
+                  <Label className="text-sm font-medium dark:text-gray-300">Nutrient Dose: {nutrientDose[0]}%</Label>
                   <Slider
                     value={nutrientDose}
                     onValueChange={setNutrientDose}
@@ -265,12 +267,14 @@ export default function DigitalTwinPage() {
                     step={5}
                     className="w-full"
                   />
-                  <p className="text-xs text-soil-950/70">Modify nutrient concentration in the solution</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Modify nutrient concentration in the solution
+                  </p>
                 </div>
 
                 {/* Temperature */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Target Temperature: {temperature[0]}°C</Label>
+                  <Label className="text-sm font-medium dark:text-gray-300">Target Temperature: {temperature[0]}°C</Label>
                   <Slider
                     value={temperature}
                     onValueChange={setTemperature}
@@ -279,7 +283,9 @@ export default function DigitalTwinPage() {
                     step={0.5}
                     className="w-full"
                   />
-                  <p className="text-xs text-soil-950/70">Set optimal water temperature for root health</p>
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                    Set optimal water temperature for root health
+                  </p>
                 </div>
 
                 {/* Action Buttons */}
@@ -324,29 +330,29 @@ export default function DigitalTwinPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-soil-950/70">pH Level</span>
+                      <span className="text-gray-600 dark:text-gray-400">pH Level</span>
                       <div className="font-mono text-lg text-green-700">{sensorData[selectedBag].pH.toFixed(1)}</div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">EC</span>
+                      <span className="text-gray-600 dark:text-gray-400">EC</span>
                       <div className="font-mono text-lg text-green-700">{sensorData[selectedBag].ec.toFixed(1)}</div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">Temperature</span>
+                      <span className="text-gray-600 dark:text-gray-400">Temperature</span>
                       <div className="font-mono text-lg text-green-700">
                         {sensorData[selectedBag].waterTemp.toFixed(1)}°C
                       </div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">Dissolved O₂</span>
+                      <span className="text-gray-600 dark:text-gray-400">Dissolved O₂</span>
                       <div className="font-mono text-lg text-green-700">{sensorData[selectedBag].do.toFixed(1)}</div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">ORP</span>
+                      <span className="text-gray-600 dark:text-gray-400">ORP</span>
                       <div className="font-mono text-lg text-green-700">{sensorData[selectedBag].orp.toFixed(0)}mV</div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">Humidity</span>
+                      <span className="text-gray-600 dark:text-gray-400">Humidity</span>
                       <div className="font-mono text-lg text-green-700">
                         {sensorData[selectedBag].humidity.toFixed(1)}%
                       </div>
