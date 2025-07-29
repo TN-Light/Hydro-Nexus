@@ -77,7 +77,7 @@ export default function ProfilePage() {
             <User className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
             Profile Information
           </CardTitle>
-          <CardDescription className="text-sm sm:text-base dark:text-gray-300">
+          <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
             Manage your personal information and account details
           </CardDescription>
         </CardHeader>
