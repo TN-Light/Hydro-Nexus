@@ -53,12 +53,12 @@ export default function HomePage() {
           <Badge className="mb-4 sm:mb-6 bg-green-100 text-green-700 hover:bg-green-100 text-sm sm:text-base">
             🌱 Precision Agriculture Platform
           </Badge>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-soil-950 mb-4 sm:mb-6 leading-tight">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-black mb-4 sm:mb-6 leading-tight dark:text-white">
             Optimize Exotic Crop
             <br />
             <span className="text-green-700 dark:text-green-400">Cultivation with AI</span>
           </h1>
-          <p className="text-lg sm:text-xl text-soil-950/70 mb-6 sm:mb-8 max-w-full sm:max-w-2xl lg:max-w-3xl mx-auto px-4 dark:text-gray-300">
+          <p className="text-lg sm:text-xl text-gray-600 mb-6 sm:mb-8 max-w-full sm:max-w-2xl lg:max-w-3xl mx-auto px-4 dark:text-gray-300">
             Harness the power of integrated subsurface drip hydroponics, artificial intelligence, and IoT sensors to
             maximize yield and minimize resource consumption.
           </p>

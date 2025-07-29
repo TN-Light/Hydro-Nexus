@@ -49,8 +49,8 @@ export default function LoginPage() {
             <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-700" />
             <span className="text-xl sm:text-2xl font-bold text-soil-950 dark:text-white">Hydro Nexus</span>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-soil-950 dark:text-white">Welcome Back</h1>
-          <p className="text-soil-950/70 mt-2 text-sm sm:text-base dark:text-gray-300">
+          <h1 className="text-xl sm:text-2xl font-bold text-black dark:text-white">Welcome Back</h1>
+          <p className="text-gray-600 mt-2 text-sm sm:text-base dark:text-gray-300">
             Sign in to your precision agriculture dashboard
           </p>
         </div>
@@ -58,7 +58,7 @@ export default function LoginPage() {
         <Card className="border-green-100 dark:border-gray-800">
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-lg sm:text-xl dark:text-white">Sign In</CardTitle>
-            <CardDescription className="text-sm sm:text-base dark:text-gray-300">
+            <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
               Enter your credentials to access the platform
             </CardDescription>
           </CardHeader>
