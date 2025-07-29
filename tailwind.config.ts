@@ -62,7 +62,7 @@ const config: Config = {
           100: "hsl(44 33% 94%)",
         },
         soil: {
-          950: "hsl(25 25% 5%)",
+          950: "hsl(0 0% 0%)",
         },
       },
       borderRadius: {
