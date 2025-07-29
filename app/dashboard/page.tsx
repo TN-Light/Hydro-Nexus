@@ -52,6 +52,7 @@ export default function DashboardPage() {
             <p className="text-soil-950/70">Real-time monitoring for {growBagIds.length} grow bags</p>
           </div>
           <div className="flex items-center gap-2">
+            <Button onClick={() => alert("Downloading data...")}>Download</Button>
             <Badge variant={isConnected ? "default" : "destructive"} className="bg-green-100 text-green-700">
               {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
             </Badge>

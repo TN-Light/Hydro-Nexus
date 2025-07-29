@@ -29,6 +29,7 @@ import {
   LogOut,
   Moon,
   Sun,
+  Search,
   CuboidIcon as Cube,
 } from "lucide-react"
 import Link from "next/link"
@@ -131,8 +132,20 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
             </div>
 
             <div className="flex items-center gap-x-2 sm:gap-x-4 lg:gap-x-6">
+              {/* Search */}
+              <Button variant="ghost" size="sm" onClick={() => alert("Search clicked!")} aria-label="Search">
+                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
+                <span className="sr-only">Search</span>
+              </Button>
+
               {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
+              <Button
+                variant="ghost"
+                size="sm"
+                className="relative"
+                onClick={() => alert("Notifications clicked!")}
+                aria-label="View notifications"
+              >
                 <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 {unreadAlerts > 0 && (
                   <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 text-xs bg-red-500 text-white">
@@ -143,7 +156,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </Button>
 
               {/* Theme Toggle */}
-              <Button variant="ghost" size="sm" onClick={handleThemeToggle}>
+              <Button variant="ghost" size="sm" onClick={handleThemeToggle} aria-label="Toggle theme">
                 <Sun className="h-4 w-4 sm:h-5 sm:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-4 w-4 sm:h-5 sm:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                 <span className="sr-only">Toggle theme</span>
