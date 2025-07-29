@@ -53,7 +53,7 @@ export default function HomePage() {
           <Badge className="mb-4 sm:mb-6 bg-green-100 text-green-700 hover:bg-green-100 text-sm sm:text-base">
             🌱 Precision Agriculture Platform
           </Badge>
-          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-black mb-4 sm:mb-6 leading-tight dark:text-white">
+          <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-black dark:text-white mb-4 sm:mb-6 leading-tight">
             Optimize Exotic Crop
             <br />
             <span className="text-green-700 dark:text-green-400">Cultivation with AI</span>
