@@ -189,18 +189,18 @@ export default function DevicesPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-soil-950">Device Manager</h1>
-            <p className="text-soil-950/70">Monitor and manage all connected IoT devices</p>
+            <h1 className="text-3xl font-bold text-soil-950 dark:text-white">Device Manager</h1>
+            <p className="text-soil-950/70 dark:text-gray-300">Monitor and manage all connected IoT devices</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-green-200">
+            <Badge variant="outline" className="border-green-200 dark:text-gray-300">
               <Smartphone className="h-3 w-3 mr-1" />
               {devices.length} Total Devices
             </Badge>
             <Button
               variant="outline"
               size="sm"
-              className="border-green-200 hover:border-green-400 bg-transparent"
+              className="border-green-200 hover:border-green-400 bg-transparent dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={handleRefresh}
             >
               <RefreshCw className="h-4 w-4 mr-2" />
@@ -215,8 +215,8 @@ export default function DevicesPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-soil-950/70">Total Devices</p>
-                  <p className="text-2xl font-bold text-soil-950">{devices.length}</p>
+                  <p className="text-sm text-soil-950/70 dark:text-gray-400">Total Devices</p>
+                  <p className="text-2xl font-bold text-soil-950 dark:text-white">{devices.length}</p>
                 </div>
                 <Smartphone className="h-8 w-8 text-green-700" />
               </div>
@@ -227,8 +227,8 @@ export default function DevicesPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-soil-950/70">Online</p>
-                  <p className="text-2xl font-bold text-green-600">{activeDevices}</p>
+                  <p className="text-sm text-soil-950/70 dark:text-gray-400">Online</p>
+                  <p className="text-2xl font-bold text-green-600 dark:text-green-400">{activeDevices}</p>
                 </div>
                 <CheckCircle className="h-8 w-8 text-green-600" />
               </div>
@@ -239,8 +239,8 @@ export default function DevicesPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-soil-950/70">Warning</p>
-                  <p className="text-2xl font-bold text-yellow-600">{warningDevices}</p>
+                  <p className="text-sm text-soil-950/70 dark:text-gray-400">Warning</p>
+                  <p className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">{warningDevices}</p>
                 </div>
                 <AlertTriangle className="h-8 w-8 text-yellow-600" />
               </div>
@@ -251,8 +251,8 @@ export default function DevicesPage() {
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm text-soil-950/70">Offline</p>
-                  <p className="text-2xl font-bold text-red-600">{inactiveDevices}</p>
+                  <p className="text-sm text-soil-950/70 dark:text-gray-400">Offline</p>
+                  <p className="text-2xl font-bold text-red-600 dark:text-red-400">{inactiveDevices}</p>
                 </div>
                 <XCircle className="h-8 w-8 text-red-600" />
               </div>
@@ -263,8 +263,10 @@ export default function DevicesPage() {
         {/* Device Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Device List</CardTitle>
-            <CardDescription>Click on any device to view details and manage settings</CardDescription>
+            <CardTitle className="dark:text-white">Device List</CardTitle>
+            <CardDescription className="dark:text-gray-300">
+              Click on any device to view details and manage settings
+            </CardDescription>
           </CardHeader>
           <CardContent>
             <div className="overflow-x-auto">
@@ -306,21 +308,21 @@ export default function DevicesPage() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium text-soil-950">{device.nickname}</div>
-                            <div className="text-xs text-soil-950/70">{device.id}</div>
+                            <div className="font-medium text-soil-950 dark:text-white">{device.nickname}</div>
+                            <div className="text-xs text-soil-950/70 dark:text-gray-400">{device.id}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-soil-950">{device.location}</span>
+                          <span className="text-sm text-soil-950 dark:text-white">{device.location}</span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-soil-950">
+                          <span className="text-sm text-soil-950 dark:text-white">
                             {formatDistanceToNow(new Date(device.lastPing), { addSuffix: true })}
                           </span>
                         </TableCell>
                         <TableCell>
                           <div className="flex items-center gap-2">
-                            <Wifi className="h-4 w-4 text-soil-950/70" />
+                            <Wifi className="h-4 w-4 text-soil-950/70 dark:text-gray-400" />
                             <span className={`text-sm font-mono ${rssiStrength.color}`}>{device.rssi} dBm</span>
                           </div>
                         </TableCell>
@@ -338,7 +340,9 @@ export default function DevicesPage() {
                           </span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm font-mono text-soil-950">{device.firmwareVersion}</span>
+                          <span className="text-sm font-mono text-soil-950 dark:text-white">
+                            {device.firmwareVersion}
+                          </span>
                         </TableCell>
                       </TableRow>
                     )
@@ -353,35 +357,37 @@ export default function DevicesPage() {
         <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle className="flex items-center gap-2">
+              <DialogTitle className="flex items-center gap-2 dark:text-white">
                 <Smartphone className="h-5 w-5 text-green-700" />
                 {selectedDevice?.nickname}
               </DialogTitle>
-              <DialogDescription>Device management and configuration for {selectedDevice?.id}</DialogDescription>
+              <DialogDescription className="dark:text-gray-300">
+                Device management and configuration for {selectedDevice?.id}
+              </DialogDescription>
             </DialogHeader>
 
             {selectedDevice && (
               <div className="space-y-6">
                 {/* Device Status */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-sm text-soil-950/70">Status</div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg dark:bg-gray-800">
+                    <div className="text-sm text-soil-950/70 dark:text-gray-400">Status</div>
                     <div className={`font-semibold ${statusConfig[selectedDevice.status].color}`}>
                       {statusConfig[selectedDevice.status].label}
                     </div>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-sm text-soil-950/70">Uptime</div>
-                    <div className="font-semibold text-soil-950">{selectedDevice.uptime}</div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg dark:bg-gray-800">
+                    <div className="text-sm text-soil-950/70 dark:text-gray-400">Uptime</div>
+                    <div className="font-semibold text-soil-950 dark:text-white">{selectedDevice.uptime}</div>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-sm text-soil-950/70">Battery</div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg dark:bg-gray-800">
+                    <div className="text-sm text-soil-950/70 dark:text-gray-400">Battery</div>
                     <div className={`font-semibold ${getBatteryColor(selectedDevice.battery)}`}>
                       {selectedDevice.battery}%
                     </div>
                   </div>
-                  <div className="text-center p-3 bg-green-50 rounded-lg">
-                    <div className="text-sm text-soil-950/70">Health</div>
+                  <div className="text-center p-3 bg-green-50 rounded-lg dark:bg-gray-800">
+                    <div className="text-sm text-soil-950/70 dark:text-gray-400">Health</div>
                     <div className={`font-semibold ${getHealthScoreColor(selectedDevice.healthScore)}`}>
                       {selectedDevice.healthScore}/100
                     </div>
@@ -391,8 +397,8 @@ export default function DevicesPage() {
                 {/* Battery Progress */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
-                    <Label>Battery Level</Label>
-                    <span className="text-sm text-soil-950/70">{selectedDevice.battery}%</span>
+                    <Label className="dark:text-gray-300">Battery Level</Label>
+                    <span className="text-sm text-soil-950/70 dark:text-gray-400">{selectedDevice.battery}%</span>
                   </div>
                   <Progress value={selectedDevice.battery} className="h-2" />
                 </div>
@@ -400,7 +406,7 @@ export default function DevicesPage() {
                 {/* OTA Firmware Update */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
+                    <CardTitle className="text-lg flex items-center gap-2 dark:text-white">
                       <Download className="h-4 w-4 text-blue-600" />
                       OTA Firmware Update
                     </CardTitle>
@@ -408,12 +414,14 @@ export default function DevicesPage() {
                   <CardContent className="space-y-4">
                     <div className="flex justify-between items-center">
                       <div>
-                        <div className="text-sm font-medium">Current Version</div>
-                        <div className="text-sm text-soil-950/70 font-mono">{selectedDevice.firmwareVersion}</div>
+                        <div className="text-sm font-medium dark:text-gray-300">Current Version</div>
+                        <div className="text-sm text-soil-950/70 font-mono dark:text-gray-400">
+                          {selectedDevice.firmwareVersion}
+                        </div>
                       </div>
                       <div>
-                        <div className="text-sm font-medium">Latest Version</div>
-                        <div className="text-sm text-green-600 font-mono">v2.1.4</div>
+                        <div className="text-sm font-medium dark:text-gray-300">Latest Version</div>
+                        <div className="text-sm text-green-600 font-mono dark:text-green-400">v2.1.4</div>
                       </div>
                     </div>
                     <Button
@@ -439,7 +447,7 @@ export default function DevicesPage() {
                 {/* Calibration Assist */}
                 <Card>
                   <CardHeader>
-                    <CardTitle className="text-lg flex items-center gap-2">
+                    <CardTitle className="text-lg flex items-center gap-2 dark:text-white">
                       <Settings className="h-4 w-4 text-purple-600" />
                       Calibration Assist
                     </CardTitle>
@@ -447,54 +455,62 @@ export default function DevicesPage() {
                   <CardContent className="space-y-4">
                     <div className="grid grid-cols-2 gap-4">
                       <div className="space-y-2">
-                        <Label htmlFor="ph-offset">pH Offset</Label>
+                        <Label htmlFor="ph-offset" className="dark:text-gray-300">
+                          pH Offset
+                        </Label>
                         <Input
                           id="ph-offset"
                           type="number"
                           step="0.1"
                           value={calibrationValues.phOffset}
                           onChange={(e) => setCalibrationValues((prev) => ({ ...prev, phOffset: e.target.value }))}
-                          className="border-green-200 focus:border-green-500"
+                          className="border-green-200 focus:border-green-500 dark:bg-gray-800 dark:text-white"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="ec-offset">EC Offset (mS/cm)</Label>
+                        <Label htmlFor="ec-offset" className="dark:text-gray-300">
+                          EC Offset (mS/cm)
+                        </Label>
                         <Input
                           id="ec-offset"
                           type="number"
                           step="0.1"
                           value={calibrationValues.ecOffset}
                           onChange={(e) => setCalibrationValues((prev) => ({ ...prev, ecOffset: e.target.value }))}
-                          className="border-green-200 focus:border-green-500"
+                          className="border-green-200 focus:border-green-500 dark:bg-gray-800 dark:text-white"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="temp-offset">Temperature Offset (°C)</Label>
+                        <Label htmlFor="temp-offset" className="dark:text-gray-300">
+                          Temperature Offset (°C)
+                        </Label>
                         <Input
                           id="temp-offset"
                           type="number"
                           step="0.1"
                           value={calibrationValues.tempOffset}
                           onChange={(e) => setCalibrationValues((prev) => ({ ...prev, tempOffset: e.target.value }))}
-                          className="border-green-200 focus:border-green-500"
+                          className="border-green-200 focus:border-green-500 dark:bg-gray-800 dark:text-white"
                         />
                       </div>
                       <div className="space-y-2">
-                        <Label htmlFor="do-offset">DO Offset (mg/L)</Label>
+                        <Label htmlFor="do-offset" className="dark:text-gray-300">
+                          DO Offset (mg/L)
+                        </Label>
                         <Input
                           id="do-offset"
                           type="number"
                           step="0.1"
                           value={calibrationValues.doOffset}
                           onChange={(e) => setCalibrationValues((prev) => ({ ...prev, doOffset: e.target.value }))}
-                          className="border-green-200 focus:border-green-500"
+                          className="border-green-200 focus:border-green-500 dark:bg-gray-800 dark:text-white"
                         />
                       </div>
                     </div>
                     <Button
                       onClick={handleCalibrationSave}
                       variant="outline"
-                      className="w-full border-green-200 hover:border-green-400 bg-transparent"
+                      className="w-full border-green-200 hover:border-green-400 bg-transparent dark:text-gray-300 dark:hover:bg-gray-700"
                     >
                       <Settings className="h-4 w-4 mr-2" />
                       Save Calibration

@@ -81,7 +81,7 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <Droplets className="h-4 w-4 text-blue-600" />
-              <Label htmlFor="pump-switch" className="text-sm font-medium">
+              <Label htmlFor="pump-switch" className="text-sm font-medium dark:text-gray-300">
                 Water Pump
               </Label>
             </div>
@@ -92,16 +92,16 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
                 onCheckedChange={(checked) => handleAction("pump", checked)}
                 disabled={isLoading === "pump"}
               />
-              <span className="text-xs text-soil-950/70">{pumpActive ? "Running" : "Stopped"}</span>
+              <span className="text-xs text-soil-950/70 dark:text-gray-400">{pumpActive ? "Running" : "Stopped"}</span>
             </div>
-            {isLoading === "pump" && <div className="text-xs text-green-700">Updating...</div>}
+            {isLoading === "pump" && <div className="text-xs text-green-700 dark:text-green-400">Updating...</div>}
           </div>
 
           {/* LED Lights Control */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <Lightbulb className="h-4 w-4 text-yellow-600" />
-              <Label htmlFor="led-switch" className="text-sm font-medium">
+              <Label htmlFor="led-switch" className="text-sm font-medium dark:text-gray-300">
                 LED Lights
               </Label>
             </div>
@@ -112,16 +112,16 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
                 onCheckedChange={(checked) => handleAction("led", checked)}
                 disabled={isLoading === "led"}
               />
-              <span className="text-xs text-soil-950/70">{ledActive ? "On" : "Off"}</span>
+              <span className="text-xs text-soil-950/70 dark:text-gray-400">{ledActive ? "On" : "Off"}</span>
             </div>
-            {isLoading === "led" && <div className="text-xs text-green-700">Updating...</div>}
+            {isLoading === "led" && <div className="text-xs text-green-700 dark:text-green-400">Updating...</div>}
           </div>
 
           {/* Nutrient Dosing */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <Droplets className="h-4 w-4 text-green-600" />
-              <Label htmlFor="dosing-switch" className="text-sm font-medium">
+              <Label htmlFor="dosing-switch" className="text-sm font-medium dark:text-gray-300">
                 Auto Dosing
               </Label>
             </div>
@@ -132,16 +132,16 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
                 onCheckedChange={(checked) => handleAction("dosing", checked)}
                 disabled={isLoading === "dosing"}
               />
-              <span className="text-xs text-soil-950/70">{dosingActive ? "Active" : "Inactive"}</span>
+              <span className="text-xs text-soil-950/70 dark:text-gray-400">{dosingActive ? "Active" : "Inactive"}</span>
             </div>
-            {isLoading === "dosing" && <div className="text-xs text-green-700">Updating...</div>}
+            {isLoading === "dosing" && <div className="text-xs text-green-700 dark:text-green-400">Updating...</div>}
           </div>
 
           {/* Manual Dosing Cycle */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
               <Play className="h-4 w-4 text-purple-600" />
-              <Label className="text-sm font-medium">Manual Cycle</Label>
+              <Label className="text-sm font-medium dark:text-gray-300">Manual Cycle</Label>
             </div>
             <Button
               size="sm"

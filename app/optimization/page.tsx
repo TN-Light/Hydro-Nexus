@@ -182,11 +182,13 @@ export default function OptimizationPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-soil-950">Nutrient Optimization Engine</h1>
-            <p className="text-soil-950/70">AI-powered nutrient recipe optimization for maximum crop yield</p>
+            <h1 className="text-3xl font-bold text-soil-950 dark:text-white">Nutrient Optimization Engine</h1>
+            <p className="text-soil-950/70 dark:text-gray-300">
+              AI-powered nutrient recipe optimization for maximum crop yield
+            </p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant="outline" className="border-purple-200">
+            <Badge variant="outline" className="border-purple-200 dark:text-gray-300">
               <Brain className="h-3 w-3 mr-1" />
               ML-Powered Analysis
             </Badge>
@@ -194,7 +196,7 @@ export default function OptimizationPage() {
               variant="outline"
               size="sm"
               onClick={resetForm}
-              className="border-green-200 hover:border-green-400 bg-transparent"
+              className="border-green-200 hover:border-green-400 bg-transparent dark:text-gray-300 dark:hover:bg-gray-700"
             >
               Reset Form
             </Button>
@@ -206,21 +208,25 @@ export default function OptimizationPage() {
           <div className="space-y-6">
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 dark:text-white">
                   <Beaker className="h-5 w-5 text-green-700" />
                   Current Nutrient Profile
                 </CardTitle>
-                <CardDescription>Enter your current nutrient levels and water parameters</CardDescription>
+                <CardDescription className="dark:text-gray-300">
+                  Enter your current nutrient levels and water parameters
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <form className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
                     {Object.entries(nutrientInfo).map(([key, info]) => (
                       <div key={key} className="space-y-2">
-                        <Label htmlFor={key} className="flex items-center gap-2">
+                        <Label htmlFor={key} className="flex items-center gap-2 dark:text-gray-300">
                           <info.icon className="h-4 w-4 text-green-700" />
                           {info.name}
-                          {info.unit && <span className="text-xs text-soil-950/70">({info.unit})</span>}
+                          {info.unit && (
+                            <span className="text-xs text-soil-950/70 dark:text-gray-400">({info.unit})</span>
+                          )}
                         </Label>
                         <Input
                           id={key}
@@ -228,10 +234,10 @@ export default function OptimizationPage() {
                           step={key === "pH" ? "0.1" : key === "EC" ? "0.1" : "1"}
                           value={currentNutrients[key as keyof NutrientState]}
                           onChange={(e) => handleInputChange(key as keyof NutrientState, e.target.value)}
-                          className="border-green-200 focus:border-green-500"
+                          className="border-green-200 focus:border-green-500 dark:bg-gray-800 dark:text-white"
                           placeholder={`Enter ${info.name.toLowerCase()}`}
                         />
-                        <div className="text-xs text-soil-950/70">
+                        <div className="text-xs text-soil-950/70 dark:text-gray-400">
                           Optimal: {info.optimal[0]}-{info.optimal[1]} {info.unit}
                         </div>
                       </div>
@@ -266,26 +272,30 @@ export default function OptimizationPage() {
             {/* Predicted Growth Rate */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 dark:text-white">
                   <TrendingUp className="h-5 w-5 text-purple-600" />
                   Predicted Growth Rate
                 </CardTitle>
-                <CardDescription>AI-estimated growth performance based on current conditions</CardDescription>
+                <CardDescription className="dark:text-gray-300">
+                  AI-estimated growth performance based on current conditions
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {predictedGrowthRate !== null ? (
                   <div className="text-center py-6">
-                    <div className="text-4xl font-bold text-purple-600 mb-2">{predictedGrowthRate}%</div>
-                    <div className="text-sm text-soil-950/70">Expected growth efficiency</div>
-                    <div className="mt-4 p-3 bg-purple-50 rounded-lg">
-                      <p className="text-xs text-purple-700">
+                    <div className="text-4xl font-bold text-purple-600 mb-2 dark:text-purple-400">
+                      {predictedGrowthRate}%
+                    </div>
+                    <div className="text-sm text-soil-950/70 dark:text-gray-400">Expected growth efficiency</div>
+                    <div className="mt-4 p-3 bg-purple-50 rounded-lg dark:bg-gray-800">
+                      <p className="text-xs text-purple-700 dark:text-purple-300">
                         Based on Random Forest model trained on 10,000+ growth cycles with genetic algorithm
                         optimization.
                       </p>
                     </div>
                   </div>
                 ) : (
-                  <div className="text-center py-8 text-soil-950/70">
+                  <div className="text-center py-8 text-soil-950/70 dark:text-gray-400">
                     <Brain className="h-12 w-12 mx-auto mb-4 text-soil-950/30" />
                     <p>Click "Suggest Optimal Recipe" to generate AI predictions</p>
                   </div>
@@ -296,11 +306,13 @@ export default function OptimizationPage() {
             {/* Optimal Recipe */}
             <Card>
               <CardHeader>
-                <CardTitle className="flex items-center gap-2">
+                <CardTitle className="flex items-center gap-2 dark:text-white">
                   <Zap className="h-5 w-5 text-green-700" />
                   Recommended Adjustments
                 </CardTitle>
-                <CardDescription>AI-optimized nutrient concentrations for your crop</CardDescription>
+                <CardDescription className="dark:text-gray-300">
+                  AI-optimized nutrient concentrations for your crop
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 {optimalRecipe ? (
@@ -318,8 +330,8 @@ export default function OptimizationPage() {
                         >
                           <div className="flex items-center justify-between mb-2 w-full">
                             <div className="flex items-center gap-2">
-                              <info.icon className="h-4 w-4 text-soil-950/70" />
-                              <span className="font-medium text-soil-950">{info.name}</span>
+                              <info.icon className="h-4 w-4 text-soil-950/70 dark:text-gray-400" />
+                              <span className="font-medium text-soil-950 dark:text-white">{info.name}</span>
                             </div>
                             <div className="flex items-center gap-2">
                               <StatusIcon className={`h-4 w-4 ${config.color}`} />
@@ -333,20 +345,20 @@ export default function OptimizationPage() {
                           </div>
                           <div className="grid grid-cols-2 gap-4 text-sm w-full">
                             <div>
-                              <span className="text-soil-950/70">Current:</span>
-                              <span className="ml-2 font-mono text-soil-950">
+                              <span className="text-soil-950/70 dark:text-gray-400">Current:</span>
+                              <span className="ml-2 font-mono text-soil-950 dark:text-white">
                                 {currentValue} {info.unit}
                               </span>
                             </div>
                             <div>
-                              <span className="text-soil-950/70">Optimal:</span>
-                              <span className="ml-2 font-mono text-green-700">
+                              <span className="text-soil-950/70 dark:text-gray-400">Optimal:</span>
+                              <span className="ml-2 font-mono text-green-700 dark:text-green-400">
                                 {recommendation.value} {info.unit}
                               </span>
                             </div>
                           </div>
                           {recommendation.status !== "balance" && (
-                            <div className="mt-2 text-xs text-soil-950/70">
+                            <div className="mt-2 text-xs text-soil-950/70 dark:text-gray-400">
                               {recommendation.status === "deficiency"
                                 ? `Increase by ${(recommendation.value - currentValue).toFixed(1)} ${info.unit}`
                                 : `Decrease by ${(currentValue - recommendation.value).toFixed(1)} ${info.unit}`}
@@ -357,7 +369,7 @@ export default function OptimizationPage() {
                     })}
                   </div>
                 ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-soil-950/70 w-full">
+                  <div className="flex flex-col items-center justify-center py-8 text-soil-950/70 w-full dark:text-gray-400">
                     <Beaker className="h-12 w-12 mx-auto mb-4 text-soil-950/30" />
                     <p>Generate optimal recipe to see AI recommendations</p>
                     <p className="text-xs mt-2">Personalized adjustments based on your current nutrient profile</p>
@@ -370,54 +382,56 @@ export default function OptimizationPage() {
             {optimalRecipe && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
+                  <CardTitle className="flex items-center gap-2 dark:text-white">
                     <CheckCircle className="h-5 w-5 text-blue-600" />
                     Implementation Guide
                   </CardTitle>
-                  <CardDescription>Step-by-step instructions for applying recommendations</CardDescription>
+                  <CardDescription className="dark:text-gray-300">
+                    Step-by-step instructions for applying recommendations
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
                   <div className="space-y-3 text-sm">
                     <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold dark:bg-blue-900 dark:text-blue-300">
                         1
                       </div>
                       <div>
-                        <div className="font-medium text-soil-950">Prepare Nutrient Solutions</div>
-                        <div className="text-soil-950/70 text-xs">
+                        <div className="font-medium text-soil-950 dark:text-white">Prepare Nutrient Solutions</div>
+                        <div className="text-soil-950/70 text-xs dark:text-gray-400">
                           Mix concentrated nutrient solutions according to the recommended values above.
                         </div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold dark:bg-blue-900 dark:text-blue-300">
                         2
                       </div>
                       <div>
-                        <div className="font-medium text-soil-950">Gradual Implementation</div>
-                        <div className="text-soil-950/70 text-xs">
+                        <div className="font-medium text-soil-950 dark:text-white">Gradual Implementation</div>
+                        <div className="text-soil-950/70 text-xs dark:text-gray-400">
                           Apply changes gradually over 3-5 days to avoid shocking the plants.
                         </div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold dark:bg-blue-900 dark:text-blue-300">
                         3
                       </div>
                       <div>
-                        <div className="font-medium text-soil-950">Monitor & Adjust</div>
-                        <div className="text-soil-950/70 text-xs">
+                        <div className="font-medium text-soil-950 dark:text-white">Monitor & Adjust</div>
+                        <div className="text-soil-950/70 text-xs dark:text-gray-400">
                           Check sensor readings every 6-8 hours and fine-tune as needed.
                         </div>
                       </div>
                     </div>
                     <div className="flex items-start gap-3">
-                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
+                      <div className="bg-blue-100 text-blue-700 rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold dark:bg-blue-900 dark:text-blue-300">
                         4
                       </div>
                       <div>
-                        <div className="font-medium text-soil-950">Track Results</div>
-                        <div className="text-soil-950/70 text-xs">
+                        <div className="font-medium text-soil-950 dark:text-white">Track Results</div>
+                        <div className="text-soil-950/70 text-xs dark:text-gray-400">
                           Document plant response and growth metrics for future optimization cycles.
                         </div>
                       </div>

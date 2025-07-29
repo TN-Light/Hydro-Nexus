@@ -173,7 +173,7 @@ export default function AnalyticsPage() {
       <div className="min-h-screen bg-cream-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto mb-4"></div>
-          <p className="text-soil-950/70">Loading analytics...</p>
+          <p className="text-soil-950/70 dark:text-gray-400">Loading analytics...</p>
         </div>
       </div>
     )
@@ -187,8 +187,8 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-soil-950">Analytics Studio</h1>
-            <p className="text-soil-950/70 text-sm sm:text-base">
+            <h1 className="text-2xl sm:text-3xl font-bold text-soil-950 dark:text-white">Analytics Studio</h1>
+            <p className="text-soil-950/70 text-sm sm:text-base dark:text-gray-300">
               Explore historical sensor data and identify trends over time
             </p>
           </div>
@@ -418,33 +418,39 @@ export default function AnalyticsPage() {
                   </p>
                 </div>
 
-                <div className="p-2 sm:p-3 bg-green-50 rounded-lg border border-green-200">
+                  <div className="p-2 sm:p-3 bg-green-50 rounded-lg border border-green-200 dark:bg-gray-800 dark:border-gray-700">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-                    <span className="text-xs sm:text-sm font-medium text-green-800">Optimization Opportunity</span>
+                    <span className="text-xs sm:text-sm font-medium text-green-800 dark:text-green-400">
+                      Optimization Opportunity
+                    </span>
                   </div>
-                  <p className="text-xs text-green-700">
+                  <p className="text-xs text-green-700 dark:text-green-300">
                     pH stability improved by 12% when maintained between 6.0-6.2 during nighttime hours.
                   </p>
                 </div>
 
-                <div className="p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200 dark:bg-gray-800 dark:border-gray-700">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" />
-                    <span className="text-xs sm:text-sm font-medium text-yellow-800">Pattern Detection</span>
+                    <span className="text-xs sm:text-sm font-medium text-yellow-800 dark:text-yellow-400">
+                      Pattern Detection
+                    </span>
                   </div>
-                  <p className="text-xs text-yellow-700">
+                  <p className="text-xs text-yellow-700 dark:text-yellow-300">
                     Dissolved oxygen levels show cyclical patterns correlating with lighting schedules. Consider
                     adjusting aeration timing.
                   </p>
                 </div>
 
-                <div className="p-2 sm:p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="p-2 sm:p-3 bg-blue-50 rounded-lg border border-blue-200 dark:bg-gray-800 dark:border-gray-700">
                   <div className="flex items-center gap-2 mb-2">
                     <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                    <span className="text-xs sm:text-sm font-medium text-blue-800">SHAP Analysis</span>
+                    <span className="text-xs sm:text-sm font-medium text-blue-800 dark:text-blue-400">
+                      SHAP Analysis
+                    </span>
                   </div>
-                  <p className="text-xs text-blue-700">
+                  <p className="text-xs text-blue-700 dark:text-blue-300">
                     Temperature variance contributes 34% to growth rate prediction, followed by pH stability (28%) and
                     EC consistency (22%).
                   </p>
@@ -455,7 +461,7 @@ export default function AnalyticsPage() {
             {/* Quick Stats */}
             <Card>
               <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-base sm:text-lg">Quick Statistics</CardTitle>
+                <CardTitle className="text-base sm:text-lg dark:text-white">Quick Statistics</CardTitle>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0 space-y-3">
                 {selectedMetrics.slice(0, 3).map((metricId) => {
@@ -468,21 +474,21 @@ export default function AnalyticsPage() {
                   return (
                     <div key={metricId} className="space-y-1">
                       <div className="flex justify-between items-center">
-                        <span className="text-xs sm:text-sm font-medium">{metric?.label}</span>
-                        <span className="text-xs text-soil-950/70">{metric?.unit}</span>
+                        <span className="text-xs sm:text-sm font-medium dark:text-gray-300">{metric?.label}</span>
+                        <span className="text-xs text-soil-950/70 dark:text-gray-400">{metric?.unit}</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
-                          <span className="text-soil-950/70">Avg:</span>
-                          <span className="ml-1 font-mono">{avg.toFixed(1)}</span>
+                          <span className="text-soil-950/70 dark:text-gray-400">Avg:</span>
+                          <span className="ml-1 font-mono dark:text-white">{avg.toFixed(1)}</span>
                         </div>
                         <div>
-                          <span className="text-soil-950/70">Min:</span>
-                          <span className="ml-1 font-mono">{min.toFixed(1)}</span>
+                          <span className="text-soil-950/70 dark:text-gray-400">Min:</span>
+                          <span className="ml-1 font-mono dark:text-white">{min.toFixed(1)}</span>
                         </div>
                         <div>
-                          <span className="text-soil-950/70">Max:</span>
-                          <span className="ml-1 font-mono">{max.toFixed(1)}</span>
+                          <span className="text-soil-950/70 dark:text-gray-400">Max:</span>
+                          <span className="ml-1 font-mono dark:text-white">{max.toFixed(1)}</span>
                         </div>
                       </div>
                     </div>

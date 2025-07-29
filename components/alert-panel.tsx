@@ -69,7 +69,7 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
       </CardHeader>
       <CardContent>
         {visibleAlerts.length === 0 ? (
-          <div className="text-center py-8 text-soil-950/70">
+          <div className="text-center py-8 text-soil-950/70 dark:text-gray-400">
             <Info className="h-8 w-8 mx-auto mb-2 text-green-600" />
             <p>No recent alerts</p>
             <p className="text-sm">All systems operating normally</p>
@@ -82,7 +82,10 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
                 const Icon = config.icon
 
                 return (
-                  <div key={alert.id} className={`p-3 rounded-lg border ${config.bgColor} border-opacity-50`}>
+                  <div
+                    key={alert.id}
+                    className={`p-3 rounded-lg border ${config.bgColor} border-opacity-50 dark:bg-gray-800 dark:border-gray-700`}
+                  >
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3">
                         <Icon className="h-4 w-4 mt-0.5 text-current" />
@@ -91,12 +94,14 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
                             <Badge variant="outline" className={config.color}>
                               {alert.severity.toUpperCase()}
                             </Badge>
-                            <span className="text-xs text-soil-950/70 font-mono">
+                            <span className="text-xs text-soil-950/70 font-mono dark:text-gray-400">
                               {alert.deviceId.replace("grow-bag-", "Bag ")}
                             </span>
                           </div>
-                          <p className="text-sm text-soil-950 mb-1">{alert.message}</p>
-                          <p className="text-xs text-soil-950/70">{formatTime(alert.timestamp)}</p>
+                          <p className="text-sm text-soil-950 mb-1 dark:text-white">{alert.message}</p>
+                          <p className="text-xs text-soil-950/70 dark:text-gray-400">
+                            {formatTime(alert.timestamp)}
+                          </p>
                         </div>
                       </div>
                       <Button
@@ -117,11 +122,11 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
         )}
 
         {visibleAlerts.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-green-100">
+          <div className="mt-4 pt-4 border-t border-green-100 dark:border-gray-700">
             <Button
               variant="outline"
               size="sm"
-              className="w-full border-green-200 hover:border-green-400 bg-transparent"
+              className="w-full border-green-200 hover:border-green-400 bg-transparent dark:text-gray-300 dark:hover:bg-gray-700"
               onClick={() => setDismissedAlerts(new Set(alerts.map((a) => a.id)))}
             >
               Dismiss All Alerts

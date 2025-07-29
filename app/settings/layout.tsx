@@ -41,8 +41,8 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
       <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="px-2 sm:px-0">
-          <h1 className="text-2xl sm:text-3xl font-bold text-soil-950">Settings</h1>
-          <p className="text-soil-950/70 text-sm sm:text-base mt-1 sm:mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-soil-950 dark:text-white">Settings</h1>
+          <p className="text-soil-950/70 text-sm sm:text-base mt-1 sm:mt-2 dark:text-gray-300">
             Manage your account preferences and application settings
           </p>
         </div>
@@ -61,7 +61,7 @@ export default function SettingsLayout({ children }: { children: React.ReactNode
                         "w-full justify-start text-sm sm:text-base",
                         isActive
                           ? "agriculture-gradient text-white"
-                          : "text-soil-950 hover:bg-green-50 hover:text-green-700",
+                          : "text-soil-950 hover:bg-green-50 hover:text-green-700 dark:text-gray-300 dark:hover:bg-gray-700",
                       )}
                     >
                       <item.icon className="mr-2 h-4 w-4" />
