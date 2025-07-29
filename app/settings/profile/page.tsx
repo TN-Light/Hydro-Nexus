@@ -73,11 +73,11 @@ export default function ProfilePage() {
       {/* Profile Information */}
       <Card>
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl dark:text-white">
             <User className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
             Profile Information
           </CardTitle>
-          <CardDescription className="text-sm sm:text-base">
+          <CardDescription className="text-sm sm:text-base dark:text-gray-300">
             Manage your personal information and account details
           </CardDescription>
         </CardHeader>
@@ -86,7 +86,7 @@ export default function ProfilePage() {
           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20 cursor-pointer" onClick={handleAvatarClick}>
               <AvatarImage src={avatarPreview || "/placeholder.svg"} alt={profile.fullName} />
-              <AvatarFallback className="bg-green-100 text-green-700 text-lg sm:text-xl">
+              <AvatarFallback className="bg-green-100 text-green-700 text-lg sm:text-xl dark:bg-gray-700 dark:text-gray-300">
                 {profile.fullName
                   .split(" ")
                   .map((n) => n[0])
@@ -98,19 +98,19 @@ export default function ProfilePage() {
                 variant="outline"
                 size="sm"
                 onClick={handleAvatarClick}
-                className="border-green-200 hover:border-green-400 bg-transparent text-sm"
+                className="border-green-200 hover:border-green-400 bg-transparent text-sm dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 <Upload className="h-4 w-4 mr-2" />
                 Change Avatar
               </Button>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-              <p className="text-xs text-soil-950/70">JPG, PNG or GIF (max. 2MB)</p>
+              <p className="text-xs text-soil-950/70 dark:text-gray-400">JPG, PNG or GIF (max. 2MB)</p>
             </div>
           </div>
 
           {/* Name Field */}
           <div className="space-y-2">
-            <Label htmlFor="fullName" className="text-sm sm:text-base">
+            <Label htmlFor="fullName" className="text-sm sm:text-base dark:text-gray-300">
               Full Name
             </Label>
             {isEditingName ? (
@@ -119,7 +119,7 @@ export default function ProfilePage() {
                   id="fullName"
                   value={editedName}
                   onChange={(e) => setEditedName(e.target.value)}
-                  className="border-green-200 focus:border-green-500 flex-1 text-sm sm:text-base"
+                  className="border-green-200 focus:border-green-500 flex-1 text-sm sm:text-base dark:bg-gray-800 dark:text-white"
                 />
                 <div className="flex space-x-2">
                   <Button
@@ -133,7 +133,7 @@ export default function ProfilePage() {
                     size="sm"
                     variant="outline"
                     onClick={handleNameCancel}
-                    className="flex-1 sm:flex-none bg-transparent"
+                    className="flex-1 sm:flex-none bg-transparent dark:text-gray-300 dark:hover:bg-gray-700"
                   >
                     <X className="h-4 w-4" />
                   </Button>
@@ -144,13 +144,13 @@ export default function ProfilePage() {
                 <Input
                   value={profile.fullName}
                   readOnly
-                  className="border-green-200 bg-green-50/50 flex-1 text-sm sm:text-base"
+                  className="border-green-200 bg-green-50/50 flex-1 text-sm sm:text-base dark:bg-gray-700 dark:text-gray-300"
                 />
                 <Button
                   size="sm"
                   variant="outline"
                   onClick={() => setIsEditingName(true)}
-                  className="border-green-200 hover:border-green-400 bg-transparent"
+                  className="border-green-200 hover:border-green-400 bg-transparent dark:text-gray-300 dark:hover:bg-gray-700"
                 >
                   <Edit className="h-4 w-4" />
                 </Button>
@@ -160,34 +160,34 @@ export default function ProfilePage() {
 
           {/* Email Field */}
           <div className="space-y-2">
-            <Label htmlFor="email" className="text-sm sm:text-base">
+            <Label htmlFor="email" className="text-sm sm:text-base dark:text-gray-300">
               Email Address
             </Label>
             <Input
               id="email"
               value={profile.email}
               readOnly
-              className="border-green-200 bg-green-50/50 text-sm sm:text-base"
+              className="border-green-200 bg-green-50/50 text-sm sm:text-base dark:bg-gray-700 dark:text-gray-300"
             />
-            <p className="text-xs text-soil-950/70">Email address cannot be changed</p>
+            <p className="text-xs text-soil-950/70 dark:text-gray-400">Email address cannot be changed</p>
           </div>
 
           {/* Username Field */}
           <div className="space-y-2">
-            <Label htmlFor="username" className="text-sm sm:text-base">
+            <Label htmlFor="username" className="text-sm sm:text-base dark:text-gray-300">
               Username
             </Label>
             <Input
               id="username"
               value={profile.username}
               readOnly
-              className="border-green-200 bg-green-50/50 text-sm sm:text-base"
+              className="border-green-200 bg-green-50/50 text-sm sm:text-base dark:bg-gray-700 dark:text-gray-300"
             />
           </div>
 
           {/* Role Field */}
           <div className="space-y-2">
-            <Label htmlFor="role" className="text-sm sm:text-base">
+            <Label htmlFor="role" className="text-sm sm:text-base dark:text-gray-300">
               User Role
             </Label>
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
@@ -195,9 +195,12 @@ export default function ProfilePage() {
                 id="role"
                 value={profile.role}
                 readOnly
-                className="border-green-200 bg-green-50/50 flex-1 text-sm sm:text-base"
+                className="border-green-200 bg-green-50/50 flex-1 text-sm sm:text-base dark:bg-gray-700 dark:text-gray-300"
               />
-              <Badge variant="outline" className="border-green-200 text-green-700 self-start sm:self-center">
+              <Badge
+                variant="outline"
+                className="border-green-200 text-green-700 self-start sm:self-center dark:bg-gray-700 dark:text-gray-300"
+              >
                 {profile.role}
               </Badge>
             </div>
@@ -208,28 +211,30 @@ export default function ProfilePage() {
       {/* Connected Devices Summary */}
       <Card>
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl dark:text-white">
             <Smartphone className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
             Connected Devices
           </CardTitle>
-          <CardDescription className="text-sm sm:text-base">Overview of devices linked to your account</CardDescription>
+          <CardDescription className="text-sm sm:text-base dark:text-gray-300">
+            Overview of devices linked to your account
+          </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="grid grid-cols-2 gap-4 sm:gap-8 text-center sm:text-left">
               <div>
-                <div className="text-xl sm:text-2xl font-bold text-green-700">8</div>
-                <div className="text-xs sm:text-sm text-soil-950/70">Active Devices</div>
+                <div className="text-xl sm:text-2xl font-bold text-green-700 dark:text-green-400">8</div>
+                <div className="text-xs sm:text-sm text-soil-950/70 dark:text-gray-400">Active Devices</div>
               </div>
               <div>
-                <div className="text-xl sm:text-2xl font-bold text-yellow-600">2</div>
-                <div className="text-xs sm:text-sm text-soil-950/70">Need Attention</div>
+                <div className="text-xl sm:text-2xl font-bold text-yellow-600 dark:text-yellow-400">2</div>
+                <div className="text-xs sm:text-sm text-soil-950/70 dark:text-gray-400">Need Attention</div>
               </div>
             </div>
             <Link href="/devices" className="w-full sm:w-auto">
               <Button
                 variant="outline"
-                className="w-full sm:w-auto border-green-200 hover:border-green-400 bg-transparent text-sm sm:text-base"
+                className="w-full sm:w-auto border-green-200 hover:border-green-400 bg-transparent text-sm sm:text-base dark:text-gray-300 dark:hover:bg-gray-700"
               >
                 Manage Devices
               </Button>

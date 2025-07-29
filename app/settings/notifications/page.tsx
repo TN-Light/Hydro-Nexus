@@ -74,21 +74,21 @@ export default function NotificationsPage() {
       {/* Master Control */}
       <Card>
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
+          <CardTitle className="flex items-center gap-2 text-lg sm:text-xl dark:text-white">
             <Bell className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
             Notification Controls
           </CardTitle>
-          <CardDescription className="text-sm sm:text-base">
+          <CardDescription className="text-sm sm:text-base dark:text-gray-300">
             Manage how and when you receive alerts from your system
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-green-50 rounded-lg border border-green-200 gap-4 dark:bg-gray-800 dark:border-gray-700">
             <div className="space-y-1">
-              <Label htmlFor="master-notifications" className="text-sm sm:text-base font-medium">
+              <Label htmlFor="master-notifications" className="text-sm sm:text-base font-medium dark:text-gray-300">
                 Enable All Notifications
               </Label>
-              <p className="text-xs sm:text-sm text-soil-950/70">
+              <p className="text-xs sm:text-sm text-soil-950/70 dark:text-gray-400">
                 Master switch to enable or disable all notification types
               </p>
             </div>
@@ -104,8 +104,8 @@ export default function NotificationsPage() {
       {/* Alert Rules */}
       <Card>
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="text-lg sm:text-xl">Alert Rules</CardTitle>
-          <CardDescription className="text-sm sm:text-base">
+          <CardTitle className="text-lg sm:text-xl dark:text-white">Alert Rules</CardTitle>
+          <CardDescription className="text-sm sm:text-base dark:text-gray-300">
             Configure which alerts you want to receive and how
           </CardDescription>
         </CardHeader>
@@ -117,21 +117,24 @@ export default function NotificationsPage() {
               notificationSettings.rules[alert.id as keyof typeof notificationSettings.rules] || []
 
             return (
-              <div key={alert.id} className="space-y-4 p-3 sm:p-4 border border-green-100 rounded-lg">
+              <div
+                key={alert.id}
+                className="space-y-4 p-3 sm:p-4 border border-green-100 rounded-lg dark:border-gray-700"
+              >
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                   <div className="space-y-1 flex-1">
                     <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                      <Label className="text-sm sm:text-base font-medium">{alert.name}</Label>
+                      <Label className="text-sm sm:text-base font-medium dark:text-gray-300">{alert.name}</Label>
                       {isEnabled && (
                         <Badge
                           variant="outline"
-                          className="bg-green-100 text-green-700 border-green-200 self-start sm:self-center"
+                          className="bg-green-100 text-green-700 border-green-200 self-start sm:self-center dark:bg-gray-700 dark:text-gray-300"
                         >
                           Active
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs sm:text-sm text-soil-950/70">{alert.description}</p>
+                    <p className="text-xs sm:text-sm text-soil-950/70 dark:text-gray-400">{alert.description}</p>
                   </div>
                   <Switch
                     checked={isEnabled}
@@ -142,8 +145,10 @@ export default function NotificationsPage() {
 
                 {/* Delivery Channels */}
                 {isEnabled && notificationSettings.masterEnabled && (
-                  <div className="ml-0 sm:ml-4 space-y-3 border-l-0 sm:border-l-2 border-green-200 pl-0 sm:pl-4">
-                    <Label className="text-xs sm:text-sm font-medium text-soil-950/80">Delivery Channels:</Label>
+                  <div className="ml-0 sm:ml-4 space-y-3 border-l-0 sm:border-l-2 border-green-200 pl-0 sm:pl-4 dark:border-gray-700">
+                    <Label className="text-xs sm:text-sm font-medium text-soil-950/80 dark:text-gray-400">
+                      Delivery Channels:
+                    </Label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {deliveryChannels.map((channel) => {
                         const ChannelIcon = channel.icon
@@ -160,9 +165,9 @@ export default function NotificationsPage() {
                             />
                             <Label
                               htmlFor={`${alert.id}-${channel.id}`}
-                              className="flex items-center gap-2 text-xs sm:text-sm cursor-pointer"
+                              className="flex items-center gap-2 text-xs sm:text-sm cursor-pointer dark:text-gray-300"
                             >
-                              <ChannelIcon className="h-3 w-3 sm:h-4 sm:w-4 text-soil-950/70" />
+                              <ChannelIcon className="h-3 w-3 sm:h-4 sm:w-4 text-soil-950/70 dark:text-gray-400" />
                               {channel.name}
                             </Label>
                           </div>
@@ -180,38 +185,38 @@ export default function NotificationsPage() {
       {/* Notification Summary */}
       <Card>
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="text-lg sm:text-xl">Notification Summary</CardTitle>
-          <CardDescription className="text-sm sm:text-base">
+          <CardTitle className="text-lg sm:text-xl dark:text-white">Notification Summary</CardTitle>
+          <CardDescription className="text-sm sm:text-base dark:text-gray-300">
             Overview of your current notification settings
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg">
-              <div className="text-xl sm:text-2xl font-bold text-green-700">
+            <div className="text-center p-3 sm:p-4 bg-green-50 rounded-lg dark:bg-gray-800">
+              <div className="text-xl sm:text-2xl font-bold text-green-700 dark:text-green-400">
                 {Object.values(notificationSettings.rules).filter((rule) => rule.length > 0).length}
               </div>
-              <div className="text-xs sm:text-sm text-soil-950/70">Active Alerts</div>
+              <div className="text-xs sm:text-sm text-soil-950/70 dark:text-gray-400">Active Alerts</div>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
-              <div className="text-xl sm:text-2xl font-bold text-blue-700">
+            <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg dark:bg-gray-800">
+              <div className="text-xl sm:text-2xl font-bold text-blue-700 dark:text-blue-400">
                 {
                   Object.values(notificationSettings.rules)
                     .flat()
                     .filter((channel) => channel === "push").length
                 }
               </div>
-              <div className="text-xs sm:text-sm text-soil-950/70">Push Notifications</div>
+              <div className="text-xs sm:text-sm text-soil-950/70 dark:text-gray-400">Push Notifications</div>
             </div>
-            <div className="text-center p-3 sm:p-4 bg-purple-50 rounded-lg">
-              <div className="text-xl sm:text-2xl font-bold text-purple-700">
+            <div className="text-center p-3 sm:p-4 bg-purple-50 rounded-lg dark:bg-gray-800">
+              <div className="text-xl sm:text-2xl font-bold text-purple-700 dark:text-purple-400">
                 {
                   Object.values(notificationSettings.rules)
                     .flat()
                     .filter((channel) => channel === "email").length
                 }
               </div>
-              <div className="text-xs sm:text-sm text-soil-950/70">Email Alerts</div>
+              <div className="text-xs sm:text-sm text-soil-950/70 dark:text-gray-400">Email Alerts</div>
             </div>
           </div>
         </CardContent>
