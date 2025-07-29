@@ -197,8 +197,10 @@ export default function DigitalTwinPage() {
           <div className="lg:col-span-2">
             <Card>
               <CardHeader>
-                <CardTitle>Greenhouse Overview</CardTitle>
-                <CardDescription>Click on any grow bag to view detailed sensor information</CardDescription>
+              <CardTitle className="dark:text-white">Greenhouse Overview</CardTitle>
+                <CardDescription className="text-gray-600 dark:text-gray-300">
+                  Click on any grow bag to view detailed sensor information
+                </CardDescription>
               </CardHeader>
               <CardContent>
                 <div className="h-96 w-full bg-gradient-to-b from-sky-200 to-green-100 rounded-lg overflow-hidden">
@@ -237,7 +239,9 @@ export default function DigitalTwinPage() {
                   <Settings className="h-5 w-5 text-green-700" />
                   Scenario Simulation
                 </CardTitle>
-                <CardDescription>Adjust parameters to simulate different growing conditions</CardDescription>
+                <CardDescription className="text-gray-600 dark:text-gray-300">
+                  Adjust parameters to simulate different growing conditions
+                </CardDescription>
               </CardHeader>
               <CardContent className="space-y-6">
                 {/* Lighting Level */}
@@ -322,8 +326,8 @@ export default function DigitalTwinPage() {
             {sensorData[selectedBag] && (
               <Card>
                 <CardHeader>
-                  <CardTitle className="text-lg">Live Readings</CardTitle>
-                  <CardDescription>
+                  <CardTitle className="text-lg dark:text-white">Live Readings</CardTitle>
+                  <CardDescription className="text-gray-600 dark:text-gray-300">
                     Current sensor data for {selectedBag.replace("grow-bag-", "Grow Bag ")}
                   </CardDescription>
                 </CardHeader>

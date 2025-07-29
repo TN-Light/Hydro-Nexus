@@ -215,7 +215,9 @@ export default function AnalyticsPage() {
               <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
               Analysis Controls
             </CardTitle>
-            <CardDescription className="text-sm sm:text-base">Configure your data analysis parameters</CardDescription>
+            <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
+              Configure your data analysis parameters
+            </CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
@@ -343,8 +345,8 @@ export default function AnalyticsPage() {
           <div className="xl:col-span-3 order-1">
             <Card>
               <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-lg sm:text-xl">Time Series Analysis</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
+                <CardTitle className="text-lg sm:text-xl dark:text-white">Time Series Analysis</CardTitle>
+                <CardDescription className="text-sm sm:text-base text-gray-600 dark:text-gray-300">
                   {selectedMetrics.length} metrics over {processedData.length} data points
                 </CardDescription>
               </CardHeader>

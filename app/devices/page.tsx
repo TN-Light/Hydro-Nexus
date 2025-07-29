@@ -264,7 +264,7 @@ export default function DevicesPage() {
         <Card>
           <CardHeader>
             <CardTitle className="dark:text-white">Device List</CardTitle>
-            <CardDescription className="dark:text-gray-300">
+            <CardDescription className="text-gray-600 dark:text-gray-300">
               Click on any device to view details and manage settings
             </CardDescription>
           </CardHeader>
@@ -308,15 +308,15 @@ export default function DevicesPage() {
                         </TableCell>
                         <TableCell>
                           <div>
-                            <div className="font-medium text-soil-950 dark:text-white">{device.nickname}</div>
-                            <div className="text-xs text-soil-950/70 dark:text-gray-400">{device.id}</div>
+                <div className="font-medium text-black dark:text-white">{device.nickname}</div>
+                            <div className="text-xs text-gray-600 dark:text-gray-400">{device.id}</div>
                           </div>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-soil-950 dark:text-white">{device.location}</span>
+                          <span className="text-sm text-black dark:text-white">{device.location}</span>
                         </TableCell>
                         <TableCell>
-                          <span className="text-sm text-soil-950 dark:text-white">
+                          <span className="text-sm text-black dark:text-white">
                             {formatDistanceToNow(new Date(device.lastPing), { addSuffix: true })}
                           </span>
                         </TableCell>
@@ -361,7 +361,7 @@ export default function DevicesPage() {
                 <Smartphone className="h-5 w-5 text-green-700" />
                 {selectedDevice?.nickname}
               </DialogTitle>
-              <DialogDescription className="dark:text-gray-300">
+              <DialogDescription className="text-gray-600 dark:text-gray-300">
                 Device management and configuration for {selectedDevice?.id}
               </DialogDescription>
             </DialogHeader>

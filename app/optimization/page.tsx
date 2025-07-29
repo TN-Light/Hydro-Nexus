@@ -212,7 +212,7 @@ export default function OptimizationPage() {
                   <Beaker className="h-5 w-5 text-green-700" />
                   Current Nutrient Profile
                 </CardTitle>
-                <CardDescription className="dark:text-gray-300">
+                <CardDescription className="text-gray-600 dark:text-gray-300">
                   Enter your current nutrient levels and water parameters
                 </CardDescription>
               </CardHeader>
@@ -276,7 +276,7 @@ export default function OptimizationPage() {
                   <TrendingUp className="h-5 w-5 text-purple-600" />
                   Predicted Growth Rate
                 </CardTitle>
-                <CardDescription className="dark:text-gray-300">
+                <CardDescription className="text-gray-600 dark:text-gray-300">
                   AI-estimated growth performance based on current conditions
                 </CardDescription>
               </CardHeader>
@@ -310,7 +310,7 @@ export default function OptimizationPage() {
                   <Zap className="h-5 w-5 text-green-700" />
                   Recommended Adjustments
                 </CardTitle>
-                <CardDescription className="dark:text-gray-300">
+                <CardDescription className="text-gray-600 dark:text-gray-300">
                   AI-optimized nutrient concentrations for your crop
                 </CardDescription>
               </CardHeader>
