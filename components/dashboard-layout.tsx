@@ -36,6 +36,8 @@ import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { useRealtime } from "@/components/realtime-provider"
+import { SearchModal } from "@/components/search-modal"
+import { NotificationsPanel } from "@/components/notifications-panel"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -133,27 +135,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
             <div className="flex items-center gap-x-2 sm:gap-x-4 lg:gap-x-6">
               {/* Search */}
-              <Button variant="ghost" size="sm" onClick={() => alert("Search clicked!")} aria-label="Search">
-                <Search className="h-4 w-4 sm:h-5 sm:w-5" />
-                <span className="sr-only">Search</span>
-              </Button>
+              <SearchModal />
 
               {/* Notifications */}
-              <Button
-                variant="ghost"
-                size="sm"
-                className="relative"
-                onClick={() => alert("Notifications clicked!")}
-                aria-label="View notifications"
-              >
-                <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
-                {unreadAlerts > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 text-xs bg-red-500 text-white">
-                    {unreadAlerts}
-                  </Badge>
-                )}
-                <span className="sr-only">View notifications</span>
-              </Button>
+              <NotificationsPanel />
 
               {/* Theme Toggle */}
               <Button variant="ghost" size="sm" onClick={handleThemeToggle} aria-label="Toggle theme">

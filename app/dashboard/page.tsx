@@ -42,6 +42,23 @@ export default function DashboardPage() {
   const currentData = sensorData[selectedGrowBag]
   const growBagIds = Object.keys(sensorData)
 
+  const handleDownload = () => {
+    const data = sensorData[selectedGrowBag]
+    if (!data) return
+
+    const headers = Object.keys(data)
+    const values = Object.values(data)
+    let csvContent = "data:text/csv;charset=utf-8," + headers.join(",") + "\n" + values.join(",")
+
+    const encodedUri = encodeURI(csvContent)
+    const link = document.createElement("a")
+    link.setAttribute("href", encodedUri)
+    link.setAttribute("download", `${selectedGrowBag}_data.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+  }
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
@@ -52,7 +69,7 @@ export default function DashboardPage() {
             <p className="text-soil-950/70 dark:text-gray-300">Real-time monitoring for {growBagIds.length} grow bags</p>
           </div>
           <div className="flex items-center gap-2">
-            <Button onClick={() => alert("Downloading data...")}>Download</Button>
+            <Button onClick={handleDownload}>Download</Button>
             <Badge variant={isConnected ? "default" : "destructive"} className="bg-green-100 text-green-700">
               {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
             </Badge>
