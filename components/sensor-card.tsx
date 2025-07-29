@@ -38,21 +38,21 @@ export function SensorCard({ title, value, unit, icon: Icon, status, trend, data
   return (
     <Card className="border-green-100 hover:border-green-300 transition-colors">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-soil-950">{title}</CardTitle>
+        <CardTitle className="text-sm font-medium text-soil-950 dark:text-gray-300">{title}</CardTitle>
         <Icon className="h-4 w-4 text-green-700" />
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="text-2xl font-bold sensor-data text-soil-950">
+            <div className="text-2xl font-bold sensor-data text-soil-950 dark:text-white">
               {typeof value === "number" ? value.toFixed(1) : value}
-              <span className="text-sm font-normal text-soil-950/70 ml-1">{unit}</span>
+              <span className="text-sm font-normal text-soil-950/70 ml-1 dark:text-gray-400">{unit}</span>
             </div>
             <div className="flex items-center space-x-2 mt-1">
               <Badge variant="outline" className={statusColors[status]}>
                 {statusLabels[status]}
               </Badge>
-              <div className="flex items-center text-xs text-soil-950/70">
+              <div className="flex items-center text-xs text-soil-950/70 dark:text-gray-400">
                 <TrendIcon className="h-3 w-3 mr-1" />
                 <span>{trend === "up" ? "Rising" : trend === "down" ? "Falling" : "Stable"}</span>
               </div>

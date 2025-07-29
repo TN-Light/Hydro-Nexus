@@ -48,8 +48,8 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-soil-950">Dashboard</h1>
-            <p className="text-soil-950/70">Real-time monitoring for {growBagIds.length} grow bags</p>
+            <h1 className="text-3xl font-bold text-soil-950 dark:text-white">Dashboard</h1>
+            <p className="text-soil-950/70 dark:text-gray-300">Real-time monitoring for {growBagIds.length} grow bags</p>
           </div>
           <div className="flex items-center gap-2">
             <Button onClick={() => alert("Downloading data...")}>Download</Button>

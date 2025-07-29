@@ -181,8 +181,10 @@ export default function DigitalTwinPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-soil-950">Digital Twin</h1>
-            <p className="text-soil-950/70">Interactive 3D greenhouse simulation and scenario modeling</p>
+            <h1 className="text-3xl font-bold text-soil-950 dark:text-white">Digital Twin</h1>
+            <p className="text-soil-950/70 dark:text-gray-300">
+              Interactive 3D greenhouse simulation and scenario modeling
+            </p>
           </div>
           <Badge variant="outline" className="border-green-200">
             <Cube className="h-3 w-3 mr-1" />
