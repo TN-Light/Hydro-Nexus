@@ -59,20 +59,23 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
   }
 
   return (
-    <Card>
+    <Card className="overflow-hidden">
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-yellow-600" />
+          <AlertTriangle className="h-6 w-6 text-yellow-600 animate-bounce-subtle" />
           Recent Alerts
         </CardTitle>
         <CardDescription>Latest system notifications and warnings</CardDescription>
       </CardHeader>
       <CardContent>
         {visibleAlerts.length === 0 ? (
-          <div className="text-center py-8 text-soil-950/70">
-            <Info className="h-8 w-8 mx-auto mb-2 text-green-600" />
-            <p>No recent alerts</p>
-            <p className="text-sm">All systems operating normally</p>
+          <div className="text-center py-12 text-soil-950/70">
+            <div className="relative inline-block">
+              <Info className="h-12 w-12 mx-auto mb-4 text-green-600 animate-float" />
+              <div className="absolute inset-0 bg-green-400/20 rounded-full animate-ping"></div>
+            </div>
+            <p className="text-lg font-semibold text-green-700 mb-2">No recent alerts</p>
+            <p className="text-sm text-green-600">All systems operating normally</p>
           </div>
         ) : (
           <ScrollArea className="h-64">
@@ -82,30 +85,30 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
                 const Icon = config.icon
 
                 return (
-                  <div key={alert.id} className={`p-3 rounded-lg border ${config.bgColor} border-opacity-50`}>
+                  <div key={alert.id} className={`p-4 rounded-xl border-2 ${config.bgColor} border-opacity-50 transition-all duration-300 hover:shadow-md animate-slide-up interactive-element`}>
                     <div className="flex items-start justify-between">
                       <div className="flex items-start space-x-3">
-                        <Icon className="h-4 w-4 mt-0.5 text-current" />
+                        <Icon className="h-5 w-5 mt-0.5 text-current animate-pulse" />
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center space-x-2 mb-1">
-                            <Badge variant="outline" className={config.color}>
+                            <Badge variant="outline" className={`${config.color} font-semibold status-indicator`}>
                               {alert.severity.toUpperCase()}
                             </Badge>
-                            <span className="text-xs text-soil-950/70 font-mono">
+                            <span className="text-xs text-soil-950/70 font-mono bg-white/50 px-2 py-1 rounded">
                               {alert.deviceId.replace("grow-bag-", "Bag ")}
                             </span>
                           </div>
-                          <p className="text-sm text-soil-950 mb-1">{alert.message}</p>
-                          <p className="text-xs text-soil-950/70">{formatTime(alert.timestamp)}</p>
+                          <p className="text-sm text-soil-950 mb-2 font-medium leading-relaxed">{alert.message}</p>
+                          <p className="text-xs text-soil-950/70 font-medium">{formatTime(alert.timestamp)}</p>
                         </div>
                       </div>
                       <Button
                         variant="ghost"
-                        size="sm"
-                        className="h-6 w-6 p-0 hover:bg-white/50"
+                        size="sm" 
+                        className="h-8 w-8 p-0 hover:bg-white/70 rounded-full transition-all duration-300 hover:scale-110"
                         onClick={() => dismissAlert(alert.id)}
                       >
-                        <X className="h-3 w-3" />
+                        <X className="h-4 w-4" />
                         <span className="sr-only">Dismiss alert</span>
                       </Button>
                     </div>
@@ -117,11 +120,11 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
         )}
 
         {visibleAlerts.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-green-100">
+          <div className="mt-6 pt-4 border-t-2 border-green-100">
             <Button
               variant="outline"
               size="sm"
-              className="w-full border-green-200 hover:border-green-400 bg-transparent"
+              className="w-full border-green-200 hover:border-green-400 bg-transparent hover:bg-green-50 transition-all duration-300 font-semibold"
               onClick={() => setDismissedAlerts(new Set(alerts.map((a) => a.id)))}
             >
               Dismiss All Alerts

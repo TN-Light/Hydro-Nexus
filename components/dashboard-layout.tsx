@@ -94,7 +94,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
     <div className="min-h-screen bg-cream-50 dark:bg-gray-900">
       {/* Desktop Sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 xl:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-800 border-r border-green-100 dark:border-gray-700">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-800 border-r-2 border-green-100 dark:border-gray-700 premium-shadow">
           <Sidebar />
         </div>
       </div>
@@ -109,10 +109,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="lg:pl-64 xl:pl-72">
         {/* Top Navigation */}
-        <div className="sticky top-0 z-40 flex h-14 sm:h-16 shrink-0 items-center gap-x-4 border-b border-green-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-16 sm:h-18 shrink-0 items-center gap-x-4 border-b-2 border-green-100 dark:border-gray-700 agriculture-header-gradient px-4 sm:gap-x-6 sm:px-6 lg:px-8 premium-shadow">
           <Sheet>
             <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="lg:hidden">
+              <Button variant="ghost" size="sm" className="lg:hidden hover:bg-green-100 dark:hover:bg-green-900/30">
                 <Menu className="h-5 w-5" />
                 <span className="sr-only">Open sidebar</span>
               </Button>
@@ -124,7 +124,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
-              <h1 className="text-base sm:text-lg font-semibold text-soil-950 dark:text-white truncate">
+              <h1 className="text-lg sm:text-xl font-bold text-soil-950 dark:text-white truncate transition-colors duration-300">
                 {navigation.find((item) => pathname === item.href || pathname.startsWith(item.href + "/"))?.name ||
                   "Dashboard"}
               </h1>
@@ -132,10 +132,10 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
 
             <div className="flex items-center gap-x-2 sm:gap-x-4 lg:gap-x-6">
               {/* Notifications */}
-              <Button variant="ghost" size="sm" className="relative">
+              <Button variant="ghost" size="sm" className="relative hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300">
                 <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 {unreadAlerts > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 text-xs bg-red-500 text-white">
+                  <Badge className="absolute -top-1 -right-1 h-5 w-5 sm:h-6 sm:w-6 rounded-full p-0 text-xs bg-red-500 text-white animate-pulse-glow">
                     {unreadAlerts}
                   </Badge>
                 )}
@@ -143,7 +143,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               </Button>
 
               {/* Theme Toggle */}
-              <Button variant="ghost" size="sm" onClick={handleThemeToggle}>
+              <Button variant="ghost" size="sm" onClick={handleThemeToggle} className="hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300">
                 <Sun className="h-4 w-4 sm:h-5 sm:w-5 rotate-0 scale-100 transition-all dark:-rotate-90 dark:scale-0" />
                 <Moon className="absolute h-4 w-4 sm:h-5 sm:w-5 rotate-90 scale-0 transition-all dark:rotate-0 dark:scale-100" />
                 <span className="sr-only">Toggle theme</span>
@@ -152,9 +152,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               {/* User Menu */}
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
-                  <Button variant="ghost" className="relative h-8 w-8 rounded-full">
-                    <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-green-100 text-green-700 text-sm">
+                  <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-green-100 dark:hover:bg-green-900/30 transition-all duration-300">
+                    <Avatar className="h-9 w-9 ring-2 ring-green-200 hover:ring-green-300 transition-all duration-300">
+                      <AvatarFallback className="bg-green-100 text-green-700 text-sm font-semibold">
                         {user?.username?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -163,7 +163,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuContent className="w-48 sm:w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user?.username}</p>
+                      <p className="text-sm font-semibold leading-none">{user?.username}</p>
                       <p className="text-xs leading-none text-muted-foreground">{user?.role}</p>
                     </div>
                   </DropdownMenuLabel>
@@ -192,7 +192,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* Page Content */}
-        <main className="py-4 sm:py-6 px-4 sm:px-6 lg:px-8">{children}</main>
+        <main className="py-6 sm:py-8 px-4 sm:px-6 lg:px-8 animate-fade-in">{children}</main>
       </div>
     </div>
   )

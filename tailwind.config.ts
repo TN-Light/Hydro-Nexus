@@ -110,6 +110,32 @@ const config: Config = {
           "0%, 100%": { boxShadow: "0 0 5px rgba(34, 197, 94, 0.5)" },
           "50%": { boxShadow: "0 0 20px rgba(34, 197, 94, 0.8)" },
         },
+        "pulse-glow": {
+          "0%, 100%": { 
+            boxShadow: "0 0 5px rgba(34, 197, 94, 0.3)",
+            transform: "scale(1)"
+          },
+          "50%": { 
+            boxShadow: "0 0 20px rgba(34, 197, 94, 0.6)",
+            transform: "scale(1.02)"
+          },
+        },
+        "slide-up": {
+          "0%": { transform: "translateY(20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "slide-down": {
+          "0%": { transform: "translateY(-20px)", opacity: "0" },
+          "100%": { transform: "translateY(0)", opacity: "1" },
+        },
+        "float": {
+          "0%, 100%": { transform: "translateY(0px)" },
+          "50%": { transform: "translateY(-6px)" },
+        },
+        "wiggle": {
+          "0%, 100%": { transform: "rotate(-3deg)" },
+          "50%": { transform: "rotate(3deg)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -119,9 +145,26 @@ const config: Config = {
         "scale-in": "scale-in 0.2s ease-out",
         "bounce-subtle": "bounce-subtle 2s ease-in-out infinite",
         "glow": "glow 2s ease-in-out infinite alternate",
+        "pulse-glow": "pulse-glow 2s ease-in-out infinite",
+        "slide-up": "slide-up 0.4s ease-out",
+        "slide-down": "slide-down 0.4s ease-out",
+        "float": "float 3s ease-in-out infinite",
+        "wiggle": "wiggle 1s ease-in-out infinite",
       },
       fontFamily: {
         mono: ["Roboto Mono", "monospace"],
+      },
+      fontSize: {
+        'xs': ['0.75rem', { lineHeight: '1.5' }],
+        'sm': ['0.875rem', { lineHeight: '1.6' }],
+        'base': ['1rem', { lineHeight: '1.7' }],
+        'lg': ['1.125rem', { lineHeight: '1.7' }],
+        'xl': ['1.25rem', { lineHeight: '1.7' }],
+        '2xl': ['1.5rem', { lineHeight: '1.6' }],
+        '3xl': ['1.875rem', { lineHeight: '1.5' }],
+        '4xl': ['2.25rem', { lineHeight: '1.4' }],
+        '5xl': ['3rem', { lineHeight: '1.3' }],
+        '6xl': ['3.75rem', { lineHeight: '1.2' }],
       },
     },
   },
