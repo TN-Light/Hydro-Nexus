@@ -1,0 +1,91 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 44 33% 97%;
+    --foreground: 25 25% 5%;
+    --card: 44 33% 98%;
+    --card-foreground: 25 25% 5%;
+    --popover: 44 33% 98%;
+    --popover-foreground: 25 25% 5%;
+    --primary: 142 76% 36%;
+    --primary-foreground: 44 33% 98%;
+    --secondary: 44 33% 91%;
+    --secondary-foreground: 25 25% 15%;
+    --muted: 44 33% 94%;
+    --muted-foreground: 25 25% 45%;
+    --accent: 142 69% 58%;
+    --accent-foreground: 25 25% 5%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 44 33% 98%;
+    --border: 44 33% 87%;
+    --input: 44 33% 87%;
+    --ring: 142 76% 36%;
+    --radius: 0.5rem;
+
+    /* Custom agriculture colors */
+    --green-700: 142 76% 36%;
+    --green-500: 142 69% 58%;
+    --cream-50: 44 33% 97%;
+    --cream-100: 44 33% 94%;
+    --soil-950: 25 25% 5%;
+
+    --font-roboto-mono: "Roboto Mono", monospace;
+  }
+
+  .dark {
+    --background: 25 25% 5%;
+    --foreground: 44 33% 97%;
+    --card: 25 25% 8%;
+    --card-foreground: 44 33% 97%;
+    --popover: 25 25% 8%;
+    --popover-foreground: 44 33% 97%;
+    --primary: 142 69% 58%;
+    --primary-foreground: 25 25% 5%;
+    --secondary: 25 25% 15%;
+    --secondary-foreground: 44 33% 97%;
+    --muted: 25 25% 15%;
+    --muted-foreground: 44 33% 65%;
+    --accent: 142 76% 36%;
+    --accent-foreground: 44 33% 97%;
+    --destructive: 0 62% 30%;
+    --destructive-foreground: 44 33% 97%;
+    --border: 25 25% 15%;
+    --input: 25 25% 15%;
+    --ring: 142 69% 58%;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .sensor-data {
+    font-family: var(--font-roboto-mono), monospace;
+  }
+
+  .agriculture-gradient {
+    background: linear-gradient(135deg, hsl(var(--green-500)) 0%, hsl(var(--green-700)) 100%);
+  }
+
+  .cream-gradient {
+    background: linear-gradient(135deg, hsl(var(--cream-50)) 0%, hsl(var(--cream-100)) 100%);
+  }
+}
+
+/* PWA Install Button */
+.pwa-install-button {
+  display: none;
+}
+
+.pwa-install-button.show {
+  display: block;
+}

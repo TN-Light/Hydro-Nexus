@@ -1,0 +1,57 @@
+[
+  {
+    "timestamp": "2024-01-01T00:00:00Z",
+    "deviceId": "grow-bag-1",
+    "cropType": "Tomato",
+    "waterTemp": 22.5,
+    "pH": 6.2,
+    "ec": 1.8,
+    "orp": 280,
+    "do": 7.2,
+    "humidity": 72
+  },
+  {
+    "timestamp": "2024-01-01T01:00:00Z",
+    "deviceId": "grow-bag-1",
+    "cropType": "Tomato",
+    "waterTemp": 22.3,
+    "pH": 6.1,
+    "ec": 1.9,
+    "orp": 275,
+    "do": 7.1,
+    "humidity": 74
+  },
+  {
+    "timestamp": "2024-01-01T02:00:00Z",
+    "deviceId": "grow-bag-1",
+    "cropType": "Tomato",
+    "waterTemp": 22.1,
+    "pH": 6.0,
+    "ec": 2.0,
+    "orp": 270,
+    "do": 7.0,
+    "humidity": 76
+  },
+  {
+    "timestamp": "2024-01-01T03:00:00Z",
+    "deviceId": "grow-bag-2",
+    "cropType": "Lettuce",
+    "waterTemp": 21.8,
+    "pH": 5.9,
+    "ec": 1.7,
+    "orp": 285,
+    "do": 7.3,
+    "humidity": 71
+  },
+  {
+    "timestamp": "2024-01-01T04:00:00Z",
+    "deviceId": "grow-bag-2",
+    "cropType": "Lettuce",
+    "waterTemp": 21.6,
+    "pH": 5.8,
+    "ec": 1.6,
+    "orp": 290,
+    "do": 7.4,
+    "humidity": 69
+  }
+]
