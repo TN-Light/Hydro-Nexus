@@ -56,13 +56,24 @@ const config: Config = {
         green: {
           500: "hsl(142 69% 58%)",
           700: "hsl(142 76% 36%)",
+          600: "hsl(142 72% 47%)",
+          400: "hsl(142 65% 65%)",
+          300: "hsl(142 55% 75%)",
+          200: "hsl(142 45% 85%)",
+          100: "hsl(142 35% 92%)",
+          50: "hsl(142 25% 96%)",
         },
         cream: {
           50: "hsl(44 33% 97%)",
           100: "hsl(44 33% 94%)",
+          200: "hsl(44 33% 90%)",
         },
         soil: {
           950: "hsl(25 25% 5%)",
+          900: "hsl(25 25% 10%)",
+          800: "hsl(25 25% 15%)",
+          700: "hsl(25 25% 25%)",
+          600: "hsl(25 25% 35%)",
         },
       },
       borderRadius: {
@@ -87,12 +98,27 @@ const config: Config = {
           "0%": { transform: "translateX(-100%)" },
           "100%": { transform: "translateX(0)" },
         },
+        "scale-in": {
+          "0%": { transform: "scale(0.95)", opacity: "0" },
+          "100%": { transform: "scale(1)", opacity: "1" },
+        },
+        "bounce-subtle": {
+          "0%, 100%": { transform: "translateY(0)" },
+          "50%": { transform: "translateY(-2px)" },
+        },
+        "glow": {
+          "0%, 100%": { boxShadow: "0 0 5px rgba(34, 197, 94, 0.5)" },
+          "50%": { boxShadow: "0 0 20px rgba(34, 197, 94, 0.8)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
         "slide-in": "slide-in 0.2s ease-out",
+        "scale-in": "scale-in 0.2s ease-out",
+        "bounce-subtle": "bounce-subtle 2s ease-in-out infinite",
+        "glow": "glow 2s ease-in-out infinite alternate",
       },
       fontFamily: {
         mono: ["Roboto Mono", "monospace"],
