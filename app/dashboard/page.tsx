@@ -20,6 +20,7 @@ export default function DashboardPage() {
   const [sensorChartData, setSensorChartData] = useState<Record<string, Array<{ time: string; value: number }>>>({})
   const [sensorTrends, setSensorTrends] = useState<Record<string, "up" | "down">>({})
   const [isDataReady, setIsDataReady] = useState(false)
+  const [lastUpdateTime, setLastUpdateTime] = useState<string>("N/A")
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -82,6 +83,14 @@ export default function DashboardPage() {
     setSensorTrends(trends)
     setIsDataReady(true)
   }, [])
+
+  // Update last update time on client side only
+  useEffect(() => {
+    if (currentData) {
+      setLastUpdateTime(new Date(currentData.timestamp).toLocaleTimeString())
+    }
+  }, [currentData])
+
   if (isLoading) {
     return (
       <div className="min-h-screen bg-cream-50 flex items-center justify-center">
@@ -132,7 +141,7 @@ export default function DashboardPage() {
               {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
             </Badge>
             <Badge variant="outline" className="border-green-200">
-              Last update: {currentData ? new Date(currentData.timestamp).toLocaleTimeString() : "N/A"}
+              Last update: {lastUpdateTime}
             </Badge>
           </div>
         </div>

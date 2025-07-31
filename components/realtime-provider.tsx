@@ -149,11 +149,13 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     // Show toast for new alerts
     newAlerts.forEach((alert) => {
-      toast({
-        title: `Alert: ${alert.deviceId}`,
-        description: alert.message,
-        variant: alert.severity === "error" ? "destructive" : "default",
-      })
+      setTimeout(() => {
+        toast({
+          title: `Alert: ${alert.deviceId}`,
+          description: alert.message,
+          variant: alert.severity === "error" ? "destructive" : "default",
+        })
+      }, 0)
     })
 
     if (newAlerts.length > 0) {
