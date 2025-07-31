@@ -126,6 +126,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         timestamp: data.timestamp,
       })
     }
+    )
 
     if (data.orp < 200) {
       newAlerts.push({
@@ -167,6 +168,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 }
 
 export function useRealtime() {
+    }
+  }
   const context = useContext(RealtimeContext)
   if (context === undefined) {
     throw new Error("useRealtime must be used within a RealtimeProvider")
