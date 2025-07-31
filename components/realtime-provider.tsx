@@ -126,7 +126,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         timestamp: data.timestamp,
       })
     }
-    )
 
     if (data.orp < 200) {
       newAlerts.push({

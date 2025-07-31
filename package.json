@@ -57,7 +57,7 @@
     "next": "^15.2.4",
     "next-themes": "latest",
     "react": "^19.1.0",
-    "react-day-picker": "^10.0.0",
+    "react-day-picker": "8.10.1",
     "react-dom": "^19.1.0",
     "react-hook-form": "^7.54.1",
     "react-native": "latest",
@@ -68,7 +68,7 @@
     "tailwindcss-animate": "^1.0.7",
     "three": "latest",
     "use-sync-external-store": "latest",
-    "vaul": "^0.9.6",
+    "vaul": "^1.0.0",
     "zod": "^3.24.1",
     "zustand": "latest"
   },
