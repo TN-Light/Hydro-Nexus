@@ -6,7 +6,7 @@ import Link from "next/link"
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100">
+    <div className="min-h-screen bg-background">
       {/* Header */}
       <header className="border-b bg-card/80 backdrop-blur-sm sticky top-0 z-50">
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -162,7 +162,7 @@ export default function HomePage() {
       </section>
 
       {/* Benefits Section */}
-      <section id="benefits" className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 cream-gradient">
+      <section id="benefits" className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-card">
         <div className="container mx-auto max-w-screen-xl">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 sm:gap-12 items-center">
             <div className="order-2 lg:order-1">

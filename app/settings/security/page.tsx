@@ -94,7 +94,7 @@ export default function SecurityPage() {
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
+            <Lock className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Change Password
           </CardTitle>
           <CardDescription className="text-sm sm:text-base">
@@ -111,7 +111,7 @@ export default function SecurityPage() {
               type="password"
               value={passwordForm.current}
               onChange={(e) => setPasswordForm((prev) => ({ ...prev, current: e.target.value }))}
-              className="border-green-200 focus:border-green-500 text-sm sm:text-base"
+              className="text-sm sm:text-base"
               placeholder="Enter your current password"
             />
           </div>
@@ -125,10 +125,10 @@ export default function SecurityPage() {
               type="password"
               value={passwordForm.new}
               onChange={(e) => setPasswordForm((prev) => ({ ...prev, new: e.target.value }))}
-              className="border-green-200 focus:border-green-500 text-sm sm:text-base"
+              className="text-sm sm:text-base"
               placeholder="Enter your new password"
             />
-            <p className="text-xs text-soil-950/70">Password must be at least 6 characters long</p>
+            <p className="text-xs text-muted-foreground">Password must be at least 6 characters long</p>
           </div>
 
           <div className="space-y-2">
@@ -140,11 +140,11 @@ export default function SecurityPage() {
               type="password"
               value={passwordForm.confirm}
               onChange={(e) => setPasswordForm((prev) => ({ ...prev, confirm: e.target.value }))}
-              className="border-green-200 focus:border-green-500 text-sm sm:text-base"
+              className="text-sm sm:text-base"
               placeholder="Confirm your new password"
             />
             {passwordForm.confirm && passwordForm.new !== passwordForm.confirm && (
-              <p className="text-xs text-red-600">Passwords do not match</p>
+              <p className="text-xs text-destructive">Passwords do not match</p>
             )}
           </div>
 
@@ -172,7 +172,7 @@ export default function SecurityPage() {
       <Card>
         <CardHeader className="p-4 sm:p-6">
           <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-            <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
+            <Shield className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
             Two-Factor Authentication
           </CardTitle>
           <CardDescription className="text-sm sm:text-base">
@@ -180,30 +180,30 @@ export default function SecurityPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-yellow-50 rounded-lg border border-yellow-200 gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 sm:p-4 bg-yellow-500/10 rounded-lg border border-yellow-500/20 gap-4">
             <div className="space-y-1">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2">
-                <p className="font-medium text-soil-950 text-sm sm:text-base">2FA Status</p>
+                <p className="font-medium text-yellow-400 text-sm sm:text-base">2FA Status</p>
                 <Badge
                   variant="outline"
-                  className="bg-yellow-100 text-yellow-700 border-yellow-200 self-start sm:self-center"
+                  className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 self-start sm:self-center"
                 >
                   Not Enabled
                 </Badge>
               </div>
-              <p className="text-xs sm:text-sm text-soil-950/70">
+              <p className="text-xs sm:text-sm text-yellow-400/80">
                 Two-factor authentication is not currently enabled for your account
               </p>
             </div>
             <Button
               onClick={handleEnable2FA}
               variant="outline"
-              className="w-full sm:w-auto border-yellow-300 text-yellow-700 hover:bg-yellow-50 bg-transparent text-sm sm:text-base"
+              className="w-full sm:w-auto border-yellow-500/50 text-yellow-400 hover:bg-yellow-500/20 bg-transparent text-sm sm:text-base"
             >
               Enable 2FA
             </Button>
           </div>
-          <p className="text-xs text-soil-950/70 mt-3">This feature will be available in a future update</p>
+          <p className="text-xs text-muted-foreground mt-3">This feature will be available in a future update</p>
         </CardContent>
       </Card>
 
@@ -215,22 +215,22 @@ export default function SecurityPage() {
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-green-50 rounded-lg border border-green-200 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-green-500/10 rounded-lg border border-green-500/20 gap-2">
               <div>
-                <p className="font-medium text-green-800 text-sm sm:text-base">Password</p>
-                <p className="text-xs text-green-700">Strong password set</p>
+                <p className="font-medium text-green-400 text-sm sm:text-base">Password</p>
+                <p className="text-xs text-green-400/80">Strong password set</p>
               </div>
-              <Badge className="bg-green-100 text-green-700 self-start sm:self-center">Secure</Badge>
+              <Badge className="bg-green-500/20 text-green-400 self-start sm:self-center">Secure</Badge>
             </div>
 
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-yellow-50 rounded-lg border border-yellow-200 gap-2">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20 gap-2">
               <div>
-                <p className="font-medium text-yellow-800 text-sm sm:text-base">Two-Factor Auth</p>
-                <p className="text-xs text-yellow-700">Not enabled</p>
+                <p className="font-medium text-yellow-400 text-sm sm:text-base">Two-Factor Auth</p>
+                <p className="text-xs text-yellow-400/80">Not enabled</p>
               </div>
               <Badge
                 variant="outline"
-                className="bg-yellow-100 text-yellow-700 border-yellow-200 self-start sm:self-center"
+                className="bg-yellow-500/20 text-yellow-400 border-yellow-500/30 self-start sm:self-center"
               >
                 Pending
               </Badge>
@@ -240,9 +240,9 @@ export default function SecurityPage() {
       </Card>
 
       {/* Delete Account */}
-      <Card className="border-red-200">
+      <Card className="border-destructive">
         <CardHeader className="p-4 sm:p-6">
-          <CardTitle className="flex items-center gap-2 text-red-700 text-lg sm:text-xl">
+          <CardTitle className="flex items-center gap-2 text-destructive text-lg sm:text-xl">
             <Trash2 className="h-4 w-4 sm:h-5 sm:w-5" />
             Delete Account
           </CardTitle>
@@ -251,15 +251,15 @@ export default function SecurityPage() {
           </CardDescription>
         </CardHeader>
         <CardContent className="p-4 sm:p-6 pt-0">
-          <div className="p-3 sm:p-4 bg-red-50 rounded-lg border border-red-200 mb-4">
+          <div className="p-3 sm:p-4 bg-destructive/10 rounded-lg border border-destructive/20 mb-4">
             <div className="flex items-start gap-3">
-              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 mt-0.5 flex-shrink-0" />
+              <AlertTriangle className="h-4 w-4 sm:h-5 sm:w-5 text-destructive mt-0.5 flex-shrink-0" />
               <div>
-                <p className="font-medium text-red-800 text-sm sm:text-base">Warning: This action cannot be undone</p>
-                <p className="text-xs sm:text-sm text-red-700 mt-1">
+                <p className="font-medium text-destructive text-sm sm:text-base">Warning: This action cannot be undone</p>
+                <p className="text-xs sm:text-sm text-destructive/80 mt-1">
                   Deleting your account will permanently remove all your data, including:
                 </p>
-                <ul className="text-xs sm:text-sm text-red-700 mt-2 ml-4 list-disc space-y-1">
+                <ul className="text-xs sm:text-sm text-destructive/80 mt-2 ml-4 list-disc space-y-1">
                   <li>Profile information and preferences</li>
                   <li>Historical sensor data and analytics</li>
                   <li>Device configurations and settings</li>
@@ -273,7 +273,7 @@ export default function SecurityPage() {
             <AlertDialogTrigger asChild>
               <Button
                 variant="destructive"
-                className="w-full sm:w-auto bg-red-600 hover:bg-red-700 text-sm sm:text-base"
+                className="w-full sm:w-auto text-sm sm:text-base"
               >
                 <Trash2 className="h-4 w-4 mr-2" />
                 Delete Account
@@ -281,7 +281,7 @@ export default function SecurityPage() {
             </AlertDialogTrigger>
             <AlertDialogContent className="max-w-sm sm:max-w-lg">
               <AlertDialogHeader>
-                <AlertDialogTitle className="flex items-center gap-2 text-red-700">
+                <AlertDialogTitle className="flex items-center gap-2 text-destructive">
                   <AlertTriangle className="h-5 w-5" />
                   Confirm Account Deletion
                 </AlertDialogTitle>
@@ -301,7 +301,7 @@ export default function SecurityPage() {
                     value={deleteConfirmation}
                     onChange={(e) => setDeleteConfirmation(e.target.value)}
                     placeholder="delete my account"
-                    className="border-red-200 focus:border-red-500 text-sm sm:text-base"
+                    className="border-destructive focus:border-destructive/80 text-sm sm:text-base"
                   />
                 </div>
               </div>
@@ -313,16 +313,19 @@ export default function SecurityPage() {
                 <AlertDialogAction
                   onClick={handleAccountDeletion}
                   disabled={deleteConfirmation !== "delete my account" || isDeleting}
-                  className="w-full sm:w-auto bg-red-600 hover:bg-red-700"
+                  className="w-full sm:w-auto"
+                  asChild
                 >
-                  {isDeleting ? (
-                    <>
-                      <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                      Deleting...
-                    </>
-                  ) : (
-                    "Delete Account"
-                  )}
+                  <Button variant="destructive" disabled={deleteConfirmation !== "delete my account" || isDeleting}>
+                    {isDeleting ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                        Deleting...
+                      </>
+                    ) : (
+                      "Delete Account"
+                    )}
+                  </Button>
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

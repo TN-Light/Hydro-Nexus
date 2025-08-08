@@ -20,10 +20,20 @@ interface SensorCardProps {
   data: SensorData[]
 }
 
+import { useTheme } from "next-themes"
+import { useMemo } from "react"
+
 const statusColors = {
-  good: "bg-green-100 text-green-700 border-green-200",
-  warning: "bg-yellow-100 text-yellow-700 border-yellow-200",
-  alert: "bg-red-100 text-red-700 border-red-200",
+  light: {
+    good: "bg-green-100 text-green-700 border-green-200",
+    warning: "bg-yellow-100 text-yellow-700 border-yellow-200",
+    alert: "bg-red-100 text-red-700 border-red-200",
+  },
+  dark: {
+    good: "bg-green-900/50 text-green-400 border-green-800",
+    warning: "bg-yellow-900/50 text-yellow-400 border-yellow-800",
+    alert: "bg-red-900/50 text-red-400 border-red-800",
+  },
 }
 
 const statusLabels = {
@@ -32,27 +42,49 @@ const statusLabels = {
   alert: "Alert",
 }
 
+const lineColors = {
+  light: {
+    good: "#15803d",
+    warning: "#ca8a04",
+    alert: "#dc2626",
+  },
+  dark: {
+    good: "#22c55e",
+    warning: "#facc15",
+    alert: "#f87171",
+  },
+}
+
 export function SensorCard({ title, value, unit, icon: Icon, status, trend, data }: SensorCardProps) {
+  const { theme } = useTheme()
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus
 
+  const currentStatusColors = useMemo(() => {
+    return theme === "dark" ? statusColors.dark : statusColors.light
+  }, [theme])
+
+  const currentLineColors = useMemo(() => {
+    return theme === "dark" ? lineColors.dark : lineColors.light
+  }, [theme])
+
   return (
-    <Card className="border-green-100 hover:border-green-300 transition-colors">
+    <Card className="hover:border-primary/50 transition-colors">
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-soil-950">{title}</CardTitle>
-        <Icon className="h-4 w-4 text-green-700" />
+        <CardTitle className="text-sm font-medium text-muted-foreground">{title}</CardTitle>
+        <Icon className="h-4 w-4 text-muted-foreground" />
       </CardHeader>
       <CardContent>
         <div className="flex items-center justify-between mb-4">
           <div>
-            <div className="text-2xl font-bold sensor-data text-soil-950">
+            <div className="text-2xl font-bold sensor-data text-foreground">
               {typeof value === "number" ? value.toFixed(1) : value}
-              <span className="text-sm font-normal text-soil-950/70 ml-1">{unit}</span>
+              <span className="text-sm font-normal text-muted-foreground ml-1">{unit}</span>
             </div>
             <div className="flex items-center space-x-2 mt-1">
-              <Badge variant="outline" className={statusColors[status]}>
+              <Badge variant="outline" className={currentStatusColors[status]}>
                 {statusLabels[status]}
               </Badge>
-              <div className="flex items-center text-xs text-soil-950/70">
+              <div className="flex items-center text-xs text-muted-foreground">
                 <TrendIcon className="h-3 w-3 mr-1" />
                 <span>{trend === "up" ? "Rising" : trend === "down" ? "Falling" : "Stable"}</span>
               </div>
@@ -69,7 +101,7 @@ export function SensorCard({ title, value, unit, icon: Icon, status, trend, data
               <Line
                 type="monotone"
                 dataKey="value"
-                stroke={status === "good" ? "#15803d" : status === "warning" ? "#ca8a04" : "#dc2626"}
+                stroke={currentLineColors[status]}
                 strokeWidth={2}
                 dot={false}
               />

@@ -70,7 +70,7 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Zap className="h-5 w-5 text-green-700" />
+          <Zap className="h-5 w-5 text-primary" />
           Quick Actions
         </CardTitle>
         <CardDescription>Control systems for {selectedGrowBag.replace("grow-bag-", "Grow Bag ")}</CardDescription>
@@ -80,7 +80,7 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
           {/* Water Pump Control */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <Droplets className="h-4 w-4 text-blue-600" />
+              <Droplets className="h-4 w-4 text-blue-500" />
               <Label htmlFor="pump-switch" className="text-sm font-medium">
                 Water Pump
               </Label>
@@ -92,15 +92,15 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
                 onCheckedChange={(checked) => handleAction("pump", checked)}
                 disabled={isLoading === "pump"}
               />
-              <span className="text-xs text-soil-950/70">{pumpActive ? "Running" : "Stopped"}</span>
+              <span className="text-xs text-muted-foreground">{pumpActive ? "Running" : "Stopped"}</span>
             </div>
-            {isLoading === "pump" && <div className="text-xs text-green-700">Updating...</div>}
+            {isLoading === "pump" && <div className="text-xs text-primary">Updating...</div>}
           </div>
 
           {/* LED Lights Control */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <Lightbulb className="h-4 w-4 text-yellow-600" />
+              <Lightbulb className="h-4 w-4 text-yellow-500" />
               <Label htmlFor="led-switch" className="text-sm font-medium">
                 LED Lights
               </Label>
@@ -112,15 +112,15 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
                 onCheckedChange={(checked) => handleAction("led", checked)}
                 disabled={isLoading === "led"}
               />
-              <span className="text-xs text-soil-950/70">{ledActive ? "On" : "Off"}</span>
+              <span className="text-xs text-muted-foreground">{ledActive ? "On" : "Off"}</span>
             </div>
-            {isLoading === "led" && <div className="text-xs text-green-700">Updating...</div>}
+            {isLoading === "led" && <div className="text-xs text-primary">Updating...</div>}
           </div>
 
           {/* Nutrient Dosing */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <Droplets className="h-4 w-4 text-green-600" />
+              <Droplets className="h-4 w-4 text-green-500" />
               <Label htmlFor="dosing-switch" className="text-sm font-medium">
                 Auto Dosing
               </Label>
@@ -132,21 +132,21 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
                 onCheckedChange={(checked) => handleAction("dosing", checked)}
                 disabled={isLoading === "dosing"}
               />
-              <span className="text-xs text-soil-950/70">{dosingActive ? "Active" : "Inactive"}</span>
+              <span className="text-xs text-muted-foreground">{dosingActive ? "Active" : "Inactive"}</span>
             </div>
-            {isLoading === "dosing" && <div className="text-xs text-green-700">Updating...</div>}
+            {isLoading === "dosing" && <div className="text-xs text-primary">Updating...</div>}
           </div>
 
           {/* Manual Dosing Cycle */}
           <div className="space-y-3">
             <div className="flex items-center space-x-2">
-              <Play className="h-4 w-4 text-purple-600" />
+              <Play className="h-4 w-4 text-purple-500" />
               <Label className="text-sm font-medium">Manual Cycle</Label>
             </div>
             <Button
               size="sm"
               variant="outline"
-              className="w-full border-green-200 hover:border-green-400 bg-transparent"
+              className="w-full"
               onClick={runDosingCycle}
               disabled={isLoading === "cycle"}
             >
@@ -166,24 +166,24 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
         </div>
 
         {/* System Status */}
-        <div className="mt-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-lg">
-          <h4 className="text-sm font-medium text-green-800 dark:text-green-300 mb-2">System Status</h4>
+        <div className="mt-6 p-4 bg-primary/10 rounded-lg">
+          <h4 className="text-sm font-medium text-primary mb-2">System Status</h4>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-xs">
             <div>
-              <span className="text-green-700 dark:text-green-400">Pump:</span>
-              <span className="ml-1 font-mono">{pumpActive ? "ON" : "OFF"}</span>
+              <span className="text-primary/80">Pump:</span>
+              <span className="ml-1 font-mono text-foreground">{pumpActive ? "ON" : "OFF"}</span>
             </div>
             <div>
-              <span className="text-green-700 dark:text-green-400">Lights:</span>
-              <span className="ml-1 font-mono">{ledActive ? "ON" : "OFF"}</span>
+              <span className="text-primary/80">Lights:</span>
+              <span className="ml-1 font-mono text-foreground">{ledActive ? "ON" : "OFF"}</span>
             </div>
             <div>
-              <span className="text-green-700 dark:text-green-400">Dosing:</span>
-              <span className="ml-1 font-mono">{dosingActive ? "AUTO" : "MANUAL"}</span>
+              <span className="text-primary/80">Dosing:</span>
+              <span className="ml-1 font-mono text-foreground">{dosingActive ? "AUTO" : "MANUAL"}</span>
             </div>
             <div>
-              <span className="text-green-700 dark:text-green-400">Status:</span>
-              <span className="ml-1 font-mono text-green-600">OPTIMAL</span>
+              <span className="text-primary/80">Status:</span>
+              <span className="ml-1 font-mono text-primary">OPTIMAL</span>
             </div>
           </div>
         </div>

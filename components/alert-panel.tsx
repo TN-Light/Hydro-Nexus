@@ -22,18 +22,18 @@ interface AlertPanelProps {
 const severityConfig = {
   info: {
     icon: Info,
-    color: "bg-blue-100 text-blue-700 border-blue-200",
-    bgColor: "bg-blue-50",
+    color: "bg-blue-500/20 text-blue-400 border-blue-500/30",
+    bgColor: "bg-blue-500/10",
   },
   warning: {
     icon: AlertTriangle,
-    color: "bg-yellow-100 text-yellow-700 border-yellow-200",
-    bgColor: "bg-yellow-50",
+    color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
+    bgColor: "bg-yellow-500/10",
   },
   error: {
     icon: AlertTriangle,
-    color: "bg-red-100 text-red-700 border-red-200",
-    bgColor: "bg-red-50",
+    color: "bg-red-500/20 text-red-400 border-red-500/30",
+    bgColor: "bg-destructive/10",
   },
 }
 
@@ -62,15 +62,15 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <AlertTriangle className="h-5 w-5 text-yellow-600" />
+          <AlertTriangle className="h-5 w-5 text-yellow-500" />
           Recent Alerts
         </CardTitle>
         <CardDescription>Latest system notifications and warnings</CardDescription>
       </CardHeader>
       <CardContent>
         {visibleAlerts.length === 0 ? (
-          <div className="text-center py-8 text-soil-950/70">
-            <Info className="h-8 w-8 mx-auto mb-2 text-green-600" />
+          <div className="text-center py-8 text-muted-foreground">
+            <Info className="h-8 w-8 mx-auto mb-2 text-green-500" />
             <p>No recent alerts</p>
             <p className="text-sm">All systems operating normally</p>
           </div>
@@ -91,18 +91,18 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
                             <Badge variant="outline" className={config.color}>
                               {alert.severity.toUpperCase()}
                             </Badge>
-                            <span className="text-xs text-soil-950/70 font-mono">
+                            <span className="text-xs text-muted-foreground font-mono">
                               {alert.deviceId.replace("grow-bag-", "Bag ")}
                             </span>
                           </div>
-                          <p className="text-sm text-soil-950 mb-1">{alert.message}</p>
-                          <p className="text-xs text-soil-950/70">{formatTime(alert.timestamp)}</p>
+                          <p className="text-sm text-foreground mb-1">{alert.message}</p>
+                          <p className="text-xs text-muted-foreground">{formatTime(alert.timestamp)}</p>
                         </div>
                       </div>
                       <Button
                         variant="ghost"
                         size="sm"
-                        className="h-6 w-6 p-0 hover:bg-white/50"
+                        className="h-6 w-6 p-0 hover:bg-muted/50"
                         onClick={() => dismissAlert(alert.id)}
                       >
                         <X className="h-3 w-3" />
@@ -117,11 +117,11 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
         )}
 
         {visibleAlerts.length > 0 && (
-          <div className="mt-4 pt-4 border-t border-green-100">
+          <div className="mt-4 pt-4 border-t">
             <Button
               variant="outline"
               size="sm"
-              className="w-full border-green-200 hover:border-green-400 bg-transparent"
+              className="w-full"
               onClick={() => setDismissedAlerts(new Set(alerts.map((a) => a.id)))}
             >
               Dismiss All Alerts
