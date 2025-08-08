@@ -25,6 +25,15 @@
     --ring: 142 76% 36%;
     --radius: 0.5rem;
 
+    /* Sidebar */
+    --sidebar: 44 33% 98%;
+    --sidebar-foreground: 25 25% 5%;
+    --sidebar-border: 44 33% 87%;
+    --sidebar-ring: 142 76% 36%;
+    --sidebar-accent: 142 69% 58%;
+    --sidebar-accent-foreground: 25 25% 5%;
+
+
     /* Custom agriculture colors */
     --green-700: 142 76% 36%;
     --green-500: 142 69% 58%;
@@ -55,6 +64,14 @@
     --border: 25 25% 15%;
     --input: 25 25% 15%;
     --ring: 142 69% 58%;
+
+    /* Sidebar */
+    --sidebar: 25 25% 8%;
+    --sidebar-foreground: 44 33% 97%;
+    --sidebar-border: 25 25% 15%;
+    --sidebar-ring: 142 69% 58%;
+    --sidebar-accent: 142 76% 36%;
+    --sidebar-accent-foreground: 44 33% 97%;
   }
 }
 
