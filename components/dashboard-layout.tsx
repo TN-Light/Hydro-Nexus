@@ -8,7 +8,7 @@ import {
   BarChart3,
   Beaker,
   Bell,
-  Cube,
+  Box,
   Home,
   Leaf,
   LogOut,
@@ -48,7 +48,7 @@ import { useTheme } from "next-themes"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
-  { name: "Digital Twin", href: "/digital-twin", icon: Cube },
+  { name: "Digital Twin", href: "/digital-twin", icon: Box },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Devices", href: "/devices", icon: Smartphone },
   { name: "Optimization", href: "/optimization", icon: Beaker },
