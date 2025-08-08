@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 
 interface SensorData {
@@ -66,7 +66,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       clearInterval(interval)
       setIsConnected(false)
     }
-  }, [])
+  }, [checkForAlerts])
 
   const generateMockSensorData = (deviceId: string): SensorData => {
     const baseValues = {
@@ -94,7 +94,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const checkForAlerts = (data: SensorData) => {
+  const checkForAlerts = useCallback((data: SensorData) => {
     const newAlerts: RealtimeContextType["alerts"] = []
 
     if (data.pH < 5.2 || data.pH > 6.8) {
@@ -159,7 +159,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     if (newAlerts.length > 0) {
       setAlerts((prev) => [...newAlerts, ...prev].slice(0, 50)) // Keep last 50 alerts
     }
-  }
+  }, [toast])
 
   return <RealtimeContext.Provider value={{ sensorData, isConnected, alerts }}>{children}</RealtimeContext.Provider>
 }

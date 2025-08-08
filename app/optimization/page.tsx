@@ -287,7 +287,7 @@ export default function OptimizationPage() {
                 ) : (
                   <div className="text-center py-8 text-soil-950/70">
                     <Brain className="h-12 w-12 mx-auto mb-4 text-soil-950/30" />
-                    <p>Click "Suggest Optimal Recipe" to generate AI predictions</p>
+                    <p>Click &quot;Suggest Optimal Recipe&quot; to generate AI predictions</p>
                   </div>
                 )}
               </CardContent>

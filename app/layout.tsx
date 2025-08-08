@@ -12,13 +12,20 @@ const robotoMono = Roboto_Mono({
   variable: "--font-roboto-mono",
 })
 
+import { Viewport } from "next"
+
 export const metadata: Metadata = {
   title: "Hydro Nexus - Precision Agriculture Platform",
   description: "Optimize exotic crop cultivation with AI-powered hydroponics",
   manifest: "/manifest.json",
+  generator: 'v0.dev'
+}
+
+export const viewport: Viewport = {
   themeColor: "#15803d",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
-    generator: 'v0.dev'
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 }
 
 export default function RootLayout({

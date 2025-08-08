@@ -294,7 +294,7 @@ export default function SecurityPage() {
               <div className="space-y-4">
                 <div className="space-y-2">
                   <Label htmlFor="delete-confirmation" className="text-sm sm:text-base">
-                    Type "delete my account" to confirm:
+                    Type &quot;delete my account&quot; to confirm:
                   </Label>
                   <Input
                     id="delete-confirmation"
