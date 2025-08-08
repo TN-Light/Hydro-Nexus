@@ -89,3 +89,19 @@
 .pwa-install-button.show {
   display: block;
 }
+
+/* Dark mode overrides for react-day-picker */
+.dark .rdp {
+  --rdp-background-color: hsl(var(--card));
+  --rdp-color: hsl(var(--card-foreground));
+  --rdp-accent-color: hsl(var(--primary));
+  --rdp-accent-color-dark: hsl(var(--primary));
+  --rdp-background-color-dark: hsl(var(--card));
+  --rdp-outline: 2px solid hsl(var(--primary));
+  --rdp-outline-selected: 3px solid hsl(var(--primary));
+  --rdp-border-radius: var(--radius);
+}
+
+.dark .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
+  background-color: hsl(var(--accent));
+}

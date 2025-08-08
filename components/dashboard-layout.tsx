@@ -63,8 +63,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
     <div className={`flex flex-col h-full ${mobile ? "p-4" : "p-4 sm:p-6"}`}>
       <div className="flex items-center space-x-2 mb-6 sm:mb-8">
-        <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-700" />
-        <span className="text-lg sm:text-xl font-bold text-soil-950 dark:text-white">Hydro Nexus</span>
+        <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+        <span className="text-lg sm:text-xl font-bold text-foreground">Hydro Nexus</span>
       </div>
 
       <nav className="flex-1 space-y-1 sm:space-y-2">
@@ -76,8 +76,8 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               href={item.href}
               className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors text-sm sm:text-base ${
                 isActive
-                  ? "bg-green-100 text-green-700 dark:bg-green-900 dark:text-green-300"
-                  : "text-soil-950/70 hover:bg-green-50 hover:text-green-700 dark:text-gray-300 dark:hover:bg-green-900/50"
+                  ? "bg-primary/10 text-primary"
+                  : "text-muted-foreground hover:bg-primary/5 hover:text-primary"
               }`}
               onClick={() => mobile && setMobileMenuOpen(false)}
             >
@@ -91,17 +91,17 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   )
 
   return (
-    <div className="min-h-screen bg-cream-50 dark:bg-gray-900">
+    <div className="min-h-screen bg-background">
       {/* Desktop Sidebar */}
       <div className="hidden lg:fixed lg:inset-y-0 lg:z-50 lg:flex lg:w-64 xl:w-72 lg:flex-col">
-        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-white dark:bg-gray-800 border-r border-green-100 dark:border-gray-700">
+        <div className="flex grow flex-col gap-y-5 overflow-y-auto bg-card border-r">
           <Sidebar />
         </div>
       </div>
 
       {/* Mobile Sidebar */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-        <SheetContent side="left" className="w-64 sm:w-72 p-0 bg-white dark:bg-gray-800">
+        <SheetContent side="left" className="w-64 sm:w-72 p-0 bg-card">
           <Sidebar mobile />
         </SheetContent>
       </Sheet>
@@ -109,7 +109,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
       {/* Main Content */}
       <div className="lg:pl-64 xl:pl-72">
         {/* Top Navigation */}
-        <div className="sticky top-0 z-40 flex h-14 sm:h-16 shrink-0 items-center gap-x-4 border-b border-green-100 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm px-4 sm:gap-x-6 sm:px-6 lg:px-8">
+        <div className="sticky top-0 z-40 flex h-14 sm:h-16 shrink-0 items-center gap-x-4 border-b bg-card/80 backdrop-blur-sm px-4 sm:gap-x-6 sm:px-6 lg:px-8">
           <Sheet>
             <SheetTrigger asChild>
               <Button variant="ghost" size="sm" className="lg:hidden">
@@ -117,14 +117,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <span className="sr-only">Open sidebar</span>
               </Button>
             </SheetTrigger>
-            <SheetContent side="left" className="w-64 sm:w-72 p-0 bg-white dark:bg-gray-800">
+            <SheetContent side="left" className="w-64 sm:w-72 p-0 bg-card">
               <Sidebar mobile />
             </SheetContent>
           </Sheet>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">
-              <h1 className="text-base sm:text-lg font-semibold text-soil-950 dark:text-white truncate">
+              <h1 className="text-base sm:text-lg font-semibold text-foreground truncate">
                 {navigation.find((item) => pathname === item.href || pathname.startsWith(item.href + "/"))?.name ||
                   "Dashboard"}
               </h1>
@@ -135,7 +135,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
               <Button variant="ghost" size="sm" className="relative">
                 <Bell className="h-4 w-4 sm:h-5 sm:w-5" />
                 {unreadAlerts > 0 && (
-                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 text-xs bg-red-500 text-white">
+                  <Badge className="absolute -top-1 -right-1 h-4 w-4 sm:h-5 sm:w-5 rounded-full p-0 text-xs bg-destructive text-destructive-foreground">
                     {unreadAlerts}
                   </Badge>
                 )}
@@ -154,7 +154,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
-                      <AvatarFallback className="bg-green-100 text-green-700 text-sm">
+                      <AvatarFallback className="bg-primary/10 text-primary text-sm">
                         {user?.username?.charAt(0).toUpperCase()}
                       </AvatarFallback>
                     </Avatar>
@@ -163,7 +163,7 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                 <DropdownMenuContent className="w-48 sm:w-56" align="end" forceMount>
                   <DropdownMenuLabel className="font-normal">
                     <div className="flex flex-col space-y-1">
-                      <p className="text-sm font-medium leading-none">{user?.username}</p>
+                      <p className="text-sm font-medium leading-none text-foreground">{user?.username}</p>
                       <p className="text-xs leading-none text-muted-foreground">{user?.role}</p>
                     </div>
                   </DropdownMenuLabel>
