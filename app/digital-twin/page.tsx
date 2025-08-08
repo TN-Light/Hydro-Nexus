@@ -13,12 +13,34 @@ import { Canvas } from "@react-three/fiber"
 import { OrbitControls, Environment, Html } from "@react-three/drei"
 import { Suspense, useState, useRef, useEffect } from "react"
 import { redirect } from "next/navigation"
+import { useTheme } from "next-themes"
 import { CuboidIcon as Cube, Settings, Play, RotateCcw } from "lucide-react"
 import type * as THREE from "three"
 
 // 3D Greenhouse Component
-function GreenhouseScene({ onGrowBagClick, selectedBag, sensorData }: any) {
+function GreenhouseScene({ onGrowBagClick, selectedBag, sensorData, theme }: any) {
   const groupRef = useRef<THREE.Group>(null)
+
+  const colors = {
+    light: {
+      structure: "#e8f5e8",
+      floor: "#8b7355",
+      bag: "#16a34a",
+      selectedBag: "#15803d",
+      plant: "#22c55e",
+      light: "#fbbf24",
+    },
+    dark: {
+      structure: "#2c3e2c",
+      floor: "#4a3e2f",
+      bag: "#22c55e",
+      selectedBag: "#16a34a",
+      plant: "#34d399",
+      light: "#fde047",
+    },
+  }
+
+  const currentColors = theme === "dark" ? colors.dark : colors.light
 
   useEffect(() => {
     if (groupRef.current) {
@@ -31,13 +53,13 @@ function GreenhouseScene({ onGrowBagClick, selectedBag, sensorData }: any) {
       {/* Greenhouse Structure */}
       <mesh position={[0, 2, 0]}>
         <boxGeometry args={[12, 4, 8]} />
-        <meshStandardMaterial color="#e8f5e8" transparent opacity={0.3} />
+        <meshStandardMaterial color={currentColors.structure} transparent opacity={0.3} />
       </mesh>
 
       {/* Floor */}
       <mesh position={[0, -0.1, 0]} rotation={[-Math.PI / 2, 0, 0]}>
         <planeGeometry args={[12, 8]} />
-        <meshStandardMaterial color="#8b7355" />
+        <meshStandardMaterial color={currentColors.floor} />
       </mesh>
 
       {/* Grow Bags */}
@@ -54,29 +76,29 @@ function GreenhouseScene({ onGrowBagClick, selectedBag, sensorData }: any) {
             <mesh
               onClick={() => onGrowBagClick(bagId)}
               onPointerOver={(e) => {
-                e.object.material.color.setHex(0x22c55e)
+                e.object.material.color.set(currentColors.plant)
                 document.body.style.cursor = "pointer"
               }}
               onPointerOut={(e) => {
-                e.object.material.color.setHex(isSelected ? 0x15803d : 0x16a34a)
+                e.object.material.color.set(isSelected ? currentColors.selectedBag : currentColors.bag)
                 document.body.style.cursor = "default"
               }}
             >
               <cylinderGeometry args={[0.8, 0.8, 1, 8]} />
-              <meshStandardMaterial color={isSelected ? "#15803d" : "#16a34a"} />
+              <meshStandardMaterial color={isSelected ? currentColors.selectedBag : currentColors.bag} />
             </mesh>
 
             {/* Plant */}
             <mesh position={[0, 1, 0]}>
               <coneGeometry args={[0.3, 0.8, 8]} />
-              <meshStandardMaterial color="#22c55e" />
+              <meshStandardMaterial color={currentColors.plant} />
             </mesh>
 
             {/* Info Panel */}
             {isSelected && data && (
               <Html position={[0, 2, 0]} center>
-                <div className="bg-white p-3 rounded-lg shadow-lg border border-green-200 min-w-48">
-                  <h3 className="font-semibold text-sm mb-2 text-soil-950">
+                <div className="bg-card p-3 rounded-lg shadow-lg border min-w-48 text-foreground">
+                  <h3 className="font-semibold text-sm mb-2">
                     {bagId.replace("grow-bag-", "Grow Bag ")}
                   </h3>
                   <div className="space-y-1 text-xs">
@@ -107,7 +129,7 @@ function GreenhouseScene({ onGrowBagClick, selectedBag, sensorData }: any) {
       {/* Lighting System */}
       <mesh position={[0, 3.5, 0]}>
         <boxGeometry args={[10, 0.2, 6]} />
-        <meshStandardMaterial color="#fbbf24" emissive="#fbbf24" emissiveIntensity={0.2} />
+        <meshStandardMaterial color={currentColors.light} emissive={currentColors.light} emissiveIntensity={0.2} />
       </mesh>
     </group>
   )
@@ -117,6 +139,7 @@ export default function DigitalTwinPage() {
   const { user, isLoading } = useAuth()
   const { sensorData } = useRealtime()
   const { toast } = useToast()
+  const { theme } = useTheme()
   const [selectedBag, setSelectedBag] = useState("grow-bag-1")
   const [lightingLevel, setLightingLevel] = useState([75])
   const [nutrientDose, setNutrientDose] = useState([50])
@@ -131,10 +154,10 @@ export default function DigitalTwinPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto mb-4"></div>
-          <p className="text-soil-950/70">Loading digital twin...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading digital twin...</p>
         </div>
       </div>
     )
@@ -181,10 +204,10 @@ export default function DigitalTwinPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-soil-950">Digital Twin</h1>
-            <p className="text-soil-950/70">Interactive 3D greenhouse simulation and scenario modeling</p>
+            <h1 className="text-3xl font-bold text-foreground">Digital Twin</h1>
+            <p className="text-muted-foreground">Interactive 3D greenhouse simulation and scenario modeling</p>
           </div>
-          <Badge variant="outline" className="border-green-200">
+          <Badge variant="outline">
             <Cube className="h-3 w-3 mr-1" />
             3D Visualization Active
           </Badge>
@@ -199,7 +222,7 @@ export default function DigitalTwinPage() {
                 <CardDescription>Click on any grow bag to view detailed sensor information</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="h-96 w-full bg-gradient-to-b from-sky-200 to-green-100 rounded-lg overflow-hidden">
+                <div className="h-96 w-full bg-gradient-to-b from-sky-200 to-primary/20 rounded-lg overflow-hidden">
                   <Canvas camera={{ position: [8, 6, 8], fov: 60 }}>
                     <Suspense fallback={null}>
                       <ambientLight intensity={0.4} />
@@ -208,6 +231,7 @@ export default function DigitalTwinPage() {
                         onGrowBagClick={handleGrowBagClick}
                         selectedBag={selectedBag}
                         sensorData={sensorData}
+                        theme={theme}
                       />
                       <OrbitControls enablePan={true} enableZoom={true} enableRotate={true} />
                       <Environment preset="park" />
@@ -215,11 +239,11 @@ export default function DigitalTwinPage() {
                   </Canvas>
                 </div>
 
-                <div className="mt-4 p-3 bg-green-50 rounded-lg">
-                  <p className="text-sm text-green-800">
+                <div className="mt-4 p-3 bg-primary/10 rounded-lg">
+                  <p className="text-sm text-primary">
                     <strong>Selected:</strong> {selectedBag.replace("grow-bag-", "Grow Bag ")}
                   </p>
-                  <p className="text-xs text-green-700 mt-1">
+                  <p className="text-xs text-primary/80 mt-1">
                     Use mouse to rotate, zoom, and pan around the greenhouse. Click on grow bags for details.
                   </p>
                 </div>
@@ -232,7 +256,7 @@ export default function DigitalTwinPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <Settings className="h-5 w-5 text-green-700" />
+                  <Settings className="h-5 w-5 text-primary" />
                   Scenario Simulation
                 </CardTitle>
                 <CardDescription>Adjust parameters to simulate different growing conditions</CardDescription>
@@ -249,7 +273,7 @@ export default function DigitalTwinPage() {
                     step={5}
                     className="w-full"
                   />
-                  <p className="text-xs text-soil-950/70">Adjust LED intensity for photosynthesis optimization</p>
+                  <p className="text-xs text-muted-foreground">Adjust LED intensity for photosynthesis optimization</p>
                 </div>
 
                 {/* Nutrient Dose */}
@@ -263,7 +287,7 @@ export default function DigitalTwinPage() {
                     step={5}
                     className="w-full"
                   />
-                  <p className="text-xs text-soil-950/70">Modify nutrient concentration in the solution</p>
+                  <p className="text-xs text-muted-foreground">Modify nutrient concentration in the solution</p>
                 </div>
 
                 {/* Temperature */}
@@ -277,7 +301,7 @@ export default function DigitalTwinPage() {
                     step={0.5}
                     className="w-full"
                   />
-                  <p className="text-xs text-soil-950/70">Set optimal water temperature for root health</p>
+                  <p className="text-xs text-muted-foreground">Set optimal water temperature for root health</p>
                 </div>
 
                 {/* Action Buttons */}
@@ -285,7 +309,7 @@ export default function DigitalTwinPage() {
                   <Button
                     onClick={applyScenario}
                     disabled={isApplying}
-                    className="flex-1 agriculture-gradient text-white hover:opacity-90"
+                    className="flex-1"
                   >
                     {isApplying ? (
                       <>
@@ -302,7 +326,6 @@ export default function DigitalTwinPage() {
                   <Button
                     variant="outline"
                     onClick={resetScenario}
-                    className="border-green-200 hover:border-green-400 bg-transparent"
                   >
                     <RotateCcw className="h-4 w-4" />
                   </Button>
@@ -322,30 +345,30 @@ export default function DigitalTwinPage() {
                 <CardContent>
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
-                      <span className="text-soil-950/70">pH Level</span>
-                      <div className="font-mono text-lg text-green-700">{sensorData[selectedBag].pH.toFixed(1)}</div>
+                      <span className="text-muted-foreground">pH Level</span>
+                      <div className="font-mono text-lg text-primary">{sensorData[selectedBag].pH.toFixed(1)}</div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">EC</span>
-                      <div className="font-mono text-lg text-green-700">{sensorData[selectedBag].ec.toFixed(1)}</div>
+                      <span className="text-muted-foreground">EC</span>
+                      <div className="font-mono text-lg text-primary">{sensorData[selectedBag].ec.toFixed(1)}</div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">Temperature</span>
-                      <div className="font-mono text-lg text-green-700">
+                      <span className="text-muted-foreground">Temperature</span>
+                      <div className="font-mono text-lg text-primary">
                         {sensorData[selectedBag].waterTemp.toFixed(1)}°C
                       </div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">Dissolved O₂</span>
-                      <div className="font-mono text-lg text-green-700">{sensorData[selectedBag].do.toFixed(1)}</div>
+                      <span className="text-muted-foreground">Dissolved O₂</span>
+                      <div className="font-mono text-lg text-primary">{sensorData[selectedBag].do.toFixed(1)}</div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">ORP</span>
-                      <div className="font-mono text-lg text-green-700">{sensorData[selectedBag].orp.toFixed(0)}mV</div>
+                      <span className="text-muted-foreground">ORP</span>
+                      <div className="font-mono text-lg text-primary">{sensorData[selectedBag].orp.toFixed(0)}mV</div>
                     </div>
                     <div>
-                      <span className="text-soil-950/70">Humidity</span>
-                      <div className="font-mono text-lg text-green-700">
+                      <span className="text-muted-foreground">Humidity</span>
+                      <div className="font-mono text-lg text-primary">
                         {sensorData[selectedBag].humidity.toFixed(1)}%
                       </div>
                     </div>
