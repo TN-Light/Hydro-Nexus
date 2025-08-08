@@ -26,10 +26,10 @@ export default function DashboardPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto mb-4"></div>
-          <p className="text-soil-950/70">Loading dashboard...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading dashboard...</p>
         </div>
       </div>
     )
@@ -48,14 +48,14 @@ export default function DashboardPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-soil-950">Dashboard</h1>
-            <p className="text-soil-950/70">Real-time monitoring for {growBagIds.length} grow bags</p>
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-muted-foreground">Real-time monitoring for {growBagIds.length} grow bags</p>
           </div>
           <div className="flex items-center gap-2">
-            <Badge variant={isConnected ? "default" : "destructive"} className="bg-green-100 text-green-700">
+            <Badge variant={isConnected ? "default" : "destructive"}>
               {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
             </Badge>
-            <Badge variant="outline" className="border-green-200">
+            <Badge variant="outline">
               Last update: {currentData ? new Date(currentData.timestamp).toLocaleTimeString() : "N/A"}
             </Badge>
           </div>
@@ -65,7 +65,7 @@ export default function DashboardPage() {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5 text-green-700" />
+              <Activity className="h-5 w-5 text-primary" />
               Grow Bag Selection
             </CardTitle>
             <CardDescription>Select a grow bag to view detailed sensor data</CardDescription>
@@ -76,11 +76,7 @@ export default function DashboardPage() {
                 <Button
                   key={bagId}
                   variant={selectedGrowBag === bagId ? "default" : "outline"}
-                  className={`h-16 flex flex-col ${
-                    selectedGrowBag === bagId
-                      ? "agriculture-gradient text-white"
-                      : "border-green-200 hover:border-green-400"
-                  }`}
+                  className="h-16 flex flex-col"
                   onClick={() => setSelectedGrowBag(bagId)}
                 >
                   <span className="font-semibold">{bagId.replace("grow-bag-", "Bag ")}</span>

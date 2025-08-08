@@ -42,18 +42,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-cream-50 to-cream-100 flex items-center justify-center p-4 sm:p-6 lg:p-8">
+    <div className="min-h-screen bg-background flex items-center justify-center p-4 sm:p-6 lg:p-8">
       <div className="w-full max-w-sm sm:max-w-md">
         <div className="text-center mb-6 sm:mb-8">
           <Link href="/" className="inline-flex items-center space-x-2 mb-4">
-            <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-green-700" />
-            <span className="text-xl sm:text-2xl font-bold text-soil-950">Hydro Nexus</span>
+            <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
+            <span className="text-xl sm:text-2xl font-bold text-foreground">Hydro Nexus</span>
           </Link>
-          <h1 className="text-xl sm:text-2xl font-bold text-soil-950">Welcome Back</h1>
-          <p className="text-soil-950/70 mt-2 text-sm sm:text-base">Sign in to your precision agriculture dashboard</p>
+          <h1 className="text-xl sm:text-2xl font-bold text-foreground">Welcome Back</h1>
+          <p className="text-muted-foreground mt-2 text-sm sm:text-base">
+            Sign in to your precision agriculture dashboard
+          </p>
         </div>
 
-        <Card className="border-green-100">
+        <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="text-lg sm:text-xl">Sign In</CardTitle>
             <CardDescription className="text-sm sm:text-base">
@@ -73,7 +75,7 @@ export default function LoginPage() {
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
                   required
-                  className="border-green-200 focus:border-green-500 text-sm sm:text-base"
+                  className="text-sm sm:text-base"
                 />
               </div>
 
@@ -89,7 +91,7 @@ export default function LoginPage() {
                     onChange={(e) => setPassword(e.target.value)}
                     placeholder="Enter your password"
                     required
-                    className="border-green-200 focus:border-green-500 pr-10 text-sm sm:text-base"
+                    className="pr-10 text-sm sm:text-base"
                   />
                   <Button
                     type="button"
@@ -99,9 +101,9 @@ export default function LoginPage() {
                     onClick={() => setShowPassword(!showPassword)}
                   >
                     {showPassword ? (
-                      <EyeOff className="h-4 w-4 text-gray-400" />
+                      <EyeOff className="h-4 w-4 text-muted-foreground" />
                     ) : (
-                      <Eye className="h-4 w-4 text-gray-400" />
+                      <Eye className="h-4 w-4 text-muted-foreground" />
                     )}
                   </Button>
                 </div>
@@ -122,20 +124,20 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 p-3 sm:p-4 bg-green-50 rounded-lg">
-              <p className="text-sm font-medium text-green-800 mb-2">Demo Credentials:</p>
-              <p className="text-xs sm:text-sm text-green-700">
-                Username: <code className="bg-green-100 px-1 rounded text-xs">admin</code>
+            <div className="mt-6 p-3 sm:p-4 bg-primary/10 rounded-lg">
+              <p className="text-sm font-medium text-primary mb-2">Demo Credentials:</p>
+              <p className="text-xs sm:text-sm text-primary/90">
+                Username: <code className="bg-primary/20 px-1 rounded text-xs">admin</code>
               </p>
-              <p className="text-xs sm:text-sm text-green-700">
-                Password: <code className="bg-green-100 px-1 rounded text-xs">hydro123</code>
+              <p className="text-xs sm:text-sm text-primary/90">
+                Password: <code className="bg-primary/20 px-1 rounded text-xs">hydro123</code>
               </p>
             </div>
           </CardContent>
         </Card>
 
         <div className="text-center mt-4 sm:mt-6">
-          <Link href="/" className="text-green-700 hover:text-green-800 text-sm transition-colors">
+          <Link href="/" className="text-primary hover:text-primary/90 text-sm transition-colors">
             ← Back to Home
           </Link>
         </div>

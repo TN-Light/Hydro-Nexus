@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { createContext, useContext, useEffect, useState } from "react"
+import { createContext, useContext, useEffect, useState, useCallback } from "react"
 import { useToast } from "@/hooks/use-toast"
 
 interface SensorData {
@@ -36,38 +36,6 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [alerts, setAlerts] = useState<RealtimeContextType["alerts"]>([])
   const { toast } = useToast()
 
-  useEffect(() => {
-    // Simulate WebSocket connection
-    setIsConnected(true)
-
-    // Generate initial mock data for 6 grow bags
-    const initialData: Record<string, SensorData> = {}
-    for (let i = 1; i <= 6; i++) {
-      initialData[`grow-bag-${i}`] = generateMockSensorData(`grow-bag-${i}`)
-    }
-    setSensorData(initialData)
-
-    // Simulate real-time updates every 3 seconds
-    const interval = setInterval(() => {
-      setSensorData((prev) => {
-        const updated = { ...prev }
-        Object.keys(updated).forEach((deviceId) => {
-          updated[deviceId] = generateMockSensorData(deviceId)
-
-          // Check for alerts
-          const data = updated[deviceId]
-          checkForAlerts(data)
-        })
-        return updated
-      })
-    }, 3000)
-
-    return () => {
-      clearInterval(interval)
-      setIsConnected(false)
-    }
-  }, [])
-
   const generateMockSensorData = (deviceId: string): SensorData => {
     const baseValues = {
       waterTemp: 22 + Math.random() * 4, // 22-26°C
@@ -94,7 +62,7 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
-  const checkForAlerts = (data: SensorData) => {
+  const checkForAlerts = useCallback((data: SensorData) => {
     const newAlerts: RealtimeContextType["alerts"] = []
 
     if (data.pH < 5.2 || data.pH > 6.8) {
@@ -159,7 +127,39 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     if (newAlerts.length > 0) {
       setAlerts((prev) => [...newAlerts, ...prev].slice(0, 50)) // Keep last 50 alerts
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    // Simulate WebSocket connection
+    setIsConnected(true)
+
+    // Generate initial mock data for 6 grow bags
+    const initialData: Record<string, SensorData> = {}
+    for (let i = 1; i <= 6; i++) {
+      initialData[`grow-bag-${i}`] = generateMockSensorData(`grow-bag-${i}`)
+    }
+    setSensorData(initialData)
+
+    // Simulate real-time updates every 3 seconds
+    const interval = setInterval(() => {
+      setSensorData((prev) => {
+        const updated = { ...prev }
+        Object.keys(updated).forEach((deviceId) => {
+          updated[deviceId] = generateMockSensorData(deviceId)
+
+          // Check for alerts
+          const data = updated[deviceId]
+          checkForAlerts(data)
+        })
+        return updated
+      })
+    }, 3000)
+
+    return () => {
+      clearInterval(interval)
+      setIsConnected(false)
+    }
+  }, [checkForAlerts])
 
   return <RealtimeContext.Provider value={{ sensorData, isConnected, alerts }}>{children}</RealtimeContext.Provider>
 }
