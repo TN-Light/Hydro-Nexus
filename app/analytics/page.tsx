@@ -29,12 +29,12 @@ interface HistoricalDataPoint {
 }
 
 const METRICS = [
-  { id: "waterTemp", label: "Water Temperature", color: "#ef4444", unit: "°C" },
-  { id: "pH", label: "pH Level", color: "#8b5cf6", unit: "" },
-  { id: "ec", label: "EC", color: "#06b6d4", unit: "mS/cm" },
-  { id: "orp", label: "ORP", color: "#f59e0b", unit: "mV" },
-  { id: "do", label: "Dissolved Oxygen", color: "#10b981", unit: "mg/L" },
-  { id: "humidity", label: "Humidity", color: "#6366f1", unit: "%" },
+  { id: "waterTemp", label: "Water Temperature", color: "hsl(var(--destructive))", unit: "°C" },
+  { id: "pH", label: "pH Level", color: "hsl(var(--primary))", unit: "" },
+  { id: "ec", label: "EC", color: "hsl(var(--accent))", unit: "mS/cm" },
+  { id: "orp", label: "ORP", color: "hsl(var(--warning))", unit: "mV" },
+  { id: "do", label: "Dissolved Oxygen", color: "hsl(var(--success))", unit: "mg/L" },
+  { id: "humidity", label: "Humidity", color: "hsl(var(--info))", unit: "%" },
 ]
 
 const CROP_TYPES = ["All", "Tomato", "Lettuce", "Basil", "Spinach"]
@@ -170,10 +170,10 @@ export default function AnalyticsPage() {
 
   if (isLoading) {
     return (
-      <div className="min-h-screen bg-cream-50 flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-700 mx-auto mb-4"></div>
-          <p className="text-soil-950/70">Loading analytics...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
+          <p className="text-muted-foreground">Loading analytics...</p>
         </div>
       </div>
     )
@@ -187,20 +187,20 @@ export default function AnalyticsPage() {
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-soil-950">Analytics Studio</h1>
-            <p className="text-soil-950/70 text-sm sm:text-base">
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Analytics Studio</h1>
+            <p className="text-muted-foreground text-sm sm:text-base">
               Explore historical sensor data and identify trends over time
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
-            <Badge variant="outline" className="border-green-200 justify-center sm:justify-start">
+            <Badge variant="outline" className="justify-center sm:justify-start">
               <BarChart3 className="h-3 w-3 mr-1" />
               {processedData.length} data points
             </Badge>
             <Button
               variant="outline"
               size="sm"
-              className="border-green-200 hover:border-green-400 bg-transparent text-sm"
+              className="text-sm"
             >
               <Download className="h-4 w-4 mr-2" />
               Export
@@ -212,7 +212,7 @@ export default function AnalyticsPage() {
         <Card>
           <CardHeader className="p-4 sm:p-6">
             <CardTitle className="flex items-center gap-2 text-lg sm:text-xl">
-              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-green-700" />
+              <BarChart3 className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
               Analysis Controls
             </CardTitle>
             <CardDescription className="text-sm sm:text-base">Configure your data analysis parameters</CardDescription>
@@ -227,7 +227,7 @@ export default function AnalyticsPage() {
                     <Button
                       variant="outline"
                       className={cn(
-                        "w-full justify-start text-left font-normal border-green-200 hover:border-green-400 bg-transparent text-xs sm:text-sm",
+                        "w-full justify-start text-left font-normal text-xs sm:text-sm",
                         !dateRange && "text-muted-foreground",
                       )}
                     >
@@ -267,7 +267,7 @@ export default function AnalyticsPage() {
               <div className="flex flex-col space-y-2">
                 <label className="block text-sm font-medium">Aggregation</label>
                 <Select value={aggregation} onValueChange={setAggregation}>
-                  <SelectTrigger className="border-green-200 focus:border-green-500 text-xs sm:text-sm">
+                  <SelectTrigger className="text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -282,7 +282,7 @@ export default function AnalyticsPage() {
               <div className="flex flex-col space-y-2">
                 <label className="block text-sm font-medium">Crop Type</label>
                 <Select value={cropType} onValueChange={setCropType}>
-                  <SelectTrigger className="border-green-200 focus:border-green-500 text-xs sm:text-sm">
+                  <SelectTrigger className="text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -299,7 +299,7 @@ export default function AnalyticsPage() {
               <div className="flex flex-col space-y-2">
                 <label className="block text-sm font-medium">Grow Bag</label>
                 <Select value={growBag} onValueChange={setGrowBag}>
-                  <SelectTrigger className="border-green-200 focus:border-green-500 text-xs sm:text-sm">
+                  <SelectTrigger className="text-xs sm:text-sm">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -352,17 +352,22 @@ export default function AnalyticsPage() {
                 <div className="h-80 sm:h-96 w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <LineChart data={processedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                       <XAxis
                         dataKey="timestamp"
+                        stroke="hsl(var(--muted-foreground))"
                         tick={{ fontSize: 10 }}
                         tickFormatter={(value) => {
                           const date = new Date(value)
                           return aggregation === "Hourly" ? format(date, "HH:mm") : format(date, "MMM dd")
                         }}
                       />
-                      <YAxis tick={{ fontSize: 10 }} />
+                      <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10 }} />
                       <Tooltip
+                        contentStyle={{
+                          backgroundColor: "hsl(var(--card))",
+                          borderColor: "hsl(var(--border))",
+                        }}
                         labelFormatter={(value) => {
                           const date = new Date(value as string)
                           return format(date, "PPP p")
@@ -399,7 +404,7 @@ export default function AnalyticsPage() {
             <Card>
               <CardHeader className="p-4 sm:p-6">
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Brain className="h-4 w-4 sm:h-5 sm:w-5 text-purple-600" />
+                  <Brain className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
                   Key Insights
                 </CardTitle>
                 <CardDescription className="text-xs sm:text-sm">
@@ -407,44 +412,44 @@ export default function AnalyticsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
-                <div className="p-2 sm:p-3 bg-purple-50 rounded-lg border border-purple-200">
+                <div className="p-2 sm:p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
-                    <span className="text-xs sm:text-sm font-medium text-purple-800">Correlation Alert</span>
+                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
+                    <span className="text-xs sm:text-sm font-medium text-purple-400">Correlation Alert</span>
                   </div>
-                  <p className="text-xs text-purple-700">
+                  <p className="text-xs text-purple-400/80">
                     High EC levels between {format(subDays(new Date(), 7), "MMM dd")}-
                     {format(subDays(new Date(), 5), "MMM dd")} correlated with a 5% decrease in predicted water uptake.
                   </p>
                 </div>
 
-                <div className="p-2 sm:p-3 bg-green-50 rounded-lg border border-green-200">
+                <div className="p-2 sm:p-3 bg-green-500/10 rounded-lg border border-green-500/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-                    <span className="text-xs sm:text-sm font-medium text-green-800">Optimization Opportunity</span>
+                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                    <span className="text-xs sm:text-sm font-medium text-green-400">Optimization Opportunity</span>
                   </div>
-                  <p className="text-xs text-green-700">
+                  <p className="text-xs text-green-400/80">
                     pH stability improved by 12% when maintained between 6.0-6.2 during nighttime hours.
                   </p>
                 </div>
 
-                <div className="p-2 sm:p-3 bg-yellow-50 rounded-lg border border-yellow-200">
+                <div className="p-2 sm:p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-600" />
-                    <span className="text-xs sm:text-sm font-medium text-yellow-800">Pattern Detection</span>
+                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+                    <span className="text-xs sm:text-sm font-medium text-yellow-400">Pattern Detection</span>
                   </div>
-                  <p className="text-xs text-yellow-700">
+                  <p className="text-xs text-yellow-400/80">
                     Dissolved oxygen levels show cyclical patterns correlating with lighting schedules. Consider
                     adjusting aeration timing.
                   </p>
                 </div>
 
-                <div className="p-2 sm:p-3 bg-blue-50 rounded-lg border border-blue-200">
+                <div className="p-2 sm:p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
                   <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-blue-600" />
-                    <span className="text-xs sm:text-sm font-medium text-blue-800">SHAP Analysis</span>
+                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                    <span className="text-xs sm:text-sm font-medium text-blue-400">SHAP Analysis</span>
                   </div>
-                  <p className="text-xs text-blue-700">
+                  <p className="text-xs text-blue-400/80">
                     Temperature variance contributes 34% to growth rate prediction, followed by pH stability (28%) and
                     EC consistency (22%).
                   </p>
@@ -469,19 +474,19 @@ export default function AnalyticsPage() {
                     <div key={metricId} className="space-y-1">
                       <div className="flex justify-between items-center">
                         <span className="text-xs sm:text-sm font-medium">{metric?.label}</span>
-                        <span className="text-xs text-soil-950/70">{metric?.unit}</span>
+                        <span className="text-xs text-muted-foreground">{metric?.unit}</span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
                         <div>
-                          <span className="text-soil-950/70">Avg:</span>
+                          <span className="text-muted-foreground">Avg:</span>
                           <span className="ml-1 font-mono">{avg.toFixed(1)}</span>
                         </div>
                         <div>
-                          <span className="text-soil-950/70">Min:</span>
+                          <span className="text-muted-foreground">Min:</span>
                           <span className="ml-1 font-mono">{min.toFixed(1)}</span>
                         </div>
                         <div>
-                          <span className="text-soil-950/70">Max:</span>
+                          <span className="text-muted-foreground">Max:</span>
                           <span className="ml-1 font-mono">{max.toFixed(1)}</span>
                         </div>
                       </div>
