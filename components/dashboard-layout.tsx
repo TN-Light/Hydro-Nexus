@@ -81,12 +81,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
         onMouseLeave={() => setIsHovered(false)}
       >
         <SidebarHeader>
-          <div className="flex items-center space-x-2">
+          <Link href="/exotic-crops-info" className="flex items-center space-x-2">
             <Leaf className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold text-foreground group-data-[state=collapsed]:hidden">
               Hydro Nexus
             </span>
-          </div>
+          </Link>
         </SidebarHeader>
 
         <SidebarContent>

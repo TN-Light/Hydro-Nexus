@@ -40,8 +40,5 @@ export async function GET() {
     },
   ]
 
-  // Return a random crop
-  const randomCrop = crops[Math.floor(Math.random() * crops.length)]
-
-  return NextResponse.json(randomCrop)
+  return NextResponse.json(crops)
 }
