@@ -338,164 +338,167 @@ export default function AnalyticsPage() {
         </Card>
 
         {/* Charts and Insights Section */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-4 sm:gap-6">
-          {/* Main Chart */}
-          <div className="xl:col-span-3 order-1">
-            <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-lg sm:text-xl">Time Series Analysis</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                  {selectedMetrics.length} metrics over {processedData.length} data points
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0">
-                <div className="h-80 sm:h-96 w-full">
-                  <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={processedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                      <XAxis
-                        dataKey="timestamp"
-                        stroke="hsl(var(--muted-foreground))"
-                        tick={{ fontSize: 10 }}
-                        tickFormatter={(value) => {
-                          const date = new Date(value)
-                          return aggregation === "Hourly" ? format(date, "HH:mm") : format(date, "MMM dd")
-                        }}
-                      />
-                      <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10 }} />
-                      <Tooltip
-                        contentStyle={{
-                          backgroundColor: "hsl(var(--card))",
-                          borderColor: "hsl(var(--border))",
-                        }}
-                        labelFormatter={(value) => {
-                          const date = new Date(value as string)
-                          return format(date, "PPP p")
-                        }}
-                        formatter={(value: any, name: string) => {
-                          const metric = METRICS.find((m) => m.id === name)
-                          return [`${value}${metric?.unit || ""}`, metric?.label || name]
-                        }}
-                      />
-                      <Legend />
-                      {selectedMetrics.map((metricId) => {
-                        const metric = METRICS.find((m) => m.id === metricId)
-                        return (
-                          <Line
-                            key={metricId}
-                            type="monotone"
-                            dataKey={metricId}
-                            stroke={metric?.color}
-                            strokeWidth={2}
-                            dot={false}
-                            name={metric?.label}
-                          />
-                        )
-                      })}
-                    </LineChart>
-                  </ResponsiveContainer>
-                </div>
-              </CardContent>
-            </Card>
+        <div className="space-y-4 sm:space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            {/* Main Chart */}
+            <div className="lg:col-span-2 order-1">
+              <Card>
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="text-lg sm:text-xl">Time Series Analysis</CardTitle>
+                  <CardDescription className="text-sm sm:text-base">
+                    {selectedMetrics.length} metrics over {processedData.length} data points
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 pt-0">
+                  <div className="h-80 sm:h-96 w-full">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <LineChart data={processedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                        <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                        <XAxis
+                          dataKey="timestamp"
+                          stroke="hsl(var(--muted-foreground))"
+                          tick={{ fontSize: 10 }}
+                          tickFormatter={(value) => {
+                            const date = new Date(value)
+                            return aggregation === "Hourly" ? format(date, "HH:mm") : format(date, "MMM dd")
+                          }}
+                        />
+                        <YAxis stroke="hsl(var(--muted-foreground))" tick={{ fontSize: 10 }} />
+                        <Tooltip
+                          contentStyle={{
+                            backgroundColor: "hsl(var(--card))",
+                            borderColor: "hsl(var(--border))",
+                          }}
+                          labelFormatter={(value) => {
+                            const date = new Date(value as string)
+                            return format(date, "PPP p")
+                          }}
+                          formatter={(value: any, name: string) => {
+                            const metric = METRICS.find((m) => m.id === name)
+                            return [`${value}${metric?.unit || ""}`, metric?.label || name]
+                          }}
+                        />
+                        <Legend />
+                        {selectedMetrics.map((metricId) => {
+                          const metric = METRICS.find((m) => m.id === metricId)
+                          return (
+                            <Line
+                              key={metricId}
+                              type="monotone"
+                              dataKey={metricId}
+                              stroke={metric?.color}
+                              strokeWidth={2}
+                              dot={false}
+                              name={metric?.label}
+                            />
+                          )
+                        })}
+                      </LineChart>
+                    </ResponsiveContainer>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Insights Panel */}
+            <div className="lg:col-span-1 order-2 space-y-4 sm:space-y-6">
+              <Card>
+                <CardHeader className="p-4 sm:p-6">
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Brain className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
+                    Key Insights
+                  </CardTitle>
+                  <CardDescription className="text-xs sm:text-sm">
+                    AI-powered analysis of your data patterns
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
+                  <div className="p-2 sm:p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
+                      <span className="text-xs sm:text-sm font-medium text-purple-400">Correlation Alert</span>
+                    </div>
+                    <p className="text-xs text-purple-400/80">
+                      High EC levels between {format(subDays(new Date(), 7), "MMM dd")}-
+                      {format(subDays(new Date(), 5), "MMM dd")} correlated with a 5% decrease in predicted water
+                      uptake.
+                    </p>
+                  </div>
+
+                  <div className="p-2 sm:p-3 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                      <span className="text-xs sm:text-sm font-medium text-green-400">Optimization Opportunity</span>
+                    </div>
+                    <p className="text-xs text-green-400/80">
+                      pH stability improved by 12% when maintained between 6.0-6.2 during nighttime hours.
+                    </p>
+                  </div>
+
+                  <div className="p-2 sm:p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
+                      <span className="text-xs sm:text-sm font-medium text-yellow-400">Pattern Detection</span>
+                    </div>
+                    <p className="text-xs text-yellow-400/80">
+                      Dissolved oxygen levels show cyclical patterns correlating with lighting schedules. Consider
+                      adjusting aeration timing.
+                    </p>
+                  </div>
+
+                  <div className="p-2 sm:p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                    <div className="flex items-center gap-2 mb-2">
+                      <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                      <span className="text-xs sm:text-sm font-medium text-blue-400">SHAP Analysis</span>
+                    </div>
+                    <p className="text-xs text-blue-400/80">
+                      Temperature variance contributes 34% to growth rate prediction, followed by pH stability (28%)
+                      and EC consistency (22%).
+                    </p>
+                  </div>
+                </CardContent>
+              </Card>
+            </div>
           </div>
 
-          {/* Insights Panel */}
-          <div className="xl:col-span-1 order-2 space-y-4 sm:space-y-6">
-            <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Brain className="h-4 w-4 sm:h-5 sm:w-5 text-purple-500" />
-                  Key Insights
-                </CardTitle>
-                <CardDescription className="text-xs sm:text-sm">
-                  AI-powered analysis of your data patterns
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0 space-y-3 sm:space-y-4">
-                <div className="p-2 sm:p-3 bg-purple-500/10 rounded-lg border border-purple-500/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
-                    <span className="text-xs sm:text-sm font-medium text-purple-400">Correlation Alert</span>
-                  </div>
-                  <p className="text-xs text-purple-400/80">
-                    High EC levels between {format(subDays(new Date(), 7), "MMM dd")}-
-                    {format(subDays(new Date(), 5), "MMM dd")} correlated with a 5% decrease in predicted water uptake.
-                  </p>
-                </div>
+          {/* Quick Stats */}
+          <Card>
+            <CardHeader className="p-4 sm:p-6">
+              <CardTitle className="text-base sm:text-lg">Quick Statistics</CardTitle>
+            </CardHeader>
+            <CardContent className="p-4 sm:p-6 pt-0 space-y-3">
+              {selectedMetrics.slice(0, 3).map((metricId) => {
+                const metric = METRICS.find((m) => m.id === metricId)
+                const values = processedData.map((d) => d[metricId as keyof typeof d] as number)
+                const avg = values.reduce((a, b) => a + b, 0) / values.length
+                const min = Math.min(...values)
+                const max = Math.max(...values)
 
-                <div className="p-2 sm:p-3 bg-green-500/10 rounded-lg border border-green-500/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
-                    <span className="text-xs sm:text-sm font-medium text-green-400">Optimization Opportunity</span>
-                  </div>
-                  <p className="text-xs text-green-400/80">
-                    pH stability improved by 12% when maintained between 6.0-6.2 during nighttime hours.
-                  </p>
-                </div>
-
-                <div className="p-2 sm:p-3 bg-yellow-500/10 rounded-lg border border-yellow-500/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-yellow-500" />
-                    <span className="text-xs sm:text-sm font-medium text-yellow-400">Pattern Detection</span>
-                  </div>
-                  <p className="text-xs text-yellow-400/80">
-                    Dissolved oxygen levels show cyclical patterns correlating with lighting schedules. Consider
-                    adjusting aeration timing.
-                  </p>
-                </div>
-
-                <div className="p-2 sm:p-3 bg-blue-500/10 rounded-lg border border-blue-500/20">
-                  <div className="flex items-center gap-2 mb-2">
-                    <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
-                    <span className="text-xs sm:text-sm font-medium text-blue-400">SHAP Analysis</span>
-                  </div>
-                  <p className="text-xs text-blue-400/80">
-                    Temperature variance contributes 34% to growth rate prediction, followed by pH stability (28%) and
-                    EC consistency (22%).
-                  </p>
-                </div>
-              </CardContent>
-            </Card>
-
-            {/* Quick Stats */}
-            <Card>
-              <CardHeader className="p-4 sm:p-6">
-                <CardTitle className="text-base sm:text-lg">Quick Statistics</CardTitle>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6 pt-0 space-y-3">
-                {selectedMetrics.slice(0, 3).map((metricId) => {
-                  const metric = METRICS.find((m) => m.id === metricId)
-                  const values = processedData.map((d) => d[metricId as keyof typeof d] as number)
-                  const avg = values.reduce((a, b) => a + b, 0) / values.length
-                  const min = Math.min(...values)
-                  const max = Math.max(...values)
-
-                  return (
-                    <div key={metricId} className="space-y-1">
-                      <div className="flex justify-between items-center">
-                        <span className="text-xs sm:text-sm font-medium">{metric?.label}</span>
-                        <span className="text-xs text-muted-foreground">{metric?.unit}</span>
+                return (
+                  <div key={metricId} className="space-y-1">
+                    <div className="flex justify-between items-center">
+                      <span className="text-xs sm:text-sm font-medium">{metric?.label}</span>
+                      <span className="text-xs text-muted-foreground">{metric?.unit}</span>
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <span className="text-muted-foreground">Avg:</span>
+                        <span className="ml-1 font-mono">{avg.toFixed(1)}</span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div>
-                          <span className="text-muted-foreground">Avg:</span>
-                          <span className="ml-1 font-mono">{avg.toFixed(1)}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Min:</span>
-                          <span className="ml-1 font-mono">{min.toFixed(1)}</span>
-                        </div>
-                        <div>
-                          <span className="text-muted-foreground">Max:</span>
-                          <span className="ml-1 font-mono">{max.toFixed(1)}</span>
-                        </div>
+                      <div>
+                        <span className="text-muted-foreground">Min:</span>
+                        <span className="ml-1 font-mono">{min.toFixed(1)}</span>
+                      </div>
+                      <div>
+                        <span className="text-muted-foreground">Max:</span>
+                        <span className="ml-1 font-mono">{max.toFixed(1)}</span>
                       </div>
                     </div>
-                  )
-                })}
-              </CardContent>
-            </Card>
-          </div>
+                  </div>
+                )
+              })}
+            </CardContent>
+          </Card>
         </div>
       </div>
     </DashboardLayout>
