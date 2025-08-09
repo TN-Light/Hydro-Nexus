@@ -30,8 +30,6 @@ type SidebarContext = {
   state: "expanded" | "collapsed"
   open: boolean
   setOpen: (open: boolean) => void
-  isHovered: boolean
-  setIsHovered: (hovered: boolean) => void
   openMobile: boolean
   setOpenMobile: (open: boolean) => void
   isMobile: boolean
@@ -71,12 +69,11 @@ const SidebarProvider = React.forwardRef<
   ) => {
     const isMobile = useIsMobile()
     const [openMobile, setOpenMobile] = React.useState(false)
-    const [isHovered, setIsHovered] = React.useState(false)
 
     // This is the internal state of the sidebar.
     // We use openProp and setOpenProp for control from outside the component.
     const [_open, _setOpen] = React.useState(defaultOpen)
-    const open = openProp ?? (_open || (isHovered && !isMobile))
+    const open = openProp ?? _open
 
     React.useEffect(() => {
       const cookieValue = document.cookie
@@ -136,24 +133,12 @@ const SidebarProvider = React.forwardRef<
         state,
         open,
         setOpen,
-        isHovered,
-        setIsHovered,
         isMobile,
         openMobile,
         setOpenMobile,
         toggleSidebar,
       }),
-      [
-        state,
-        open,
-        setOpen,
-        isHovered,
-        setIsHovered,
-        isMobile,
-        openMobile,
-        setOpenMobile,
-        toggleSidebar,
-      ]
+      [state, open, setOpen, isMobile, openMobile, setOpenMobile, toggleSidebar]
     )
 
     return (

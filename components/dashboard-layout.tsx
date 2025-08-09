@@ -61,7 +61,6 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { alerts } = useRealtime()
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
-  const { open, setIsHovered } = useSidebar()
 
   const unreadAlerts = alerts.filter(
     (alert) => Date.now() - new Date(alert.timestamp).getTime() < 5 * 60 * 1000 // Last 5 minutes
@@ -73,13 +72,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen bg-background">
-      <Sidebar
-        collapsible="icon"
-        onMouseEnter={() => {
-          if (!open) setIsHovered(true)
-        }}
-        onMouseLeave={() => setIsHovered(false)}
-      >
+      <Sidebar collapsible="icon">
         <SidebarHeader>
           <Link href="/exotic-crops-info" className="flex items-center space-x-2">
             <Leaf className="h-8 w-8 text-primary" />
@@ -126,11 +119,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
             <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
               <div className="flex flex-1 items-center">
                 <h1 className="text-lg font-semibold text-foreground truncate">
-                  {navigation.find(
-                    (item) =>
-                      pathname === item.href ||
-                      pathname.startsWith(item.href + "/")
-                  )?.name || "Dashboard"}
+                  {pathname.includes("exotic-crops")
+                    ? "Exotic Crops"
+                    : navigation.find(
+                        (item) =>
+                          pathname === item.href ||
+                          pathname.startsWith(item.href + "/")
+                      )?.name || "Dashboard"}
                 </h1>
               </div>
 
@@ -207,7 +202,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Page Content */}
-          <main className="py-6 px-4 sm:px-6 lg:px-8">{children}</main>
+          <main className="flex-grow py-6 px-4 sm:px-6 lg:px-8">{children}</main>
         </div>
       </div>
     </div>
