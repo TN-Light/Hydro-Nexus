@@ -46,6 +46,7 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 import { useTheme } from "next-themes"
+import { cn } from "@/lib/utils"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -74,7 +75,13 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen bg-background">
       <Sidebar collapsible="icon">
         <SidebarHeader>
-          <Link href="/exotic-crops-info" className="flex items-center space-x-2">
+          <Link
+            href="/exotic-crops-info"
+            className={cn(
+              "flex items-center space-x-2 rounded-lg p-2",
+              pathname.includes("/exotic-crops-info") && "bg-primary/10"
+            )}
+          >
             <Leaf className="h-8 w-8 text-primary" />
             <span className="text-xl font-bold text-foreground group-data-[state=collapsed]:hidden">
               Hydro Nexus
