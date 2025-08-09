@@ -43,6 +43,7 @@ import {
   SidebarMenuButton,
   SidebarProvider,
   SidebarTrigger,
+  useSidebar,
 } from "@/components/ui/sidebar"
 import { useTheme } from "next-themes"
 
@@ -55,11 +56,12 @@ const navigation = [
   { name: "Settings", href: "/settings", icon: Settings },
 ]
 
-export function DashboardLayout({ children }: { children: React.ReactNode }) {
+function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth()
   const { alerts } = useRealtime()
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
+  const { open, setIsHovered } = useSidebar()
 
   const unreadAlerts = alerts.filter(
     (alert) => Date.now() - new Date(alert.timestamp).getTime() < 5 * 60 * 1000 // Last 5 minutes
@@ -70,47 +72,51 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <SidebarProvider>
-      <div className="min-h-screen bg-background">
-        <Sidebar collapsible="icon">
-          <SidebarHeader>
-            <div className="flex items-center space-x-2">
-              <Leaf className="h-8 w-8 text-primary" />
-              <span className="text-xl font-bold text-foreground">
-                Hydro Nexus
-              </span>
-            </div>
-          </SidebarHeader>
+    <div className="flex min-h-screen bg-background">
+      <Sidebar
+        collapsible="icon"
+        onMouseEnter={() => {
+          if (!open) setIsHovered(true)
+        }}
+        onMouseLeave={() => setIsHovered(false)}
+      >
+        <SidebarHeader>
+          <div className="flex items-center space-x-2">
+            <Leaf className="h-8 w-8 text-primary" />
+            <span className="text-xl font-bold text-foreground group-data-[state=collapsed]:hidden">
+              Hydro Nexus
+            </span>
+          </div>
+        </SidebarHeader>
 
-          <SidebarContent>
-            <SidebarMenu>
-              {navigation.map((item) => {
-                const isActive =
-                  pathname === item.href ||
-                  pathname.startsWith(item.href + "/")
-                return (
-                  <SidebarMenuItem key={item.name}>
-                    <SidebarMenuButton
-                      asChild
-                      isActive={isActive}
-                      tooltip={item.name}
-                    >
-                      <Link href={item.href}>
-                        <item.icon className="h-5 w-5" />
-                        <span>{item.name}</span>
-                      </Link>
-                    </SidebarMenuButton>
-                  </SidebarMenuItem>
-                )
-              })}
-            </SidebarMenu>
-          </SidebarContent>
+        <SidebarContent>
+          <SidebarMenu>
+            {navigation.map((item) => {
+              const isActive =
+                pathname === item.href || pathname.startsWith(item.href + "/")
+              return (
+                <SidebarMenuItem key={item.name}>
+                  <SidebarMenuButton
+                    asChild
+                    isActive={isActive}
+                    tooltip={item.name}
+                  >
+                    <Link href={item.href}>
+                      <item.icon className="h-5 w-5" />
+                      <span>{item.name}</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+              )
+            })}
+          </SidebarMenu>
+        </SidebarContent>
 
-          <SidebarFooter>
-            <SidebarTrigger className="hidden md:flex" />
-          </SidebarFooter>
-        </Sidebar>
-
+        <SidebarFooter>
+          <SidebarTrigger className="hidden md:flex" />
+        </SidebarFooter>
+      </Sidebar>
+      <div className="flex flex-col flex-1">
         {/* Main Content */}
         <div className="transition-[margin-left] ease-in-out duration-300 md:ml-[var(--sidebar-width-icon)] peer-[[data-state=expanded]]:md:ml-[var(--sidebar-width)]">
           {/* Top Navigation */}
@@ -204,6 +210,14 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           <main className="py-6 px-4 sm:px-6 lg:px-8">{children}</main>
         </div>
       </div>
+    </div>
+  )
+}
+
+export function DashboardLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <SidebarProvider defaultOpen={false}>
+      <DashboardLayoutContent>{children}</DashboardLayoutContent>
     </SidebarProvider>
   )
 }
