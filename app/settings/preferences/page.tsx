@@ -96,7 +96,7 @@ export default function PreferencesPage() {
               <Label htmlFor="theme-toggle" className="text-sm sm:text-base font-medium">
                 Dark Mode
               </Label>
-              <p className="text-xs sm:text-sm text-soil-950/70">Toggle between light and dark themes</p>
+              <p className="text-xs sm:text-sm text-black-950/70">Toggle between light and dark themes</p>
             </div>
             <Switch id="theme-toggle" checked={theme === "dark"} onCheckedChange={handleThemeChange} />
           </div>
@@ -190,7 +190,7 @@ export default function PreferencesPage() {
                 <SelectItem value="7d">Last 7 days</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs sm:text-sm text-soil-950/70">
+            <p className="text-xs sm:text-sm text-black-950/70">
               This will be the default time range shown when you open the dashboard
             </p>
           </div>
@@ -202,8 +202,8 @@ export default function PreferencesPage() {
         <CardContent className="p-4 sm:p-6">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
-              <p className="font-medium text-soil-950 text-sm sm:text-base">Preferences Auto-Saved</p>
-              <p className="text-xs sm:text-sm text-soil-950/70">
+              <p className="font-medium text-black-950 text-sm sm:text-base">Preferences Auto-Saved</p>
+              <p className="text-xs sm:text-sm text-black-950/70">
                 All changes are automatically saved and synced across your devices
               </p>
             </div>

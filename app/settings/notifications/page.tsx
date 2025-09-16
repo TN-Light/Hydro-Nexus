@@ -88,7 +88,7 @@ export default function NotificationsPage() {
               <Label htmlFor="master-notifications" className="text-sm sm:text-base font-medium">
                 Enable All Notifications
               </Label>
-              <p className="text-xs sm:text-sm text-soil-950/70">
+              <p className="text-xs sm:text-sm text-black-950/70">
                 Master switch to enable or disable all notification types
               </p>
             </div>
@@ -131,7 +131,7 @@ export default function NotificationsPage() {
                         </Badge>
                       )}
                     </div>
-                    <p className="text-xs sm:text-sm text-soil-950/70">{alert.description}</p>
+                    <p className="text-xs sm:text-sm text-black-950/70">{alert.description}</p>
                   </div>
                   <Switch
                     checked={isEnabled}
@@ -143,7 +143,7 @@ export default function NotificationsPage() {
                 {/* Delivery Channels */}
                 {isEnabled && notificationSettings.masterEnabled && (
                   <div className="ml-0 sm:ml-4 space-y-3 border-l-0 sm:border-l-2 border-green-200 pl-0 sm:pl-4">
-                    <Label className="text-xs sm:text-sm font-medium text-soil-950/80">Delivery Channels:</Label>
+                    <Label className="text-xs sm:text-sm font-medium text-black-950/80">Delivery Channels:</Label>
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                       {deliveryChannels.map((channel) => {
                         const ChannelIcon = channel.icon
@@ -162,7 +162,7 @@ export default function NotificationsPage() {
                               htmlFor={`${alert.id}-${channel.id}`}
                               className="flex items-center gap-2 text-xs sm:text-sm cursor-pointer"
                             >
-                              <ChannelIcon className="h-3 w-3 sm:h-4 sm:w-4 text-soil-950/70" />
+                              <ChannelIcon className="h-3 w-3 sm:h-4 sm:w-4 text-black-950/70" />
                               {channel.name}
                             </Label>
                           </div>
@@ -191,7 +191,7 @@ export default function NotificationsPage() {
               <div className="text-xl sm:text-2xl font-bold text-green-700">
                 {Object.values(notificationSettings.rules).filter((rule) => rule.length > 0).length}
               </div>
-              <div className="text-xs sm:text-sm text-soil-950/70">Active Alerts</div>
+              <div className="text-xs sm:text-sm text-black-950/70">Active Alerts</div>
             </div>
             <div className="text-center p-3 sm:p-4 bg-blue-50 rounded-lg">
               <div className="text-xl sm:text-2xl font-bold text-blue-700">
@@ -201,7 +201,7 @@ export default function NotificationsPage() {
                     .filter((channel) => channel === "push").length
                 }
               </div>
-              <div className="text-xs sm:text-sm text-soil-950/70">Push Notifications</div>
+              <div className="text-xs sm:text-sm text-black-950/70">Push Notifications</div>
             </div>
             <div className="text-center p-3 sm:p-4 bg-purple-50 rounded-lg">
               <div className="text-xl sm:text-2xl font-bold text-purple-700">
@@ -211,7 +211,7 @@ export default function NotificationsPage() {
                     .filter((channel) => channel === "email").length
                 }
               </div>
-              <div className="text-xs sm:text-sm text-soil-950/70">Email Alerts</div>
+              <div className="text-xs sm:text-sm text-black-950/70">Email Alerts</div>
             </div>
           </div>
         </CardContent>

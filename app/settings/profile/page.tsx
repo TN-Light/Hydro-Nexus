@@ -104,7 +104,7 @@ export default function ProfilePage() {
                 Change Avatar
               </Button>
               <input ref={fileInputRef} type="file" accept="image/*" onChange={handleAvatarUpload} className="hidden" />
-              <p className="text-xs text-soil-950/70">JPG, PNG or GIF (max. 2MB)</p>
+              <p className="text-xs text-black-950/70">JPG, PNG or GIF (max. 2MB)</p>
             </div>
           </div>
 
@@ -169,7 +169,7 @@ export default function ProfilePage() {
               readOnly
               className="border-green-200 bg-green-50/50 text-sm sm:text-base"
             />
-            <p className="text-xs text-soil-950/70">Email address cannot be changed</p>
+            <p className="text-xs text-black-950/70">Email address cannot be changed</p>
           </div>
 
           {/* Username Field */}
@@ -219,11 +219,11 @@ export default function ProfilePage() {
             <div className="grid grid-cols-2 gap-4 sm:gap-8 text-center sm:text-left">
               <div>
                 <div className="text-xl sm:text-2xl font-bold text-green-700">8</div>
-                <div className="text-xs sm:text-sm text-soil-950/70">Active Devices</div>
+                <div className="text-xs sm:text-sm text-black-950/70">Active Devices</div>
               </div>
               <div>
                 <div className="text-xl sm:text-2xl font-bold text-yellow-600">2</div>
-                <div className="text-xs sm:text-sm text-soil-950/70">Need Attention</div>
+                <div className="text-xs sm:text-sm text-black-950/70">Need Attention</div>
               </div>
             </div>
             <Link href="/devices" className="w-full sm:w-auto">

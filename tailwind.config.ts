@@ -54,15 +54,15 @@ const config: Config = {
         },
         // Custom agriculture colors
         green: {
-          500: "hsl(142 69% 58%)",
-          700: "hsl(142 76% 36%)",
+          500: "hsl(142 90% 50%)", // Darker vibrant green
+          700: "hsl(142 90% 40%)", // Even darker vibrant green
         },
-        cream: {
-          50: "hsl(44 33% 97%)",
-          100: "hsl(44 33% 94%)",
+        backgroundShade: { // Renamed from cream to backgroundShade
+          50: "hsl(210 20% 98%)", // Light gray background
+          100: "hsl(210 20% 95%)", // Slightly darker light gray
         },
-        soil: {
-          950: "hsl(25 25% 5%)",
+        black: { // Renamed from soil to black
+          950: "hsl(0 0% 0%)", // Pure black
         },
       },
       borderRadius: {

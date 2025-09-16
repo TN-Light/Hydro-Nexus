@@ -4,33 +4,39 @@
 
 @layer base {
   :root {
-    --background: 44 33% 97%;
+        --background: 210 20% 95%;
     --foreground: 25 25% 5%;
-    --card: 44 33% 98%;
+    --card: 210 20% 98%;
     --card-foreground: 25 25% 5%;
-    --popover: 44 33% 98%;
+    --popover: 210 20% 98%;
     --popover-foreground: 25 25% 5%;
-    --primary: 142 76% 36%;
-    --primary-foreground: 44 33% 98%;
-    --secondary: 44 33% 91%;
-    --secondary-foreground: 25 25% 15%;
-    --muted: 44 33% 94%;
-    --muted-foreground: 25 25% 45%;
-    --accent: 142 69% 58%;
-    --accent-foreground: 25 25% 5%;
+    --background: 210 20% 95%;
+    --foreground: 0 0% 0%;
+    --card: 210 20% 98%;
+    --card-foreground: 25 25% 5%;
+    --popover: 210 20% 98%;
+    --popover-foreground: 25 25% 5%;
+    --primary: 142 90% 40%; /* Updated to darker vibrant green */
+    --primary-foreground: 210 20% 98%;
+    --secondary: 210 20% 91%;
+    --secondary-foreground: 0 0% 10%;
+    --muted: 210 20% 94%;
+    --muted-foreground: 0 0% 40%;
+    --accent: 142 90% 50%; /* Updated to darker vibrant green */
+    --accent-foreground: 0 0% 0%;
     --destructive: 0 84% 60%;
-    --destructive-foreground: 44 33% 98%;
-    --border: 44 33% 87%;
-    --input: 44 33% 87%;
-    --ring: 142 76% 36%;
+    --destructive-foreground: 210 20% 98%;
+    --border: 210 20% 87%;
+    --input: 210 20% 87%;
+    --ring: 142 90% 40%; /* Updated to darker vibrant green */
     --radius: 0.5rem;
 
     /* Custom agriculture colors */
-    --green-700: 142 76% 36%;
-    --green-500: 142 69% 58%;
-    --cream-50: 44 33% 97%;
-    --cream-100: 44 33% 94%;
-    --soil-950: 25 25% 5%;
+    --green-700: 142 90% 40%; /* Updated to darker vibrant green */
+    --green-500: 142 90% 50%; /* Updated to darker vibrant green */
+    --cream-50: 210 20% 95%; /* Updated to light gray */
+    --cream-100: 210 20% 91%; /* Updated to slightly darker light gray */
+    --soil-950: 0 0% 0%; /* Updated to pure black */
 
     --font-roboto-mono: "Roboto Mono", monospace;
   }
