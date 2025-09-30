@@ -1,9 +1,9 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useCallback, useMemo } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
-import { Switch } from "@/components/ui/switch"
+import { StableSwitch } from "@/components/ui/stable-switch"
 import { Label } from "@/components/ui/label"
 import { useToast } from "@/hooks/use-toast"
 import { Droplets, Lightbulb, Zap, Play, Pause } from "lucide-react"
@@ -19,52 +19,83 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
   const [isLoading, setIsLoading] = useState<string | null>(null)
   const { toast } = useToast()
 
-  const handleAction = async (action: string, newState: boolean) => {
+  const handleAction = useCallback(async (action: string, newState: boolean) => {
+    if (isLoading) return // Prevent multiple simultaneous actions
+    
     setIsLoading(action)
 
-    // Simulate API call
-    await new Promise((resolve) => setTimeout(resolve, 1000))
+    try {
+      // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000))
 
-    switch (action) {
-      case "pump":
-        setPumpActive(newState)
-        toast({
-          title: `Water Pump ${newState ? "Started" : "Stopped"}`,
-          description: `${selectedGrowBag} water circulation ${newState ? "activated" : "deactivated"}`,
-        })
-        break
-      case "led":
-        setLedActive(newState)
-        toast({
-          title: `LED Lights ${newState ? "On" : "Off"}`,
-          description: `${selectedGrowBag} lighting system ${newState ? "enabled" : "disabled"}`,
-        })
-        break
-      case "dosing":
-        setDosingActive(newState)
-        toast({
-          title: `Nutrient Dosing ${newState ? "Started" : "Stopped"}`,
-          description: `${selectedGrowBag} nutrient injection ${newState ? "activated" : "deactivated"}`,
-        })
-        break
+      switch (action) {
+        case "pump":
+          setPumpActive(newState)
+          toast({
+            title: `Water Pump ${newState ? "Started" : "Stopped"}`,
+            description: `${selectedGrowBag} water circulation ${newState ? "activated" : "deactivated"}`,
+          })
+          break
+        case "led":
+          setLedActive(newState)
+          toast({
+            title: `LED Lights ${newState ? "On" : "Off"}`,
+            description: `${selectedGrowBag} lighting system ${newState ? "enabled" : "disabled"}`,
+          })
+          break
+        case "dosing":
+          setDosingActive(newState)
+          toast({
+            title: `Nutrient Dosing ${newState ? "Started" : "Stopped"}`,
+            description: `${selectedGrowBag} nutrient injection ${newState ? "activated" : "deactivated"}`,
+          })
+          break
+      }
+    } catch (error) {
+      console.error('Action failed:', error)
+    } finally {
+      setIsLoading(null)
     }
+  }, [isLoading, selectedGrowBag, toast])
 
-    setIsLoading(null)
-  }
-
-  const runDosingCycle = async () => {
+  const runDosingCycle = useCallback(async () => {
+    if (isLoading) return // Prevent multiple simultaneous actions
+    
     setIsLoading("cycle")
 
-    // Simulate dosing cycle
-    await new Promise((resolve) => setTimeout(resolve, 2000))
+    try {
+      // Simulate dosing cycle
+      await new Promise((resolve) => setTimeout(resolve, 2000))
 
-    toast({
-      title: "Dosing Cycle Complete",
-      description: `Nutrient dosing cycle completed for ${selectedGrowBag}`,
-    })
+      toast({
+        title: "Dosing Cycle Complete",
+        description: `Nutrient dosing cycle completed for ${selectedGrowBag}`,
+      })
+    } catch (error) {
+      console.error('Dosing cycle failed:', error)
+    } finally {
+      setIsLoading(null)
+    }
+  }, [isLoading, selectedGrowBag, toast])
 
-    setIsLoading(null)
-  }
+  // Memoized handlers to prevent recreation on every render
+  const handlePumpChange = useCallback((checked: boolean) => {
+    handleAction("pump", checked)
+  }, [handleAction])
+
+  const handleLedChange = useCallback((checked: boolean) => {
+    handleAction("led", checked)
+  }, [handleAction])
+
+  const handleDosingChange = useCallback((checked: boolean) => {
+    handleAction("dosing", checked)
+  }, [handleAction])
+
+  // Memoized display name to prevent unnecessary re-renders
+  const displayName = useMemo(() => 
+    selectedGrowBag.replace("grow-bag-", "Grow Bag "), 
+    [selectedGrowBag]
+  )
 
   return (
     <Card>
@@ -73,7 +104,7 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
           <Zap className="h-5 w-5 text-primary" />
           Quick Actions
         </CardTitle>
-        <CardDescription>Control systems for {selectedGrowBag.replace("grow-bag-", "Grow Bag ")}</CardDescription>
+        <CardDescription>Control systems for {displayName}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -86,10 +117,10 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
               </Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Switch
+              <StableSwitch
                 id="pump-switch"
                 checked={pumpActive}
-                onCheckedChange={(checked) => handleAction("pump", checked)}
+                onCheckedChange={handlePumpChange}
                 disabled={isLoading === "pump"}
               />
               <span className="text-xs text-muted-foreground">{pumpActive ? "Running" : "Stopped"}</span>
@@ -106,10 +137,10 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
               </Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Switch
+              <StableSwitch
                 id="led-switch"
                 checked={ledActive}
-                onCheckedChange={(checked) => handleAction("led", checked)}
+                onCheckedChange={handleLedChange}
                 disabled={isLoading === "led"}
               />
               <span className="text-xs text-muted-foreground">{ledActive ? "On" : "Off"}</span>
@@ -126,10 +157,10 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
               </Label>
             </div>
             <div className="flex items-center space-x-2">
-              <Switch
+              <StableSwitch
                 id="dosing-switch"
                 checked={dosingActive}
-                onCheckedChange={(checked) => handleAction("dosing", checked)}
+                onCheckedChange={handleDosingChange}
                 disabled={isLoading === "dosing"}
               />
               <span className="text-xs text-muted-foreground">{dosingActive ? "Active" : "Inactive"}</span>

@@ -9,7 +9,8 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
-import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
+import { Line } from "@/components/ui/recharts/line"
 import { CalendarIcon, BarChart3, TrendingUp, Brain, Download } from "lucide-react"
 import { useState, useEffect, useMemo } from "react"
 import { redirect } from "next/navigation"
@@ -20,20 +21,19 @@ interface HistoricalDataPoint {
   timestamp: string
   deviceId: string
   cropType: string
-  waterTemp: number
+  roomTemp: number
   pH: number
   ec: number
-  orp: number
-  do: number
+  moisture: number
+  waterLevel: string
   humidity: number
 }
 
 const METRICS = [
-  { id: "waterTemp", label: "Water Temperature", color: "hsl(var(--destructive))", unit: "°C" },
+  { id: "roomTemp", label: "Room Temperature", color: "hsl(var(--destructive))", unit: "°C" },
   { id: "pH", label: "pH Level", color: "hsl(var(--primary))", unit: "" },
   { id: "ec", label: "EC", color: "hsl(var(--accent))", unit: "mS/cm" },
-  { id: "orp", label: "ORP", color: "hsl(var(--warning))", unit: "mV" },
-  { id: "do", label: "Dissolved Oxygen", color: "hsl(var(--success))", unit: "mg/L" },
+  { id: "moisture", label: "Substrate Moisture", color: "hsl(var(--warning))", unit: "%" },
   { id: "humidity", label: "Humidity", color: "hsl(var(--info))", unit: "%" },
 ]
 
@@ -47,7 +47,7 @@ export default function AnalyticsPage() {
     to: new Date(),
   })
   const [aggregation, setAggregation] = useState("Daily")
-  const [selectedMetrics, setSelectedMetrics] = useState(["waterTemp", "pH", "ec"])
+  const [selectedMetrics, setSelectedMetrics] = useState(["roomTemp", "pH", "ec"])
   const [cropType, setCropType] = useState("All")
   const [growBag, setGrowBag] = useState("All")
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
@@ -82,11 +82,11 @@ export default function AnalyticsPage() {
             timestamp: timestamp.toISOString(),
             deviceId: bagId,
             cropType,
-            waterTemp: 22 + dayFactor * 3 + hourFactor * 2 + randomFactor * 2,
+            roomTemp: 24 + dayFactor * 4 + hourFactor * 3 + randomFactor * 2,
             pH: 6.0 + dayFactor * 0.4 + hourFactor * 0.2 + randomFactor * 0.3,
             ec: 1.8 + dayFactor * 0.5 + hourFactor * 0.3 + randomFactor * 0.4,
-            orp: 280 + dayFactor * 40 + hourFactor * 20 + randomFactor * 30,
-            do: 7.0 + dayFactor * 1.0 + hourFactor * 0.5 + randomFactor * 0.8,
+            moisture: 70 + dayFactor * 15 + hourFactor * 10 + randomFactor * 8,
+            waterLevel: Math.random() > 0.85 ? "Below Required Level" : "Adequate",
             humidity: 70 + dayFactor * 10 + hourFactor * 5 + randomFactor * 8,
           })
         })

@@ -8,21 +8,22 @@ import { Button } from "@/components/ui/button"
 import { SensorCard } from "@/components/sensor-card"
 import { QuickActions } from "@/components/quick-actions"
 import { AlertPanel } from "@/components/alert-panel"
-import { DashboardLayout } from "@/components/dashboard-layout"
 import { Thermometer, Droplets, Zap, Activity, Wind, Beaker } from "lucide-react"
 import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
 
 export default function DashboardPage() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, isAuthenticated } = useAuth()
   const { sensorData, isConnected, alerts } = useRealtime()
   const [selectedGrowBag, setSelectedGrowBag] = useState("grow-bag-1")
 
   useEffect(() => {
-    if (!isLoading && !user) {
-      redirect("/login")
+    // Immediate redirect if not authenticated
+    if (!isLoading && !isAuthenticated) {
+      window.location.replace("/login")
+      return
     }
-  }, [user, isLoading])
+  }, [isLoading, isAuthenticated])
 
   if (isLoading) {
     return (
@@ -35,22 +36,27 @@ export default function DashboardPage() {
     )
   }
 
-  if (!user) {
-    return null
+  if (!isAuthenticated) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-muted-foreground">Redirecting to login...</p>
+        </div>
+      </div>
+    )
   }
 
   const currentData = sensorData[selectedGrowBag]
   const growBagIds = Object.keys(sensorData)
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground">Real-time monitoring for {growBagIds.length} grow bags</p>
-          </div>
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <p className="text-muted-foreground">Real-time monitoring for {growBagIds.length} grow bags</p>
+        </div>
           <div className="flex items-center gap-2">
             <Badge variant={isConnected ? "default" : "destructive"}>
               {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
@@ -91,15 +97,15 @@ export default function DashboardPage() {
         {currentData && (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <SensorCard
-              title="Water Temperature"
-              value={currentData.waterTemp}
+              title="Room Temperature"
+              value={currentData.roomTemp}
               unit="°C"
               icon={Thermometer}
-              status={currentData.waterTemp >= 20 && currentData.waterTemp <= 28 ? "good" : "warning"}
+              status={currentData.roomTemp >= 22 && currentData.roomTemp <= 28 ? "good" : "warning"}
               trend={Math.random() > 0.5 ? "up" : "down"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 22 + Math.random() * 4 + Math.sin(i / 4) * 2,
+                value: 24 + Math.random() * 6 + Math.sin(i / 4) * 3,
               }))}
             />
 
@@ -130,28 +136,28 @@ export default function DashboardPage() {
             />
 
             <SensorCard
-              title="ORP"
-              value={currentData.orp}
-              unit="mV"
-              icon={Activity}
-              status={currentData.orp >= 200 ? "good" : "warning"}
+              title="Substrate Moisture"
+              value={currentData.moisture}
+              unit="%"
+              icon={Droplets}
+              status={currentData.moisture >= 60 ? "good" : "warning"}
               trend={Math.random() > 0.5 ? "up" : "down"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 250 + Math.random() * 100 + Math.sin(i / 5) * 50,
+                value: 70 + Math.random() * 20 + Math.sin(i / 5) * 10,
               }))}
             />
 
             <SensorCard
-              title="Dissolved Oxygen"
-              value={currentData.do}
-              unit="mg/L"
-              icon={Droplets}
-              status={currentData.do >= 4.0 ? "good" : "alert"}
-              trend={Math.random() > 0.5 ? "up" : "down"}
+              title="Water Level"
+              value={currentData.waterLevel === "Below Required Level" ? 0 : 100}
+              unit="%"
+              icon={Activity}
+              status={currentData.waterLevel === "Below Required Level" ? "alert" : "good"}
+              trend={"stable"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 6 + Math.random() * 2 + Math.sin(i / 7) * 1,
+                value: Math.random() > 0.8 ? 0 : 1, // 0 for low, 1 for ok
               }))}
             />
 
@@ -174,8 +180,7 @@ export default function DashboardPage() {
         <QuickActions selectedGrowBag={selectedGrowBag} />
 
         {/* Alerts Panel */}
-        <AlertPanel alerts={alerts.slice(0, 5)} />
+        <AlertPanel alerts={alerts.slice(0, 10)} />
       </div>
-    </DashboardLayout>
   )
 }

@@ -40,7 +40,7 @@ export default function HomePage() {
                 Sign In
               </Button>
             </Link>
-            <Link href="/dashboard" className="w-full sm:w-auto">
+            <Link href="/login" className="w-full sm:w-auto">
               <Button className="w-full sm:w-auto">Get Started</Button>
             </Link>
           </div>
@@ -63,7 +63,7 @@ export default function HomePage() {
             maximize yield and minimize resource consumption.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md sm:max-w-none mx-auto">
-            <Link href="/dashboard" className="w-full sm:w-auto">
+            <Link href="/login" className="w-full sm:w-auto">
               <Button
                 size="lg"
                 className="w-full sm:w-auto"
@@ -241,7 +241,7 @@ export default function HomePage() {
             Join the precision agriculture revolution with Hydro Nexus. Start optimizing your exotic crop cultivation
             today.
           </p>
-          <Link href="/dashboard">
+          <Link href="/login">
             <Button size="lg" variant="secondary" className="px-6 sm:px-8 py-3 sm:py-4">
               Start Free Trial
               <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
@@ -267,7 +267,7 @@ export default function HomePage() {
               <h3 className="font-semibold text-foreground mb-4 text-base sm:text-lg">Platform</h3>
               <ul className="space-y-2 text-muted-foreground text-sm sm:text-base">
                 <li>
-                  <Link href="/dashboard" className="hover:text-primary transition-colors">
+                  <Link href="/login" className="hover:text-primary transition-colors">
                     Dashboard
                   </Link>
                 </li>

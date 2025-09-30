@@ -16,6 +16,7 @@ interface AuthContextType {
   login: (username: string, password: string) => Promise<boolean>
   logout: () => void
   isLoading: boolean
+  isAuthenticated: boolean
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
@@ -26,12 +27,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Check for stored auth token
+    // Check for stored auth token in both localStorage and cookies
     const token = localStorage.getItem("hydro-nexus-token")
     const userData = localStorage.getItem("hydro-nexus-user")
+    
+    // Also check cookie for server-side middleware
+    const cookieToken = document.cookie
+      .split('; ')
+      .find(row => row.startsWith('hydro-nexus-token='))
+      ?.split('=')[1]
 
-    if (token && userData) {
+    if ((token || cookieToken) && userData) {
       setUser(JSON.parse(userData))
+      
+      // Ensure both localStorage and cookie are set
+      if (token && !cookieToken) {
+        document.cookie = `hydro-nexus-token=${token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
+      }
     }
     setIsLoading(false)
   }, [])
@@ -45,8 +57,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         lastLogin: new Date().toISOString(),
       }
 
-      localStorage.setItem("hydro-nexus-token", "mock-jwt-token")
+      const token = "mock-jwt-token"
+      // Store in localStorage for client-side access
+      localStorage.setItem("hydro-nexus-token", token)
       localStorage.setItem("hydro-nexus-user", JSON.stringify(userData))
+      
+      // Also set in cookies for middleware authentication
+      document.cookie = `hydro-nexus-token=${token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
+      
       setUser(userData)
       return true
     }
@@ -54,13 +72,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const logout = () => {
+    // Clear localStorage
     localStorage.removeItem("hydro-nexus-token")
     localStorage.removeItem("hydro-nexus-user")
+    
+    // Clear cookie
+    document.cookie = "hydro-nexus-token=; path=/; max-age=0; SameSite=Strict"
+    
     setUser(null)
     router.push("/login")
   }
 
-  return <AuthContext.Provider value={{ user, login, logout, isLoading }}>{children}</AuthContext.Provider>
+  return <AuthContext.Provider value={{ user, login, logout, isLoading, isAuthenticated: !!user }}>{children}</AuthContext.Provider>
 }
 
 export function useAuth() {

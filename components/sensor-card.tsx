@@ -2,7 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { LineChart, Line, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
+import { Line } from "@/components/ui/recharts/line"
 import { TrendingUp, TrendingDown, Minus, type LucideIcon } from "lucide-react"
 
 interface SensorData {
