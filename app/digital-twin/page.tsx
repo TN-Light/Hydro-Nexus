@@ -2,7 +2,6 @@
 
 import { useAuth } from "@/components/auth-provider"
 import { useRealtime } from "@/components/realtime-provider"
-import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Slider } from "@/components/ui/slider"
@@ -112,8 +111,7 @@ export default function DigitalTwinPage() {
   }
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -276,7 +274,6 @@ export default function DigitalTwinPage() {
             )}
           </div>
         </div>
-      </div>
-    </DashboardLayout>
+    </div>
   )
 }

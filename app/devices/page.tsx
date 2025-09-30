@@ -1,7 +1,6 @@
 "use client"
 
 import { useAuth } from "@/components/auth-provider"
-import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -184,8 +183,7 @@ export default function DevicesPage() {
   const inactiveDevices = devices.filter((d) => d.status === "inactive").length
 
   return (
-    <DashboardLayout>
-      <div className="space-y-6">
+    <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -500,7 +498,6 @@ export default function DevicesPage() {
             )}
           </DialogContent>
         </Dialog>
-      </div>
-    </DashboardLayout>
+    </div>
   )
 }

@@ -1,7 +1,6 @@
 "use client"
 
 import { useAuth } from "@/components/auth-provider"
-import { DashboardLayout } from "@/components/dashboard-layout"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Calendar } from "@/components/ui/calendar"
@@ -30,11 +29,11 @@ interface HistoricalDataPoint {
 }
 
 const METRICS = [
-  { id: "roomTemp", label: "Room Temperature", color: "hsl(var(--destructive))", unit: "°C" },
-  { id: "pH", label: "pH Level", color: "hsl(var(--primary))", unit: "" },
-  { id: "ec", label: "EC", color: "hsl(var(--accent))", unit: "mS/cm" },
-  { id: "moisture", label: "Substrate Moisture", color: "hsl(var(--warning))", unit: "%" },
-  { id: "humidity", label: "Humidity", color: "hsl(var(--info))", unit: "%" },
+  { id: "roomTemp", label: "Room Temperature", color: "#ef4444", unit: "°C" }, // Red
+  { id: "pH", label: "pH Level", color: "#3b82f6", unit: "" }, // Blue
+  { id: "ec", label: "EC", color: "#10b981", unit: "mS/cm" }, // Green
+  { id: "moisture", label: "Substrate Moisture", color: "#f59e0b", unit: "%" }, // Orange
+  { id: "humidity", label: "Humidity", color: "#8b5cf6", unit: "%" }, // Purple
 ]
 
 const CROP_TYPES = ["All", "Tomato", "Lettuce", "Basil", "Spinach"]
@@ -47,7 +46,7 @@ export default function AnalyticsPage() {
     to: new Date(),
   })
   const [aggregation, setAggregation] = useState("Daily")
-  const [selectedMetrics, setSelectedMetrics] = useState(["roomTemp", "pH", "ec"])
+  const [selectedMetrics, setSelectedMetrics] = useState(["roomTemp", "pH", "ec", "moisture", "humidity"])
   const [cropType, setCropType] = useState("All")
   const [growBag, setGrowBag] = useState("All")
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
@@ -132,21 +131,19 @@ export default function AnalyticsPage() {
         aggregated[key] = {
           timestamp: key,
           count: 0,
-          waterTemp: 0,
+          roomTemp: 0,
           pH: 0,
           ec: 0,
-          orp: 0,
-          do: 0,
+          moisture: 0,
           humidity: 0,
         }
       }
 
       aggregated[key].count++
-      aggregated[key].waterTemp += point.waterTemp
+      aggregated[key].roomTemp += point.roomTemp
       aggregated[key].pH += point.pH
       aggregated[key].ec += point.ec
-      aggregated[key].orp += point.orp
-      aggregated[key].do += point.do
+      aggregated[key].moisture += point.moisture
       aggregated[key].humidity += point.humidity
     })
 
@@ -154,11 +151,10 @@ export default function AnalyticsPage() {
     return Object.values(aggregated)
       .map((item: any) => ({
         timestamp: item.timestamp,
-        waterTemp: Number((item.waterTemp / item.count).toFixed(2)),
+        roomTemp: Number((item.roomTemp / item.count).toFixed(2)),
         pH: Number((item.pH / item.count).toFixed(2)),
         ec: Number((item.ec / item.count).toFixed(2)),
-        orp: Number((item.orp / item.count).toFixed(0)),
-        do: Number((item.do / item.count).toFixed(2)),
+        moisture: Number((item.moisture / item.count).toFixed(1)),
         humidity: Number((item.humidity / item.count).toFixed(1)),
       }))
       .sort((a, b) => a.timestamp.localeCompare(b.timestamp))
@@ -166,6 +162,30 @@ export default function AnalyticsPage() {
 
   const handleMetricToggle = (metricId: string) => {
     setSelectedMetrics((prev) => (prev.includes(metricId) ? prev.filter((id) => id !== metricId) : [...prev, metricId]))
+  }
+
+  const handleExportData = () => {
+    const csvContent = [
+      // Header row
+      ['timestamp', ...selectedMetrics.map(id => METRICS.find(m => m.id === id)?.label || id)].join(','),
+      // Data rows
+      ...processedData.map(row => [
+        row.timestamp,
+        ...selectedMetrics.map(id => row[id as keyof typeof row])
+      ].join(','))
+    ].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const link = document.createElement('a')
+    if (link.download !== undefined) {
+      const url = URL.createObjectURL(blob)
+      link.setAttribute('href', url)
+      link.setAttribute('download', `hydro-nexus-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`)
+      link.style.visibility = 'hidden'
+      document.body.appendChild(link)
+      link.click()
+      document.body.removeChild(link)
+    }
   }
 
   if (isLoading) {
@@ -182,8 +202,7 @@ export default function AnalyticsPage() {
   if (!user) return null
 
   return (
-    <DashboardLayout>
-      <div className="space-y-4 sm:space-y-6">
+    <div className="space-y-4 sm:space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <div>
@@ -201,6 +220,7 @@ export default function AnalyticsPage() {
               variant="outline"
               size="sm"
               className="text-sm"
+              onClick={handleExportData}
             >
               <Download className="h-4 w-4 mr-2" />
               Export
@@ -218,9 +238,9 @@ export default function AnalyticsPage() {
             <CardDescription className="text-sm sm:text-base">Configure your data analysis parameters</CardDescription>
           </CardHeader>
           <CardContent className="p-4 sm:p-6 pt-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4 sm:gap-6">
               {/* Date Range Selector */}
-              <div className="flex flex-col space-y-2 sm:col-span-2 xl:col-span-1">
+              <div className="flex flex-col space-y-2 md:col-span-1 xl:col-span-1">
                 <label className="block text-sm font-medium">Date Range</label>
                 <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
                   <PopoverTrigger asChild>
@@ -313,11 +333,11 @@ export default function AnalyticsPage() {
               </div>
 
               {/* Metric Selector */}
-              <div className="space-y-2 sm:col-span-2 xl:col-span-2">
+              <div className="space-y-2 md:col-span-2 xl:col-span-2">
                 <label className="text-sm font-medium">Metrics</label>
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-3">
                   {METRICS.map((metric) => (
-                    <div key={metric.id} className="flex items-center space-x-2">
+                    <div key={metric.id} className="flex items-center space-x-2 min-w-0">
                       <Checkbox
                         id={metric.id}
                         checked={selectedMetrics.includes(metric.id)}
@@ -325,7 +345,8 @@ export default function AnalyticsPage() {
                       />
                       <label
                         htmlFor={metric.id}
-                        className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        className="text-xs font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer truncate"
+                        style={{ color: metric.color }}
                       >
                         {metric.label}
                       </label>
@@ -350,9 +371,9 @@ export default function AnalyticsPage() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 pt-0">
-                  <div className="h-80 sm:h-96 w-full">
+                  <div className="h-96 sm:h-[450px] w-full">
                     <ResponsiveContainer width="100%" height="100%">
-                      <LineChart data={processedData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+                      <LineChart data={processedData} margin={{ top: 20, right: 30, left: 20, bottom: 60 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                         <XAxis
                           dataKey="timestamp"
@@ -464,12 +485,22 @@ export default function AnalyticsPage() {
           {/* Quick Stats */}
           <Card>
             <CardHeader className="p-4 sm:p-6">
-              <CardTitle className="text-base sm:text-lg">Quick Statistics</CardTitle>
+              <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                <TrendingUp className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                Quick Statistics
+              </CardTitle>
             </CardHeader>
             <CardContent className="p-4 sm:p-6 pt-0 space-y-3">
-              {selectedMetrics.slice(0, 3).map((metricId) => {
+              {selectedMetrics.map((metricId) => {
                 const metric = METRICS.find((m) => m.id === metricId)
-                const values = processedData.map((d) => d[metricId as keyof typeof d] as number)
+                if (!metric) return null
+                
+                const values = processedData
+                  .map((d) => d[metricId as keyof typeof d] as number)
+                  .filter((val) => !isNaN(val) && val !== undefined && val !== null)
+                
+                if (values.length === 0) return null
+                
                 const avg = values.reduce((a, b) => a + b, 0) / values.length
                 const min = Math.min(...values)
                 const max = Math.max(...values)
@@ -477,8 +508,10 @@ export default function AnalyticsPage() {
                 return (
                   <div key={metricId} className="space-y-1">
                     <div className="flex justify-between items-center">
-                      <span className="text-xs sm:text-sm font-medium">{metric?.label}</span>
-                      <span className="text-xs text-muted-foreground">{metric?.unit}</span>
+                      <span className="text-xs sm:text-sm font-medium" style={{ color: metric.color }}>
+                        {metric.label}
+                      </span>
+                      <span className="text-xs text-muted-foreground">{metric.unit}</span>
                     </div>
                     <div className="grid grid-cols-3 gap-2 text-xs">
                       <div>
@@ -500,7 +533,6 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
         </div>
-      </div>
-    </DashboardLayout>
+    </div>
   )
 }
