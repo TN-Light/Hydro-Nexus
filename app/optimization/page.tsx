@@ -1,429 +1,430 @@
 "use client"
 
 import { useAuth } from "@/components/auth-provider"
+import { useRealtime } from "@/components/realtime-provider"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
-import { Beaker, TrendingUp, CheckCircle, ArrowDownCircle, ArrowUpCircle, Brain, Zap, Leaf } from "lucide-react"
+import { Settings, Thermometer, Droplets, Zap, TestTube, Leaf, ArrowUpDown, Save, RotateCcw } from "lucide-react"
 import { useState, useEffect } from "react"
 import { redirect } from "next/navigation"
 
-interface NutrientState {
-  N: number
-  P: number
-  K: number
-  Ca: number
-  Mg: number
-  Fe: number
-  pH: number
-  EC: number
+interface ParameterRange {
+  min: number | string
+  max: number | string
 }
 
-interface OptimalRecipe {
-  N: { value: number; status: "balance" | "deficiency" | "excess" }
-  P: { value: number; status: "balance" | "deficiency" | "excess" }
-  K: { value: number; status: "balance" | "deficiency" | "excess" }
-  Ca: { value: number; status: "balance" | "deficiency" | "excess" }
-  Mg: { value: number; status: "balance" | "deficiency" | "excess" }
-  Fe: { value: number; status: "balance" | "deficiency" | "excess" }
-  pH: { value: number; status: "balance" | "deficiency" | "excess" }
-  EC: { value: number; status: "balance" | "deficiency" | "excess" }
+interface SystemParameters {
+  temperature: ParameterRange
+  humidity: ParameterRange
+  pH: ParameterRange
+  ec: ParameterRange
+  ppm: ParameterRange
+  nitrogen: ParameterRange
+  phosphorus: ParameterRange
+  potassium: ParameterRange
+  calcium: ParameterRange
+  magnesium: ParameterRange
+  iron: ParameterRange
 }
 
-const nutrientInfo = {
-  N: { name: "Nitrogen", unit: "ppm", icon: Leaf, optimal: [150, 200] },
-  P: { name: "Phosphorus", unit: "ppm", icon: Zap, optimal: [30, 50] },
-  K: { name: "Potassium", unit: "ppm", icon: TrendingUp, optimal: [200, 300] },
-  Ca: { name: "Calcium", unit: "ppm", icon: CheckCircle, optimal: [150, 200] },
-  Mg: { name: "Magnesium", unit: "ppm", icon: Beaker, optimal: [50, 75] },
-  Fe: { name: "Iron", unit: "ppm", icon: ArrowUpCircle, optimal: [2, 5] },
-  pH: { name: "pH Level", unit: "", icon: Beaker, optimal: [5.5, 6.5] },
-  EC: { name: "Electrical Conductivity", unit: "mS/cm", icon: Zap, optimal: [1.2, 2.0] },
+const defaultParameters: SystemParameters = {
+  temperature: { min: 20, max: 28 },
+  humidity: { min: 60, max: 80 },
+  pH: { min: 5.5, max: 6.8 },
+  ec: { min: 1.2, max: 2.4 },
+  ppm: { min: 800, max: 1400 },
+  nitrogen: { min: 150, max: 200 },
+  phosphorus: { min: 30, max: 50 },
+  potassium: { min: 200, max: 300 },
+  calcium: { min: 150, max: 200 },
+  magnesium: { min: 50, max: 75 },
+  iron: { min: 2, max: 5 },
 }
 
-const statusConfig = {
-  balance: {
-    icon: CheckCircle,
-    color: "text-green-500",
-    bgColor: "bg-green-500/10",
-    borderColor: "border-green-500/20",
-    label: "Optimal",
-  },
-  deficiency: {
-    icon: ArrowDownCircle,
-    color: "text-yellow-500",
-    bgColor: "bg-yellow-500/10",
-    borderColor: "border-yellow-500/20",
-    label: "Low",
-  },
-  excess: {
-    icon: ArrowUpCircle,
-    color: "text-red-500",
-    bgColor: "bg-red-500/10",
-    borderColor: "border-red-500/20",
-    label: "High",
-  },
+const parameterInfo = {
+  temperature: { name: "Temperature", unit: "°C", icon: Thermometer, category: "environmental", defaultMin: 20, defaultMax: 28 },
+  humidity: { name: "Humidity", unit: "%", icon: Droplets, category: "environmental", defaultMin: 60, defaultMax: 80 },
+  pH: { name: "pH Level", unit: "", icon: TestTube, category: "chemical", defaultMin: 5.5, defaultMax: 6.8 },
+  ec: { name: "Electrical Conductivity", unit: "mS/cm", icon: Zap, category: "chemical", defaultMin: 1.2, defaultMax: 2.4 },
+  ppm: { name: "Total PPM", unit: "ppm", icon: TestTube, category: "chemical", defaultMin: 800, defaultMax: 1400 },
+  nitrogen: { name: "Nitrogen", unit: "ppm", icon: Leaf, category: "nutrients", defaultMin: 150, defaultMax: 200 },
+  phosphorus: { name: "Phosphorus", unit: "ppm", icon: Zap, category: "nutrients", defaultMin: 30, defaultMax: 50 },
+  potassium: { name: "Potassium", unit: "ppm", icon: ArrowUpDown, category: "nutrients", defaultMin: 200, defaultMax: 300 },
+  calcium: { name: "Calcium", unit: "ppm", icon: TestTube, category: "nutrients", defaultMin: 150, defaultMax: 200 },
+  magnesium: { name: "Magnesium", unit: "ppm", icon: TestTube, category: "nutrients", defaultMin: 50, defaultMax: 75 },
+  iron: { name: "Iron", unit: "ppm", icon: TestTube, category: "nutrients", defaultMin: 2, defaultMax: 5 },
 }
 
 export default function OptimizationPage() {
-  const { user, isLoading } = useAuth()
+  const { user, isLoading, isAuthenticated } = useAuth()
+  const { clearParametersCache } = useRealtime()
   const { toast } = useToast()
-  const [currentNutrients, setCurrentNutrients] = useState<NutrientState>({
-    N: 180,
-    P: 40,
-    K: 250,
-    Ca: 175,
-    Mg: 60,
-    Fe: 3.5,
-    pH: 6.1,
-    EC: 1.6,
-  })
-  const [optimalRecipe, setOptimalRecipe] = useState<OptimalRecipe | null>(null)
-  const [predictedGrowthRate, setPredictedGrowthRate] = useState<number | null>(null)
-  const [isGenerating, setIsGenerating] = useState(false)
+  const [parameters, setParameters] = useState<SystemParameters>(defaultParameters)
+  const [hasChanges, setHasChanges] = useState(false)
+  const [selectedDevice, setSelectedDevice] = useState<string>("all")
 
   useEffect(() => {
-    if (!isLoading && !user) {
+    if (!isLoading && !isAuthenticated) {
       redirect("/login")
     }
-  }, [user, isLoading])
+  }, [isLoading, isAuthenticated])
 
-  const handleInputChange = (nutrient: keyof NutrientState, value: string) => {
-    const numValue = Number.parseFloat(value) || 0
-    setCurrentNutrients((prev) => ({
-      ...prev,
-      [nutrient]: numValue,
-    }))
-  }
-
-  const generateOptimalRecipe = async () => {
-    setIsGenerating(true)
-
-    // Simulate ML processing time
-    await new Promise((resolve) => setTimeout(resolve, 2000))
-
-    // Generate mock optimal recipe with some randomization
-    const recipe: OptimalRecipe = {} as OptimalRecipe
-
-    Object.entries(nutrientInfo).forEach(([key, info]) => {
-      const currentValue = currentNutrients[key as keyof NutrientState]
-      const [minOptimal, maxOptimal] = info.optimal
-      const optimalValue = minOptimal + Math.random() * (maxOptimal - minOptimal)
-
-      let status: "balance" | "deficiency" | "excess"
-      if (currentValue < minOptimal * 0.8) {
-        status = "deficiency"
-      } else if (currentValue > maxOptimal * 1.2) {
-        status = "excess"
-      } else {
-        status = "balance"
+  useEffect(() => {
+    // Load saved parameters from localStorage
+    const storageKey = selectedDevice === "all" ? 'hydro-nexus-parameters' : `hydro-nexus-parameters-${selectedDevice}`
+    const saved = localStorage.getItem(storageKey)
+    if (saved) {
+      try {
+        setParameters(JSON.parse(saved))
+      } catch (error) {
+        console.error('Failed to load saved parameters:', error)
+        setParameters(defaultParameters)
       }
-
-      recipe[key as keyof OptimalRecipe] = {
-        value: Number(optimalValue.toFixed(key === "pH" ? 1 : 0)),
-        status,
-      }
-    })
-
-    setOptimalRecipe(recipe)
-
-    // Generate mock growth rate prediction (between 85-98%)
-    const growthRate = 85 + Math.random() * 13
-    setPredictedGrowthRate(Number(growthRate.toFixed(1)))
-
-    toast({
-      title: "Optimal Recipe Generated",
-      description: "Optimal recipe generated based on Random Forest + GA model.",
-    })
-
-    setIsGenerating(false)
-  }
-
-  const resetForm = () => {
-    setCurrentNutrients({
-      N: 180,
-      P: 40,
-      K: 250,
-      Ca: 175,
-      Mg: 60,
-      Fe: 3.5,
-      pH: 6.1,
-      EC: 1.6,
-    })
-    setOptimalRecipe(null)
-    setPredictedGrowthRate(null)
-
-    toast({
-      title: "Form Reset",
-      description: "All values have been reset to defaults",
-    })
-  }
+    } else {
+      setParameters(defaultParameters)
+    }
+    setHasChanges(false)
+  }, [selectedDevice]) // Reload when device selection changes
 
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-muted-foreground">Loading optimization engine...</p>
+          <p className="text-muted-foreground">Loading optimization settings...</p>
         </div>
       </div>
     )
   }
 
-  if (!user) return null
+  if (!isAuthenticated) {
+    return null
+  }
+
+  const updateParameter = (
+    paramKey: keyof SystemParameters,
+    field: keyof ParameterRange,
+    value: string
+  ) => {
+    // Always allow setting the value first (including empty strings)
+    setParameters(prev => ({
+      ...prev,
+      [paramKey]: {
+        ...prev[paramKey],
+        [field]: value === '' ? value : parseFloat(value) || value
+      }
+    }))
+    setHasChanges(true)
+    
+    // Only validate if it's a numeric value
+    if (value !== '') {
+      const numValue = parseFloat(value)
+      if (!isNaN(numValue) && numValue >= 0) {
+        // Additional validation can be done here if needed
+        // For now, we allow all positive numeric values
+      }
+    }
+  }
+
+  const saveParameters = () => {
+    // Convert any string values back to numbers before saving
+    const parametersToSave: SystemParameters = {} as SystemParameters
+    
+    Object.keys(parameters).forEach(key => {
+      const paramKey = key as keyof SystemParameters
+      const param = parameters[paramKey]
+      parametersToSave[paramKey] = {
+        min: typeof param.min === 'string' ? parseFloat(param.min) || parameterInfo[paramKey].defaultMin : param.min,
+        max: typeof param.max === 'string' ? parseFloat(param.max) || parameterInfo[paramKey].defaultMax : param.max,
+      }
+    })
+    
+    const storageKey = selectedDevice === "all" ? 'hydro-nexus-parameters' : `hydro-nexus-parameters-${selectedDevice}`
+    localStorage.setItem(storageKey, JSON.stringify(parametersToSave))
+    
+    // If saving for "all", also update individual device settings
+    if (selectedDevice === "all") {
+      for (let i = 1; i <= 6; i++) {
+        localStorage.setItem(`hydro-nexus-parameters-grow-bag-${i}`, JSON.stringify(parametersToSave))
+      }
+    }
+    
+    setParameters(parametersToSave) // Update state with numeric values
+    setHasChanges(false)
+    
+    // Clear the parameters cache in realtime provider so it picks up the new values immediately
+    clearParametersCache()
+    
+    const deviceName = selectedDevice === "all" ? "all devices" : selectedDevice
+    toast({
+      title: "Settings Saved",
+      description: `Parameter ranges for ${deviceName} have been saved successfully. Alerts will now use these thresholds immediately.`,
+    })
+  }
+
+  const resetToDefaults = () => {
+    setParameters(defaultParameters)
+    setHasChanges(true)
+    toast({
+      title: "Reset to Defaults",
+      description: "All parameters have been reset to default values.",
+    })
+  }
+
+  const renderParameterCard = (paramKey: keyof SystemParameters) => {
+    const param = parameters[paramKey]
+    const info = parameterInfo[paramKey]
+    const Icon = info.icon
+
+    return (
+      <Card key={paramKey} className="relative">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-base">
+            <Icon className="h-4 w-4 text-primary" />
+            {info.name}
+            {info.unit && <span className="text-xs text-muted-foreground">({info.unit})</span>}
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {/* Range Settings */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <Label htmlFor={`${paramKey}-min`} className="text-xs">Minimum</Label>
+              <Input
+                id={`${paramKey}-min`}
+                type="number"
+                step={paramKey === 'pH' || paramKey === 'ec' || paramKey === 'iron' ? '0.1' : '1'}
+                value={param.min}
+                onChange={(e) => updateParameter(paramKey, 'min', e.target.value)}
+                onBlur={(e) => {
+                  // If empty on blur, restore to default minimum value
+                  if (e.target.value === '') {
+                    const defaultMin = parameterInfo[paramKey].defaultMin
+                    updateParameter(paramKey, 'min', defaultMin.toString())
+                  }
+                }}
+                className="h-8 text-sm"
+                min="0"
+              />
+            </div>
+            <div className="space-y-1">
+              <Label htmlFor={`${paramKey}-max`} className="text-xs">Maximum</Label>
+              <Input
+                id={`${paramKey}-max`}
+                type="number"
+                step={paramKey === 'pH' || paramKey === 'ec' || paramKey === 'iron' ? '0.1' : '1'}
+                value={param.max}
+                onChange={(e) => updateParameter(paramKey, 'max', e.target.value)}
+                onBlur={(e) => {
+                  // If empty on blur, restore to default maximum value
+                  if (e.target.value === '') {
+                    const defaultMax = parameterInfo[paramKey].defaultMax
+                    updateParameter(paramKey, 'max', defaultMax.toString())
+                  }
+                }}
+                className={`h-8 text-sm ${
+                  typeof param.max === 'number' && typeof param.min === 'number' && param.max < param.min 
+                    ? 'border-red-500 focus:border-red-500' 
+                    : ''
+                }`}
+                min={typeof param.min === 'number' ? param.min.toString() : '0'}
+              />
+              {typeof param.max === 'number' && typeof param.min === 'number' && param.max < param.min && (
+                <p className="text-xs text-red-500">Maximum must be greater than minimum</p>
+              )}
+            </div>
+          </div>
+
+          {/* Range Display - thresholds are now fixed at ±2 for warning, ±4 for alert */}
+          <div className="text-xs text-muted-foreground mb-3">
+            Warning: ±2 from range | Alert: ±4 from range
+          </div>
+
+          {/* Visual Range Display */}
+          <div className="mt-3 p-2 bg-muted/30 rounded text-xs">
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-yellow-600">
+                Warning: {
+                  typeof param.min === 'number' && typeof param.max === 'number'
+                    ? `${(param.min - 2).toFixed(1)} - ${(param.max + 2).toFixed(1)}`
+                    : 'Setting values...'
+                }
+              </span>
+            </div>
+            <div className="flex justify-between items-center mb-1">
+              <span className="text-green-600">Optimal: {typeof param.min === 'number' && typeof param.max === 'number' ? `${param.min} - ${param.max}` : 'Setting values...'}</span>
+            </div>
+            <div className="flex justify-between items-center">
+              <span className="text-red-600">
+                Alert: {
+                  typeof param.min === 'number' && typeof param.max === 'number'
+                    ? `<${(param.min - 4).toFixed(1)} or >${(param.max + 4).toFixed(1)}`
+                    : 'Setting values...'
+                }
+              </span>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    )
+  }
+
+  const environmentalParams = Object.keys(parameterInfo).filter(
+    key => parameterInfo[key as keyof typeof parameterInfo].category === 'environmental'
+  ) as (keyof SystemParameters)[]
+
+  const chemicalParams = Object.keys(parameterInfo).filter(
+    key => parameterInfo[key as keyof typeof parameterInfo].category === 'chemical'
+  ) as (keyof SystemParameters)[]
+
+  const nutrientParams = Object.keys(parameterInfo).filter(
+    key => parameterInfo[key as keyof typeof parameterInfo].category === 'nutrients'
+  ) as (keyof SystemParameters)[]
 
   return (
     <div className="space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-          <div>
-            <h1 className="text-3xl font-bold text-foreground">Nutrient Optimization Engine</h1>
-            <p className="text-muted-foreground">AI-powered nutrient recipe optimization for maximum crop yield</p>
-          </div>
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">System Configuration</h1>
+          <p className="text-muted-foreground">Configure parameter ranges for optimal growing conditions. Warnings trigger at ±2 from range, alerts at ±4.</p>
+        </div>
+        <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+          {/* Device Selection */}
           <div className="flex items-center gap-2">
-            <Badge variant="outline">
-              <Brain className="h-3 w-3 mr-1" />
-              ML-Powered Analysis
-            </Badge>
+            <Label htmlFor="device-select" className="text-sm font-medium whitespace-nowrap">
+              Configure for:
+            </Label>
+            <Select value={selectedDevice} onValueChange={setSelectedDevice}>
+              <SelectTrigger id="device-select" className="w-[180px]">
+                <SelectValue placeholder="Select device" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Grow Bags</SelectItem>
+                <SelectItem value="grow-bag-1">Grow Bag 1</SelectItem>
+                <SelectItem value="grow-bag-2">Grow Bag 2</SelectItem>
+                <SelectItem value="grow-bag-3">Grow Bag 3</SelectItem>
+                <SelectItem value="grow-bag-4">Grow Bag 4</SelectItem>
+                <SelectItem value="grow-bag-5">Grow Bag 5</SelectItem>
+                <SelectItem value="grow-bag-6">Grow Bag 6</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          {/* Action Buttons */}
+          <div className="flex items-center gap-2">
             <Button
               variant="outline"
               size="sm"
-              onClick={resetForm}
+              onClick={resetToDefaults}
+              className="flex items-center gap-2"
             >
-              Reset Form
+              <RotateCcw className="h-4 w-4" />
+              Reset Defaults
             </Button>
-          </div>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-6">
-          {/* Input Panel */}
-          <div className="space-y-6">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Beaker className="h-5 w-5 text-primary" />
-                  Current Nutrient Profile
-                </CardTitle>
-                <CardDescription>Enter your current nutrient levels and water parameters</CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form className="space-y-4">
-                  <div className="grid grid-cols-2 gap-4">
-                    {Object.entries(nutrientInfo).map(([key, info]) => (
-                      <div key={key} className="space-y-2">
-                        <Label htmlFor={key} className="flex items-center gap-2">
-                          <info.icon className="h-4 w-4 text-primary" />
-                          {info.name}
-                          {info.unit && <span className="text-xs text-muted-foreground">({info.unit})</span>}
-                        </Label>
-                        <Input
-                          id={key}
-                          type="number"
-                          step={key === "pH" ? "0.1" : key === "EC" ? "0.1" : "1"}
-                          value={currentNutrients[key as keyof NutrientState]}
-                          onChange={(e) => handleInputChange(key as keyof NutrientState, e.target.value)}
-                          placeholder={`Enter ${info.name.toLowerCase()}`}
-                        />
-                        <div className="text-xs text-muted-foreground">
-                          Optimal: {info.optimal[0]}-{info.optimal[1]} {info.unit}
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <Button
-                    type="button"
-                    onClick={generateOptimalRecipe}
-                    disabled={isGenerating}
-                    className="w-full agriculture-gradient text-white hover:opacity-90 mt-6"
-                  >
-                    {isGenerating ? (
-                      <>
-                        <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                        Analyzing with AI...
-                      </>
-                    ) : (
-                      <>
-                        <Brain className="h-4 w-4 mr-2" />
-                        Suggest Optimal Recipe
-                      </>
-                    )}
-                  </Button>
-                </form>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Output Panel */}
-          <div className="space-y-6">
-            {/* Predicted Growth Rate */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <TrendingUp className="h-5 w-5 text-primary" />
-                  Predicted Growth Rate
-                </CardTitle>
-                <CardDescription>AI-estimated growth performance based on current conditions</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {predictedGrowthRate !== null ? (
-                  <div className="text-center py-6">
-                    <div className="text-4xl font-bold text-primary mb-2">{predictedGrowthRate}%</div>
-                    <div className="text-sm text-muted-foreground">Expected growth efficiency</div>
-                    <div className="mt-4 p-3 bg-primary/10 rounded-lg">
-                      <p className="text-xs text-primary/90">
-                        Based on Random Forest model trained on 10,000+ growth cycles with genetic algorithm
-                        optimization.
-                      </p>
-                    </div>
-                  </div>
-                ) : (
-                  <div className="text-center py-8 text-muted-foreground">
-                    <Brain className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
-                    <p>Click &quot;Suggest Optimal Recipe&quot; to generate AI predictions</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Optimal Recipe */}
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Zap className="h-5 w-5 text-primary" />
-                  Recommended Adjustments
-                </CardTitle>
-                <CardDescription>AI-optimized nutrient concentrations for your crop</CardDescription>
-              </CardHeader>
-              <CardContent>
-                {optimalRecipe ? (
-                  <div className="grid gap-3 w-full">
-                    {Object.entries(optimalRecipe).map(([key, recommendation]) => {
-                      const info = nutrientInfo[key as keyof typeof nutrientInfo]
-                      const config = statusConfig[recommendation.status]
-                      const StatusIcon = config.icon
-                      const currentValue = currentNutrients[key as keyof NutrientState]
-
-                      return (
-                        <div
-                          key={key}
-                          className={`flex flex-col p-3 rounded-lg border ${config.bgColor} ${config.borderColor} w-full`}
-                        >
-                          <div className="flex items-center justify-between mb-2 w-full">
-                            <div className="flex items-center gap-2">
-                              <info.icon className="h-4 w-4 text-muted-foreground" />
-                              <span className="font-medium text-foreground">{info.name}</span>
-                            </div>
-                            <div className="flex items-center gap-2">
-                              <StatusIcon className={`h-4 w-4 ${config.color}`} />
-                              <Badge
-                                variant="outline"
-                                className={`${config.bgColor} ${config.borderColor} ${config.color}`}
-                              >
-                                {config.label}
-                              </Badge>
-                            </div>
-                          </div>
-                          <div className="grid grid-cols-2 gap-4 text-sm w-full">
-                            <div>
-                              <span className="text-muted-foreground">Current:</span>
-                              <span className="ml-2 font-mono text-foreground">
-                                {currentValue} {info.unit}
-                              </span>
-                            </div>
-                            <div>
-                              <span className="text-muted-foreground">Optimal:</span>
-                              <span className="ml-2 font-mono text-primary">
-                                {recommendation.value} {info.unit}
-                              </span>
-                            </div>
-                          </div>
-                          {recommendation.status !== "balance" && (
-                            <div className="mt-2 text-xs text-muted-foreground">
-                              {recommendation.status === "deficiency"
-                                ? `Increase by ${(recommendation.value - currentValue).toFixed(1)} ${info.unit}`
-                                : `Decrease by ${(currentValue - recommendation.value).toFixed(1)} ${info.unit}`}
-                            </div>
-                          )}
-                        </div>
-                      )
-                    })}
-                  </div>
-                ) : (
-                  <div className="flex flex-col items-center justify-center py-8 text-muted-foreground w-full">
-                    <Beaker className="h-12 w-12 mx-auto mb-4 text-muted-foreground/30" />
-                    <p>Generate optimal recipe to see AI recommendations</p>
-                    <p className="text-xs mt-2">Personalized adjustments based on your current nutrient profile</p>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Implementation Guide */}
-            {optimalRecipe && (
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <CheckCircle className="h-5 w-5 text-primary" />
-                    Implementation Guide
-                  </CardTitle>
-                  <CardDescription>Step-by-step instructions for applying recommendations</CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="space-y-3 text-sm">
-                    <div className="flex items-start gap-3">
-                      <div className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                        1
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">Prepare Nutrient Solutions</div>
-                        <div className="text-muted-foreground text-xs">
-                          Mix concentrated nutrient solutions according to the recommended values above.
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                        2
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">Gradual Implementation</div>
-                        <div className="text-muted-foreground text-xs">
-                          Apply changes gradually over 3-5 days to avoid shocking the plants.
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                        3
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">Monitor & Adjust</div>
-                        <div className="text-muted-foreground text-xs">
-                          Check sensor readings every 6-8 hours and fine-tune as needed.
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex items-start gap-3">
-                      <div className="bg-primary/20 text-primary rounded-full w-6 h-6 flex items-center justify-center text-xs font-bold">
-                        4
-                      </div>
-                      <div>
-                        <div className="font-medium text-foreground">Track Results</div>
-                        <div className="text-muted-foreground text-xs">
-                          Document plant response and growth metrics for future optimization cycles.
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
+            <Button
+              onClick={saveParameters}
+              disabled={!hasChanges}
+              className="flex items-center gap-2"
+            >
+              <Save className="h-4 w-4" />
+              Save Changes
+            </Button>
+            {hasChanges && (
+              <Badge variant="secondary" className="ml-2">
+                Unsaved Changes
+              </Badge>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Configuration Tabs */}
+      <Tabs defaultValue="environmental" className="w-full">
+        <TabsList className="grid w-full grid-cols-3">
+          <TabsTrigger value="environmental" className="flex items-center gap-2">
+            <Thermometer className="h-4 w-4" />
+            Environmental
+          </TabsTrigger>
+          <TabsTrigger value="chemical" className="flex items-center gap-2">
+            <TestTube className="h-4 w-4" />
+            Chemical
+          </TabsTrigger>
+          <TabsTrigger value="nutrients" className="flex items-center gap-2">
+            <Leaf className="h-4 w-4" />
+            Nutrients
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="environmental" className="mt-6">
+          <div className="grid md:grid-cols-2 gap-4">
+            {environmentalParams.map(paramKey => renderParameterCard(paramKey))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="chemical" className="mt-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {chemicalParams.map(paramKey => renderParameterCard(paramKey))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="nutrients" className="mt-6">
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {nutrientParams.map(paramKey => renderParameterCard(paramKey))}
+          </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* Alert Configuration Info */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5 text-primary" />
+            Alert System Configuration
+          </CardTitle>
+          <CardDescription>
+            How the alert system works with your configured ranges
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid md:grid-cols-3 gap-4">
+            <div className="p-4 border rounded-lg bg-green-50 border-green-200">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-green-500 rounded-full"></div>
+                <span className="font-medium text-green-800">Optimal Range</span>
+              </div>
+              <p className="text-sm text-green-700">
+                Values within your set minimum and maximum ranges. No alerts triggered.
+              </p>
+            </div>
+            <div className="p-4 border rounded-lg bg-yellow-50 border-yellow-200">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-yellow-500 rounded-full"></div>
+                <span className="font-medium text-yellow-800">Warning Zone</span>
+              </div>
+              <p className="text-sm text-yellow-700">
+                Values outside optimal range by ±2. Yellow warning alerts triggered.
+              </p>
+            </div>
+            <div className="p-4 border rounded-lg bg-red-50 border-red-200">
+              <div className="flex items-center gap-2 mb-2">
+                <div className="w-3 h-3 bg-red-500 rounded-full"></div>
+                <span className="font-medium text-red-800">Critical Zone</span>
+              </div>
+              <p className="text-sm text-red-700">
+                Values outside optimal range by ±4. Red critical alerts triggered.
+              </p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }

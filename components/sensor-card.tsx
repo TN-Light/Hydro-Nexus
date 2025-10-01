@@ -5,24 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { LineChart, ResponsiveContainer, XAxis, YAxis } from "recharts"
 import { Line } from "@/components/ui/recharts/line"
 import { TrendingUp, TrendingDown, Minus, type LucideIcon } from "lucide-react"
-
-interface SensorData {
-  time: string
-  value: number
-}
-
-interface SensorCardProps {
-  title: string
-  value: number
-  unit: string
-  icon: LucideIcon
-  status: "good" | "warning" | "alert"
-  trend: "up" | "down" | "stable"
-  data: SensorData[]
-}
-
 import { useTheme } from "next-themes"
-import { useMemo } from "react"
+import { useMemo, memo } from "react"
 
 const statusColors = {
   light: {
@@ -56,7 +40,23 @@ const lineColors = {
   },
 }
 
-export function SensorCard({ title, value, unit, icon: Icon, status, trend, data }: SensorCardProps) {
+interface SensorData {
+  time: string
+  value: number
+}
+
+interface SensorCardProps {
+  title: string
+  value: number
+  unit: string
+  icon: LucideIcon
+  status: "good" | "warning" | "alert"
+  trend: "up" | "down" | "stable"
+  data: SensorData[]
+}
+
+// Memoized SensorCard for better performance
+export const SensorCard = memo(function SensorCard({ title, value, unit, icon: Icon, status, trend, data }: SensorCardProps) {
   const { theme } = useTheme()
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus
 
@@ -112,4 +112,4 @@ export function SensorCard({ title, value, unit, icon: Icon, status, trend, data
       </CardContent>
     </Card>
   )
-}
+})

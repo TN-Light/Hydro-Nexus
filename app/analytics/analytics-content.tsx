@@ -36,7 +36,7 @@ const METRICS = [
   { id: "humidity", label: "Humidity", color: "#8b5cf6", unit: "%" }, // Purple
 ]
 
-const CROP_TYPES = ["All", "Tomato", "Lettuce", "Basil", "Spinach"]
+const CROP_TYPES = ["All", "Leafy Greens", "Herbs", "Fruiting Plants", "Root Vegetables", "Other"]
 const GROW_BAGS = ["All", "grow-bag-1", "grow-bag-2", "grow-bag-3", "grow-bag-4", "grow-bag-5", "grow-bag-6"]
 
 export default function AnalyticsPage() {
@@ -57,19 +57,19 @@ export default function AnalyticsPage() {
     }
   }, [user, isLoading])
 
-  // Generate extended mock data for the last 90 days
+  // Generate extended mock data for the last 30 days (reduced from 90 for performance)
   const extendedMockData = useMemo(() => {
     const data: HistoricalDataPoint[] = []
-    const startDate = subDays(new Date(), 90)
+    const startDate = subDays(new Date(), 30) // Reduced from 90 days
 
-    for (let day = 0; day < 90; day++) {
-      for (let hour = 0; hour < 24; hour += 1) {
+    for (let day = 0; day < 30; day++) { // Reduced from 90 days
+      for (let hour = 0; hour < 24; hour += 2) { // Every 2 hours instead of every hour
         const timestamp = new Date(startDate)
         timestamp.setDate(timestamp.getDate() + day)
         timestamp.setHours(hour, 0, 0, 0)
 
         GROW_BAGS.slice(1).forEach((bagId, index) => {
-          const cropTypes = ["Tomato", "Lettuce", "Basil", "Spinach"]
+          const cropTypes = ["Leafy Greens", "Herbs", "Fruiting Plants", "Root Vegetables"]
           const cropType = cropTypes[index % cropTypes.length]
 
           // Add some realistic variation and trends
@@ -462,8 +462,8 @@ export default function AnalyticsPage() {
                       <span className="text-xs sm:text-sm font-medium text-yellow-400">Pattern Detection</span>
                     </div>
                     <p className="text-xs text-yellow-400/80">
-                      Dissolved oxygen levels show cyclical patterns correlating with lighting schedules. Consider
-                      adjusting aeration timing.
+                      Substrate moisture levels show cyclical patterns correlating with irrigation schedules. Consider
+                      adjusting watering timing.
                     </p>
                   </div>
 
