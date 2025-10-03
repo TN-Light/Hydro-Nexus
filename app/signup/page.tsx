@@ -39,6 +39,7 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState("")
   const [isLoading, setIsLoading] = useState(false)
+  const [successMessage, setSuccessMessage] = useState("")
   const { signup } = useAuth()
   const router = useRouter()
 
@@ -85,7 +86,11 @@ export default function SignUpPage() {
       })
       
       if (success) {
-        router.push("/dashboard")
+        setSuccessMessage(`Welcome ${formData.firstName}! Your account has been created successfully.`)
+        // Give user time to see success message before redirecting
+        setTimeout(() => {
+          router.push("/dashboard")
+        }, 2000)
       } else {
         setError("Username or email already exists")
       }
@@ -288,6 +293,12 @@ export default function SignUpPage() {
                   </div>
                 )}
               </div>
+
+              {successMessage && (
+                <Alert className="border-green-200 bg-green-50 text-green-800">
+                  <AlertDescription className="text-sm">{successMessage}</AlertDescription>
+                </Alert>
+              )}
 
               {error && (
                 <Alert variant="destructive">

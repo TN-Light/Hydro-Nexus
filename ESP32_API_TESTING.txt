@@ -1,0 +1,39 @@
+// ESP32 Testing Commands
+// Use these commands to test your ESP32 integration
+
+// 1. Test API Connection
+curl -X GET "http://localhost:3000/api/sensors/ingest" \
+  -H "x-api-key: esp32_grow_bag_1_key_2024_secure"
+
+// 2. Send Test Sensor Data
+curl -X POST "http://localhost:3000/api/sensors/ingest" \
+  -H "Content-Type: application/json" \
+  -H "x-api-key: esp32_grow_bag_1_key_2024_secure" \
+  -d '{
+    "room_temp": 25.5,
+    "humidity": 72,
+    "ph": 6.2,
+    "ec": 1.8,
+    "substrate_moisture": 75,
+    "water_level_status": "Adequate"
+  }'
+
+// 3. Check for Commands
+curl -X GET "http://localhost:3000/api/devices/grow-bag-1/commands" \
+  -H "x-api-key: esp32_grow_bag_1_key_2024_secure"
+
+// 4. Send Command from Dashboard
+curl -X POST "http://localhost:3000/api/devices/grow-bag-1/commands" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "action": "water_pump_on",
+    "parameters": {
+      "duration_ms": 5000
+    }
+  }'
+
+// 5. Get Latest Sensor Data
+curl -X GET "http://localhost:3000/api/sensors/latest?devices=grow-bag-1"
+
+// 6. Get Historical Data
+curl -X GET "http://localhost:3000/api/sensors/historical?devices=grow-bag-1&start_time=2024-01-01T00:00:00Z&end_time=2024-01-02T00:00:00Z"

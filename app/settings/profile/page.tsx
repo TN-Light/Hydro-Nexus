@@ -9,32 +9,87 @@ import { Label } from "@/components/ui/label"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { useToast } from "@/hooks/use-toast"
-import { usePreferencesStore } from "@/lib/stores/preferences-store"
+import { useAuth } from "@/components/auth-provider"
+import { useAvatar } from "@/components/avatar-provider"
 import { User, Edit, Save, X, Upload, Smartphone } from "lucide-react"
-import { useState, useRef } from "react"
+import { useState, useRef, useEffect } from "react"
 import Link from "next/link"
 
 export default function ProfilePage() {
-  const { profile, updateProfile } = usePreferencesStore()
+  const { user } = useAuth()
+  const { avatarUrl, refreshAvatar } = useAvatar()
   const { toast } = useToast()
   const [isEditingName, setIsEditingName] = useState(false)
-  const [editedName, setEditedName] = useState(profile.fullName)
-  const [avatarPreview, setAvatarPreview] = useState(profile.avatarUrl)
+  const [editedName, setEditedName] = useState(`${user?.firstName || ''} ${user?.lastName || ''}`.trim())
+  const [avatarPreview, setAvatarPreview] = useState("/placeholder.svg")
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const handleNameSave = () => {
+  // Update avatar preview when avatarUrl changes
+  useEffect(() => {
+    if (avatarUrl) {
+      setAvatarPreview(avatarUrl)
+    }
+  }, [avatarUrl])
+
+  // If no user is authenticated, redirect or show loading
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center h-64">
+        <p>Loading profile...</p>
+      </div>
+    )
+  }
+
+  const fullName = `${user.firstName || ''} ${user.lastName || ''}`.trim() || user.username
+
+  const handleNameSave = async () => {
     if (editedName.trim()) {
-      updateProfile({ fullName: editedName.trim() })
-      setIsEditingName(false)
-      toast({
-        title: "Profile Updated",
-        description: "Your name has been updated successfully.",
-      })
+      try {
+        const [firstName, ...lastNameParts] = editedName.trim().split(' ')
+        const lastName = lastNameParts.join(' ')
+        
+        const response = await fetch('/api/profile/update', {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('hydro-nexus-token')}`
+          },
+          body: JSON.stringify({
+            firstName: firstName || '',
+            lastName: lastName || '',
+            fullName: editedName.trim()
+          })
+        })
+        
+        if (response.ok) {
+          setIsEditingName(false)
+          toast({
+            title: "Profile Updated",
+            description: "Your name has been updated successfully.",
+          })
+          
+          // Optionally refresh the page to update the user context
+          window.location.reload()
+        } else {
+          const error = await response.json()
+          toast({
+            title: "Update Failed",
+            description: error.error || "Failed to update profile",
+            variant: "destructive"
+          })
+        }
+      } catch (error) {
+        toast({
+          title: "Update Failed",
+          description: "An error occurred while updating your profile",
+          variant: "destructive"
+        })
+      }
     }
   }
 
   const handleNameCancel = () => {
-    setEditedName(profile.fullName)
+    setEditedName(fullName)
     setIsEditingName(false)
   }
 
@@ -51,14 +106,44 @@ export default function ProfilePage() {
       }
 
       const reader = new FileReader()
-      reader.onload = (e) => {
+      reader.onload = async (e) => {
         const result = e.target?.result as string
         setAvatarPreview(result)
-        updateProfile({ avatarUrl: result })
-        toast({
-          title: "Avatar Updated",
-          description: "Your profile picture has been updated.",
-        })
+        
+        try {
+          const response = await fetch('/api/profile/avatar', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': `Bearer ${localStorage.getItem('hydro-nexus-token')}`
+            },
+            body: JSON.stringify({
+              avatarData: result
+            })
+          })
+          
+          if (response.ok) {
+            // Refresh the avatar in the context so it updates everywhere
+            await refreshAvatar()
+            toast({
+              title: "Avatar Updated",
+              description: "Your profile picture has been updated.",
+            })
+          } else {
+            const error = await response.json()
+            toast({
+              title: "Upload Failed",
+              description: error.error || "Failed to upload avatar",
+              variant: "destructive"
+            })
+          }
+        } catch (error) {
+          toast({
+            title: "Upload Failed",
+            description: "An error occurred while uploading your avatar",
+            variant: "destructive"
+          })
+        }
       }
       reader.readAsDataURL(file)
     }
@@ -85,11 +170,11 @@ export default function ProfilePage() {
           {/* Avatar Section */}
           <div className="flex flex-col sm:flex-row items-center sm:items-start space-y-4 sm:space-y-0 sm:space-x-4">
             <Avatar className="h-16 w-16 sm:h-20 sm:w-20 cursor-pointer" onClick={handleAvatarClick}>
-              <AvatarImage src={avatarPreview || "/placeholder.svg"} alt={profile.fullName} />
+              <AvatarImage src={avatarPreview || "/placeholder.svg"} alt={fullName} />
               <AvatarFallback className="bg-green-100 text-green-700 text-lg sm:text-xl">
-                {profile.fullName
+                {fullName
                   .split(" ")
-                  .map((n) => n[0])
+                  .map((n: string) => n[0])
                   .join("")}
               </AvatarFallback>
             </Avatar>
@@ -142,7 +227,7 @@ export default function ProfilePage() {
             ) : (
               <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
                 <Input
-                  value={profile.fullName}
+                  value={fullName}
                   readOnly
                   className="border-green-200 bg-green-50/50 flex-1 text-sm sm:text-base"
                 />
@@ -165,7 +250,7 @@ export default function ProfilePage() {
             </Label>
             <Input
               id="email"
-              value={profile.email}
+              value={user.email || ''}
               readOnly
               className="border-green-200 bg-green-50/50 text-sm sm:text-base"
             />
@@ -179,7 +264,7 @@ export default function ProfilePage() {
             </Label>
             <Input
               id="username"
-              value={profile.username}
+              value={user.username || ''}
               readOnly
               className="border-green-200 bg-green-50/50 text-sm sm:text-base"
             />
@@ -193,12 +278,12 @@ export default function ProfilePage() {
             <div className="flex flex-col sm:flex-row items-stretch sm:items-center space-y-2 sm:space-y-0 sm:space-x-2">
               <Input
                 id="role"
-                value={profile.role}
+                value={user.role || 'user'}
                 readOnly
                 className="border-green-200 bg-green-50/50 flex-1 text-sm sm:text-base"
               />
               <Badge variant="outline" className="border-green-200 text-green-700 self-start sm:self-center">
-                {profile.role}
+                {user.role || 'user'}
               </Badge>
             </div>
           </div>

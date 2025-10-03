@@ -61,109 +61,90 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [])
 
   const login = useCallback(async (username: string, password: string): Promise<boolean> => {
-    // Mock authentication - in real app, this would call an API
-    
-    // Check default admin credentials
-    if (username === "admin" && password === "hydro123") {
-      const userData = {
-        username: "admin",
-        role: "administrator",
-        lastLogin: new Date().toISOString(),
-      }
-
-      const token = "mock-jwt-token"
-      localStorage.setItem("hydro-nexus-token", token)
-      localStorage.setItem("hydro-nexus-user", JSON.stringify(userData))
-      
-      document.cookie = `hydro-nexus-token=${token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
-      
-      setUser(userData)
-      return true
-    }
-
-    // Check registered users
     try {
-      const existingUsers = JSON.parse(localStorage.getItem("hydro-nexus-users") || "[]")
-      const foundUser = existingUsers.find((user: any) => 
-        (user.username === username || user.email === username) && 
-        user.passwordHash === "hashed_" + password
-      )
+      const response = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      })
 
-      if (foundUser) {
+      const data = await response.json()
+
+      if (response.ok) {
         const userData = {
-          username: foundUser.username,
-          role: foundUser.role,
+          username: data.user.username,
+          role: data.user.role,
           lastLogin: new Date().toISOString(),
-          firstName: foundUser.firstName,
-          lastName: foundUser.lastName,
-          email: foundUser.email,
+          firstName: data.user.first_name,
+          lastName: data.user.last_name,
+          email: data.user.email,
         }
 
-        const token = "mock-jwt-token-" + Date.now()
-        localStorage.setItem("hydro-nexus-token", token)
+        // Store token and user data
+        localStorage.setItem("hydro-nexus-token", data.token)
         localStorage.setItem("hydro-nexus-user", JSON.stringify(userData))
         
-        document.cookie = `hydro-nexus-token=${token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
+        // Set cookie for middleware
+        document.cookie = `hydro-nexus-token=${data.token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
         
         setUser(userData)
         return true
+      } else {
+        console.error('Login failed:', data.error)
+        return false
       }
+
+        const token = "mock-jwt-token-" + Date.now()
     } catch (error) {
       console.error("Login error:", error)
+      return false
     }
-
-    return false
   }, [])
 
   const signup = useCallback(async (data: SignupData): Promise<boolean> => {
-    // Mock signup - in real app, this would call an API
-    // For demo purposes, we'll simulate user registration
     try {
-      // Check if username already exists (simulate database check)
-      const existingUsers = JSON.parse(localStorage.getItem("hydro-nexus-users") || "[]")
-      const userExists = existingUsers.some((user: any) => 
-        user.username === data.username || user.email === data.email
-      )
-      
-      if (userExists) {
-        return false // Username or email already exists
+      const response = await fetch('/api/auth/signup', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          firstName: data.firstName,
+          lastName: data.lastName,
+          email: data.email,
+          username: data.username,
+          password: data.password,
+        }),
+      })
+
+      const responseData = await response.json()
+
+      if (response.ok) {
+        // Auto-login the new user
+        const userData = {
+          username: responseData.user.username,
+          role: responseData.user.role,
+          lastLogin: new Date().toISOString(),
+          firstName: responseData.user.first_name,
+          lastName: responseData.user.last_name,
+          email: responseData.user.email,
+        }
+
+        // Store token and user data
+        localStorage.setItem("hydro-nexus-token", responseData.token)
+        localStorage.setItem("hydro-nexus-user", JSON.stringify(userData))
+        
+        // Set cookie for middleware
+        document.cookie = `hydro-nexus-token=${responseData.token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
+        
+        setUser(userData)
+        return true
+      } else {
+        console.error('Signup failed:', responseData.error)
+        return false
       }
-
-      // Create new user
-      const newUser = {
-        id: Date.now().toString(),
-        username: data.username,
-        email: data.email,
-        firstName: data.firstName,
-        lastName: data.lastName,
-        role: "user",
-        createdAt: new Date().toISOString(),
-        // In real app, password would be hashed
-        passwordHash: "hashed_" + data.password
-      }
-
-      // Save to mock database
-      existingUsers.push(newUser)
-      localStorage.setItem("hydro-nexus-users", JSON.stringify(existingUsers))
-
-      // Auto-login the new user
-      const userData = {
-        username: data.username,
-        role: "user",
-        lastLogin: new Date().toISOString(),
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-      }
-
-      const token = "mock-jwt-token-" + Date.now()
-      localStorage.setItem("hydro-nexus-token", token)
-      localStorage.setItem("hydro-nexus-user", JSON.stringify(userData))
-      
-      document.cookie = `hydro-nexus-token=${token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
-      
-      setUser(userData)
-      return true
     } catch (error) {
       console.error("Signup error:", error)
       return false

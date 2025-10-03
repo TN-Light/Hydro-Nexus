@@ -2,8 +2,9 @@
 
 import type React from "react"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useAuth } from "@/components/auth-provider"
+import { useAvatar } from "@/components/avatar-provider"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -16,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Leaf,
   Menu,
@@ -51,6 +52,7 @@ const navigation = [
 // Dashboard layout content component
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth()
+  const { avatarUrl } = useAvatar()
   const { alerts } = useRealtime()
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
@@ -221,6 +223,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
+                      <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={user?.username || "User"} />
                       <AvatarFallback className="bg-primary/10 text-primary text-sm">
                         {user?.username?.charAt(0).toUpperCase()}
                       </AvatarFallback>
