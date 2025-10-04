@@ -22,17 +22,48 @@
 
 ### **Pin Connections:**
 ```
-ESP32 Pin    →  Component
-GPIO 4       →  DHT22 Data
-GPIO 36 (A0) →  TDS Sensor Analog Out
-GPIO 39 (A1) →  Soil Moisture Analog Out
-GPIO 2       →  Water Pump Relay
-GPIO 3       →  Nutrient Pump Relay
-GPIO 5       →  Spare Relay 1
-GPIO 6       →  Spare Relay 2
-3.3V         →  Sensor Power
-GND          →  Common Ground
+ESP32 Pin    →  Component                Status
+GPIO 4       →  DHT11 Data              ⚠️  CONNECTED BUT NOT WORKING (temp/humidity = NaN)
+GPIO 36 (A0) →  TDS Sensor Analog Out   ❌ NOT CONNECTED (TDS = 0)
+GPIO 39 (A1) →  Soil Moisture Analog    ❌ NOT CONNECTED (moisture = 0%)
+GPIO 2       →  Water Pump Relay        ✅ WORKING (pump activated)
+GPIO 3       →  Nutrient Pump Relay     ✅ WORKING
+GPIO 5       →  Spare Relay 1           ✅ READY
+GPIO 6       →  Spare Relay 2           ✅ READY
+3.3V         →  Sensor Power            ⚠️  VERIFY CONNECTION
+GND          →  Common Ground           ⚠️  VERIFY CONNECTION
 ```
+
+### **🔧 Hardware Debug Checklist:**
+
+**DHT11 Temperature/Humidity Sensor (UPDATED):**
+- [x] Connect DHT11 VCC to ESP32 3.3V (or 5V if available)
+- [x] Connect DHT11 GND to ESP32 GND  
+- [x] Connect DHT11 DATA to ESP32 GPIO 4
+- [ ] ⚠️ ADD 4.7kΩ-10kΩ pull-up resistor between DATA and VCC (CRITICAL!)
+- [ ] ⚠️ Try powering DHT11 with 5V instead of 3.3V
+- [ ] ⚠️ Check if DHT11 is genuine (many clones have timing issues)
+
+**DHT11 vs DHT22 Differences:**
+```
+DHT11:  3-5V power, ±2°C accuracy, 3-sec sampling
+DHT22:  3.3-6V power, ±0.5°C accuracy, 2-sec sampling
+```
+
+**TDS Sensor:**
+- [ ] Connect TDS sensor VCC to ESP32 3.3V
+- [ ] Connect TDS sensor GND to ESP32 GND
+- [ ] Connect TDS sensor Analog Out to ESP32 GPIO 36 (A0)
+
+**Soil Moisture Sensor:**
+- [ ] Connect moisture sensor VCC to ESP32 3.3V
+- [ ] Connect moisture sensor GND to ESP32 GND
+- [ ] Connect moisture sensor Analog Out to ESP32 GPIO 39 (A1)
+
+**Power & Ground:**
+- [ ] Verify all sensors share common ground
+- [ ] Check 3.3V power supply stability
+- [ ] Ensure ESP32 has adequate power (USB or 5V supply)
 
 ## 💾 Database Setup
 

@@ -26,12 +26,19 @@ export async function POST(request: NextRequest) {
     // Parse sensor data from ESP32
     const sensorData = await request.json()
     
+    // Debug: Log the incoming data
+    console.log('ESP32 Data Received:', JSON.stringify(sensorData, null, 2))
+    
+    // Extract device ID (use from data or API key device)
+    const deviceId = sensorData.device_id || deviceInfo.device_id || 'grow-bag-1'
+    
     // Validate required fields
     const requiredFields = ['room_temp', 'ph', 'ec', 'substrate_moisture', 'humidity']
     for (const field of requiredFields) {
-      if (sensorData[field] === undefined || sensorData[field] === null) {
+      if (sensorData[field] === undefined || sensorData[field] === null || isNaN(sensorData[field])) {
+        console.log(`Invalid field: ${field}, value:`, sensorData[field])
         return NextResponse.json(
-          { error: `Missing required field: ${field}` },
+          { error: `Invalid or missing field: ${field}. Value: ${sensorData[field]}` },
           { status: 400 }
         )
       }

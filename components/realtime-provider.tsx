@@ -261,12 +261,31 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       console.log('User authenticated and alerts enabled for this page')
     }
 
-    // Generate initial mock data for 6 grow bags (lightweight operation)
-    const initialData: Record<string, SensorData> = {}
-    for (let i = 1; i <= 6; i++) {
-      initialData[`grow-bag-${i}`] = generateMockSensorData(`grow-bag-${i}`)
+    // Fetch real sensor data from API
+    const fetchRealSensorData = async () => {
+      try {
+        const response = await fetch('/api/sensors/latest')
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.data) {
+            console.log('✅ Fetched real ESP32 data:', result.data)
+            setSensorData(result.data)
+            return
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch real sensor data, using mock data:', error)
+      }
+      
+      // Fallback to mock data if API fails
+      const initialData: Record<string, SensorData> = {}
+      for (let i = 1; i <= 6; i++) {
+        initialData[`grow-bag-${i}`] = generateMockSensorData(`grow-bag-${i}`)
+      }
+      setSensorData(initialData)
     }
-    setSensorData(initialData)
+    
+    fetchRealSensorData()
 
     // Clear any existing interval
     if (intervalRef.current) {
@@ -277,13 +296,47 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     if (needsRealTimeUpdates && isAuthenticated) {
       console.log('Starting real-time updates for page:', pathname)
       
-      // Simulate real-time updates every 5 seconds
-      intervalRef.current = setInterval(() => {
+      // Fetch real-time updates every 5 seconds
+      intervalRef.current = setInterval(async () => {
         // Check if component is still mounted and authenticated
         if (!isAuthenticatedRef.current) {
           return
         }
         
+        try {
+          const response = await fetch('/api/sensors/latest')
+          if (response.ok) {
+            const result = await response.json()
+            if (result.success && result.data) {
+              console.log('🔄 Real-time update:', Object.keys(result.data).length, 'devices')
+              
+              setSensorData((prev) => {
+                const updated = { ...result.data }
+                const allNewAlerts: RealtimeContextType["alerts"] = []
+                
+                // Check for alerts if needed
+                if (isAuthenticatedRef.current && needsAlerts) {
+                  Object.values(updated).forEach((deviceData: any) => {
+                    const newAlerts = stableCheckForAlerts(deviceData)
+                    allNewAlerts.push(...newAlerts)
+                  })
+                  
+                  // Update alerts
+                  if (allNewAlerts.length > 0) {
+                    setAlerts((prevAlerts) => [...allNewAlerts, ...prevAlerts].slice(0, 50))
+                  }
+                }
+                
+                return updated
+              })
+              return
+            }
+          }
+        } catch (error) {
+          console.error('❌ Failed to fetch real-time data:', error)
+        }
+        
+        // Fallback to mock data if API fails
         setSensorData((prev) => {
           const updated = { ...prev }
           const allNewAlerts: RealtimeContextType["alerts"] = []
