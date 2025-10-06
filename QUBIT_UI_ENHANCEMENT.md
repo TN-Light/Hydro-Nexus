@@ -181,8 +181,8 @@ The new Qubit UI is inspired by **Google Gemini** (Android) and **Apple Siri** (
 
 ### Component Hierarchy
 ```
-JarvisButton (Floating button)
-  └─ JarvisAssistant (Dialog wrapper)
+QubitButton (Floating button)
+  └─ QubitAssistant (Dialog wrapper)
       ├─ DialogContent (Modern styling)
       ├─ DialogHeader (Sparkles icon + gradient text)
       └─ Conditional rendering:
@@ -219,16 +219,16 @@ JarvisButton (Floating button)
 ### For Developers
 No code changes needed - UI is a drop-in replacement:
 ```tsx
-import { JarvisButton } from "@/components/jarvis-assistant"
+import { QubitButton } from "@/components/qubit-assistant"
 
 // In your component
-<JarvisButton />
+<QubitButton />
 ```
 
 ## 🎨 Customization Options
 
 ### Want to adjust colors?
-Edit in `jarvis-assistant.tsx`:
+Edit in `qubit-assistant.tsx`:
 ```tsx
 // Listening state - Line ~38
 'bg-gradient-to-br from-blue-400/80 via-cyan-500/80 to-blue-600/80'
@@ -241,14 +241,14 @@ Edit in `jarvis-assistant.tsx`:
 ```
 
 ### Want to change orb size?
-Edit in `jarvis-assistant.tsx`:
+Edit in `qubit-assistant.tsx`:
 ```tsx
 // Line ~37 - Change w-40 h-40 (160px)
 <div className={`relative w-40 h-40 rounded-full ...`}>
 ```
 
 ### Want to add more quick actions?
-Duplicate the button in `jarvis-assistant.tsx` (Lines ~124-146)
+Duplicate the button in `qubit-assistant.tsx` (Lines ~124-146)
 
 ## 🐛 Known Issues (None - All Working!)
 

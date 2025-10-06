@@ -2,7 +2,7 @@
 
 ## Changes Made
 
-### 1. **Component File** (`components/jarvis-assistant.tsx`)
+### 1. **Component File** (`components/qubit-assistant.tsx`)
 - ✅ Interface renamed: `JarvisAssistantProps` → `QubitAssistantProps`
 - ✅ Function renamed: `JarvisAssistant` → `QubitAssistant`
 - ✅ Export renamed: `JarvisButton` → `QubitButton`

@@ -20,7 +20,7 @@ Instead of trying to keep ONE room/session alive, we **create a NEW room for eac
 
 ## 🔧 Changes Made
 
-### 1. **Updated `components/jarvis-assistant.tsx`**
+### 1. **Updated `components/qubit-assistant.tsx`**
 
 ```typescript
 // Generate unique room name for each session
@@ -160,7 +160,7 @@ Benefits:
 ## 📝 Files Created/Updated
 
 1. ✅ `agent.ts` - Simplified dev mode handling
-2. ✅ `components/jarvis-assistant.tsx` - Unique room generation + token clearing
+2. ✅ `components/qubit-assistant.tsx` - Unique room generation + token clearing
 3. ✅ `AGENT_RECONNECTION_FINAL_FIX.md` - This guide
 4. ✅ `start-agent-loop.bat` - Auto-restart script (backup option)
 

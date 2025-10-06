@@ -8,7 +8,7 @@ I've successfully transformed the voice assistant to reflect your **QBM-HydroNet
 
 ## 🎯 Changes Made
 
-### 1. **Voice Assistant UI** (`components/jarvis-assistant.tsx`)
+### 1. **Voice Assistant UI** (`components/qubit-assistant.tsx`)
 
 #### Dialog Header
 - **Before**: "Your intelligent hydroponic system companion"

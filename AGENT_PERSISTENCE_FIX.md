@@ -26,7 +26,7 @@ await session.start({
 });
 ```
 
-### 2. **Persistent Room Name** (`jarvis-assistant.tsx`)
+### 2. **Persistent Room Name** (`qubit-assistant.tsx`)
 Using a fixed room name so the agent can stay connected:
 ```typescript
 const roomName = 'qbm-hydronet-voice'; // Consistent room name

@@ -4,7 +4,7 @@
 
 Your **FREE Qubit voice assistant** is configured and ready to use! Here's what you have:
 
-- ✅ **Name**: Qubit (your AI assistant for Hydro-Nexus)
+- ✅ **Name**: Qubit (your AI assistant for QBM-HydroNet)
 - ✅ **FREE Gemini LLM**: Using your Gemini API key (`gemini-2.0-flash-exp`)
 - ✅ **LiveKit Cloud**: Account created with FREE tier (10,000 min/month)
 - ✅ **Noise Cancellation**: Model files downloaded successfully
@@ -89,7 +89,7 @@ Look for the floating green button in the bottom-right corner!
 
 ## 🎤 What Qubit Can Do
 
-Qubit can help you manage your Hydro-Nexus system through voice commands:
+Qubit can help you manage your QBM-HydroNet system through voice commands:
 
 - **Check Sensors**: "What's the room temperature?" / "Show me moisture levels"
 - **Control Pumps**: "Turn on water pump for bag 1" / "Turn off pump for grow-bag-2"
@@ -100,7 +100,7 @@ Qubit can help you manage your Hydro-Nexus system through voice commands:
 
 1. User clicks **green Qubit button**
 2. Dialog opens with voice visualizer
-3. Qubit greets: "Hello! All Hydro-Nexus systems are online. How may I assist you?"
+3. Qubit greets: "Hello! All QBM-HydroNet systems are online. How may I assist you?"
 4. User speaks command
 5. Qubit processes and responds with voice + text transcript
 6. Green audio bars visualize speech
@@ -157,7 +157,7 @@ instructions: `You are Qubit, a [YOUR DESCRIPTION HERE]...`
 
 ### Change Button Color
 
-Edit `components/jarvis-assistant.tsx`:
+Edit `components/qubit-assistant.tsx`:
 ```typescript
 // Change from green to blue
 className="fixed bottom-6 right-6 rounded-full bg-blue-600 hover:bg-blue-700..."

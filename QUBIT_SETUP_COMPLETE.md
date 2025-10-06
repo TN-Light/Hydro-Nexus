@@ -112,7 +112,7 @@ Button: from-blue-500 via-cyan-500 to-blue-600
 
 ## 📁 Files Modified
 
-### ✏️ `components/jarvis-assistant.tsx`
+### ✏️ `components/qubit-assistant.tsx`
 **Changes:**
 - Updated all color classes (green → blue/cyan/purple)
 - Replaced icon imports (added Waves, Sparkles, Leaf, Droplet)
@@ -235,7 +235,7 @@ Expected: Layout adapts smoothly
 
 ### Want Different Colors?
 
-**Edit `components/jarvis-assistant.tsx`:**
+**Edit `components/qubit-assistant.tsx`:**
 
 ```tsx
 // Listening state (Line ~42)

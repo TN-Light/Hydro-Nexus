@@ -3,7 +3,7 @@
 ## All Changes Made
 
 ### 🔄 **File Renamed**
-- ❌ `components/jarvis-assistant.tsx`
+- ✅ `components/qubit-assistant.tsx` (renamed from jarvis-assistant.tsx)
 - ✅ `components/qubit-assistant.tsx`
 
 ### 📝 **Code Updates**
@@ -11,7 +11,7 @@
 #### 1. **Dashboard Import** (`app/dashboard/page.tsx`)
 ```typescript
 // Before:
-import { QubitButton } from "@/components/jarvis-assistant"
+import { QubitButton } from "@/components/qubit-assistant"
 
 // After:
 import { QubitButton } from "@/components/qubit-assistant"

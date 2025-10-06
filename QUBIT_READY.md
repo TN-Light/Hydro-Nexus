@@ -218,7 +218,7 @@ LiveKit Playground: https://agents-playground.livekit.io/
 You now have a **production-ready, FREE voice assistant** powered by:
 - 🧠 **Gemini Live API** (Google's latest speech-to-speech model)
 - 🔊 **LiveKit Cloud** (Professional WebRTC infrastructure)
-- 🌱 **Hydro-Nexus Integration** (Real sensor data & pump control)
+- 🌱 **QBM-HydroNet Integration** (Real sensor data & pump control)
 
 **Total Setup Time**: ~10 minutes
 **Total Cost**: $0/month
