@@ -1,11 +1,12 @@
 "use client"
 
-import { useState, useEffect } from 'react';
-import { LiveKitRoom, useVoiceAssistant, BarVisualizer, RoomAudioRenderer, VoiceAssistantControlBar } from '@livekit/components-react';
+import { useState, useEffect, useRef } from 'react';
+import { LiveKitRoom, useVoiceAssistant, BarVisualizer, RoomAudioRenderer, VoiceAssistantControlBar, useRoomContext } from '@livekit/components-react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Mic, MicOff, Sparkles, Waves, Leaf, Droplet } from 'lucide-react';
+import { RoomEvent } from 'livekit-client';
 import '@livekit/components-styles/index.css';
 
 interface QubitAssistantProps {
@@ -14,14 +15,85 @@ interface QubitAssistantProps {
 }
 
 function VoiceAssistantUI() {
-  const { state, audioTrack } = useVoiceAssistant();
-  const [transcript, setTranscript] = useState<Array<{ speaker: string; text: string }>>([]);
+  const voiceAssistant = useVoiceAssistant();
+  const { state, audioTrack } = voiceAssistant;
+  const room = useRoomContext();
+  const [userTranscript, setUserTranscript] = useState('');
+  const [agentTranscript, setAgentTranscript] = useState('');
+  const transcriptTimeoutRef = useRef<NodeJS.Timeout>();
 
+  // Listen for real-time transcriptions from the room
   useEffect(() => {
-    if (state === 'speaking') {
-      // Could track what Qubit is saying here
+    if (!room) return;
+
+    const handleTranscription = (
+      segments: Array<{ text: string; final: boolean }>,
+      participant?: any,
+      publication?: any
+    ) => {
+      // Get the latest transcription segment
+      const latestSegment = segments[segments.length - 1];
+      if (!latestSegment) return;
+
+      // Determine if it's from user or agent
+      const isAgent = participant?.identity?.includes('agent');
+      
+      if (isAgent) {
+        setAgentTranscript(latestSegment.text);
+        // Clear after 3 seconds if final
+        if (latestSegment.final) {
+          setTimeout(() => setAgentTranscript(''), 3000);
+        }
+      } else {
+        setUserTranscript(latestSegment.text);
+        // Clear after 3 seconds if final
+        if (latestSegment.final) {
+          setTimeout(() => setUserTranscript(''), 3000);
+        }
+      }
+    };
+
+    // Listen for transcription events
+    room.on(RoomEvent.TranscriptionReceived, handleTranscription);
+
+    return () => {
+      room.off(RoomEvent.TranscriptionReceived, handleTranscription);
+    };
+  }, [room]);
+
+  // Fallback: Show status messages when no transcript available
+  useEffect(() => {
+    // Clear any existing timeout
+    if (transcriptTimeoutRef.current) {
+      clearTimeout(transcriptTimeoutRef.current);
     }
-  }, [state]);
+
+    if (state === 'listening') {
+      setUserTranscript('🎤 Speak now...');
+      setAgentTranscript('');
+    } else if (state === 'thinking') {
+      setUserTranscript('');
+      setAgentTranscript('🤔 Thinking...');
+    } else if (state === 'speaking') {
+      // Keep existing transcript or show generic message
+      if (!agentTranscript) {
+        setAgentTranscript('🔊 Speaking...');
+      }
+      setUserTranscript('');
+    } else if (state === 'idle' || !state) {
+      // Clear after a delay when idle
+      transcriptTimeoutRef.current = setTimeout(() => {
+        setUserTranscript('');
+        setAgentTranscript('');
+      }, 2000);
+    }
+
+    return () => {
+      if (transcriptTimeoutRef.current) {
+        clearTimeout(transcriptTimeoutRef.current);
+      }
+    };
+  }, [state, agentTranscript]);
 
   return (
     <div className="flex flex-col items-center justify-center space-y-8 p-8">
@@ -103,6 +175,41 @@ function VoiceAssistantUI() {
           {!state && 'Tap the mic to start a conversation'}
         </p>
       </div>
+
+      {/* Live Transcript Box - Shows what you're saying */}
+      {(userTranscript || agentTranscript) && (
+        <div className="w-full max-w-2xl">
+          <div className={`relative overflow-hidden rounded-2xl backdrop-blur-xl border transition-all duration-500 ${
+            state === 'listening'
+              ? 'bg-gradient-to-br from-blue-500/10 via-cyan-500/10 to-blue-500/10 border-blue-500/30 shadow-lg shadow-blue-500/20'
+              : state === 'speaking'
+              ? 'bg-gradient-to-br from-cyan-500/10 via-blue-500/10 to-indigo-500/10 border-cyan-500/30 shadow-lg shadow-cyan-500/20'
+              : 'bg-gradient-to-br from-purple-500/10 via-violet-500/10 to-purple-500/10 border-purple-500/30 shadow-lg shadow-purple-500/20'
+          } p-6 min-h-[100px] flex items-center justify-center`}>
+            <div className="text-center space-y-2">
+              {userTranscript && (
+                <p className={`text-lg font-medium transition-all duration-300 ${
+                  state === 'listening' 
+                    ? 'text-blue-600 dark:text-blue-400 animate-pulse' 
+                    : 'text-purple-600 dark:text-purple-400'
+                }`}>
+                  {userTranscript}
+                </p>
+              )}
+              {agentTranscript && (
+                <p className="text-lg font-medium text-cyan-600 dark:text-cyan-400 animate-pulse">
+                  {agentTranscript}
+                </p>
+              )}
+            </div>
+            
+            {/* Animated border effect */}
+            {state === 'listening' && (
+              <div className="absolute inset-0 rounded-2xl border-2 border-blue-500/50 animate-pulse"></div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Audio Visualizer - Modern Style */}
       {audioTrack && (
