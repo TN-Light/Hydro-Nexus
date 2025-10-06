@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button"
 import { SensorCard } from "@/components/sensor-card"
 import { QuickActions } from "@/components/quick-actions"
 import { AlertPanel } from "@/components/alert-panel"
+import { JarvisButton } from "@/components/jarvis-assistant"
 import { 
   getTemperatureStatus, 
   getHumidityStatus, 
@@ -198,6 +199,9 @@ export default function DashboardPage() {
 
         {/* Alerts Panel */}
         <AlertPanel alerts={alerts.slice(0, 10)} />
+
+        {/* Jarvis AI Voice Assistant - Floating Button */}
+        <JarvisButton />
       </div>
   )
 }

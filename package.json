@@ -6,10 +6,21 @@
     "build": "next build",
     "dev": "next dev --hostname 0.0.0.0",
     "lint": "next lint",
-    "start": "next start --hostname 0.0.0.0"
+    "start": "next start --hostname 0.0.0.0",
+    "download-files": "tsc && node agent.js download-files",
+    "agent:dev": "tsx agent.ts dev",
+    "agent:build": "tsc agent.ts",
+    "agent:start": "node agent.js start"
   },
   "dependencies": {
+    "@google/generative-ai": "^0.24.1",
     "@hookform/resolvers": "^3.9.1",
+    "@livekit/agents": "^1.0.8",
+    "@livekit/agents-plugin-google": "^1.0.8",
+    "@livekit/agents-plugin-openai": "^1.0.8",
+    "@livekit/components-react": "^2.6.0",
+    "@livekit/components-styles": "^1.1.6",
+    "@livekit/noise-cancellation-node": "^0.1.9",
     "@prisma/client": "^6.16.3",
     "@radix-ui/react-accordion": "1.2.2",
     "@radix-ui/react-alert-dialog": "1.1.4",
@@ -59,6 +70,8 @@
     "immer": "latest",
     "input-otp": "1.4.1",
     "jsonwebtoken": "^9.0.2",
+    "livekit-client": "^2.5.0",
+    "livekit-server-sdk": "^2.6.0",
     "lucide-react": "^0.454.0",
     "next": "^15.2.4",
     "next-themes": "latest",
@@ -89,6 +102,7 @@
     "eslint-config-next": "^15.2.4",
     "postcss": "^8.5",
     "tailwindcss": "^3.4.17",
+    "tsx": "^4.19.0",
     "typescript": "^5"
   }
 }

@@ -307,11 +307,31 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           const response = await fetch('/api/sensors/latest')
           if (response.ok) {
             const result = await response.json()
-            if (result.success && result.data) {
-              console.log('🔄 Real-time update:', Object.keys(result.data).length, 'devices')
+            if (result.success) {
+              // NEW FORMAT: Convert room + bags back to legacy format for compatibility
+              const legacyData: Record<string, any> = {}
+              
+              if (result.bags) {
+                Object.values(result.bags).forEach((bag: any) => {
+                  legacyData[bag.deviceId] = {
+                    deviceId: bag.deviceId,
+                    moisture: bag.moisture,
+                    moistureTimestamp: bag.moistureTimestamp,
+                    // Add room sensors to each bag for backward compatibility
+                    roomTemp: result.room?.roomTemp || 0,
+                    humidity: result.room?.humidity || 0,
+                    pH: result.room?.pH || 0,
+                    ec: result.room?.ec || 0,
+                    waterLevel: result.room?.waterLevel || 'Unknown',
+                    timestamp: result.room?.timestamp || bag.moistureTimestamp
+                  }
+                })
+              }
+              
+              console.log('🔄 Real-time update:', Object.keys(legacyData).length, 'devices')
               
               setSensorData((prev) => {
-                const updated = { ...result.data }
+                const updated = { ...legacyData }
                 const allNewAlerts: RealtimeContextType["alerts"] = []
                 
                 // Check for alerts if needed

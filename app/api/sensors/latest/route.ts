@@ -13,30 +13,45 @@ export async function GET(request: NextRequest) {
       deviceIds = deviceIdsParam.split(',').filter(id => id.trim().length > 0)
     }
 
-    // Get latest sensor readings from TimescaleDB
+    // Get room-level sensors (shared) and bag moisture levels
     const readings = await dbHelpers.getLatestSensorReadings(deviceIds)
 
-    // Transform data to match frontend expectations
-    const sensorData: Record<string, any> = {}
+    // NEW STRUCTURE: Room sensors are SHARED, only moisture is bag-specific
+    // Group by room to extract shared sensors
+    const roomSensors: any = {}
+    const bagData: Record<string, any> = {}
     
     readings.forEach((reading: any) => {
-      sensorData[reading.device_id] = {
+      const roomId = reading.room_id || 'main-room'
+      
+      // Store room-level sensors (same for all bags)
+      if (!roomSensors[roomId]) {
+        roomSensors[roomId] = {
+          roomId: roomId,
+          roomTemp: Number(reading.room_temp),
+          humidity: Number(reading.humidity),
+          pH: Number(reading.ph),
+          ec: Number(reading.ec),
+          waterLevel: reading.water_level_status || 'Adequate',
+          timestamp: reading.room_timestamp || reading.timestamp
+        }
+      }
+      
+      // Store bag-specific moisture
+      bagData[reading.device_id] = {
         deviceId: reading.device_id,
-        timestamp: reading.timestamp,
-        roomTemp: Number(reading.room_temp),
-        pH: Number(reading.ph),
-        ec: Number(reading.ec),
         moisture: Number(reading.substrate_moisture),
-        waterLevel: reading.water_level_status || 'Adequate',
-        humidity: Number(reading.humidity)
+        moistureTimestamp: reading.moisture_timestamp || reading.timestamp,
+        roomId: roomId
       }
     })
 
     return NextResponse.json({
       success: true,
-      data: sensorData,
+      room: roomSensors['main-room'] || null,  // Room-level sensors (SHARED)
+      bags: bagData,  // Bag-specific moisture levels
       timestamp: new Date().toISOString(),
-      count: readings.length
+      count: Object.keys(bagData).length
     })
 
   } catch (error) {
