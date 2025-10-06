@@ -4,7 +4,7 @@ import { NextResponse } from 'next/server';
 export async function GET(request: Request) {
   try {
     const url = new URL(request.url);
-    const roomName = url.searchParams.get('room') || 'hydro-nexus-voice';
+    const roomName = url.searchParams.get('room') || 'qbm-hydronet-voice';
     const participantName = url.searchParams.get('participant') || 'User';
 
     const apiKey = process.env.LIVEKIT_API_KEY;

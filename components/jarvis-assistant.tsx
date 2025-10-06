@@ -5,10 +5,10 @@ import { LiveKitRoom, useVoiceAssistant, BarVisualizer, RoomAudioRenderer, Voice
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
-import { Mic, MicOff, Volume2, VolumeX } from 'lucide-react';
+import { Mic, MicOff, Sparkles, Waves, Leaf, Droplet } from 'lucide-react';
 import '@livekit/components-styles/index.css';
 
-interface JarvisAssistantProps {
+interface QubitAssistantProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
@@ -19,123 +19,179 @@ function VoiceAssistantUI() {
 
   useEffect(() => {
     if (state === 'speaking') {
-      // Could track what Jarvis is saying here
+      // Could track what Qubit is saying here
     }
   }, [state]);
 
   return (
-    <div className="flex flex-col items-center justify-center space-y-6 p-6">
-      {/* Status Indicator */}
-      <div className="text-center space-y-2">
-        <div className="relative">
-          <div className={`w-24 h-24 rounded-full flex items-center justify-center ${
-            state === 'listening' 
-              ? 'bg-green-500/20 border-2 border-green-500 animate-pulse' 
-              : state === 'speaking'
-              ? 'bg-blue-500/20 border-2 border-blue-500 animate-pulse'
-              : state === 'thinking'
-              ? 'bg-yellow-500/20 border-2 border-yellow-500 animate-spin'
-              : 'bg-gray-500/20 border-2 border-gray-500'
-          }`}>
-            {state === 'listening' || state === 'speaking' ? (
-              <Mic className="w-10 h-10 text-white" />
+    <div className="flex flex-col items-center justify-center space-y-8 p-8">
+      {/* Modern Orb Visualizer - Gemini/Siri Style */}
+      <div className="relative">
+        {/* Outer glow rings */}
+        <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
+          state === 'listening' 
+            ? 'animate-ping bg-blue-500/30' 
+            : state === 'speaking'
+            ? 'animate-pulse bg-gradient-to-r from-cyan-500/30 to-blue-500/30'
+            : state === 'thinking'
+            ? 'animate-pulse bg-purple-500/30'
+            : 'bg-slate-500/10'
+        }`} style={{ animationDuration: '2s' }}></div>
+        
+        {/* Main orb */}
+        <div className={`relative w-40 h-40 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
+          state === 'listening' 
+            ? 'bg-gradient-to-br from-blue-400/80 via-cyan-500/80 to-blue-600/80 shadow-2xl shadow-blue-500/50 scale-110' 
+            : state === 'speaking'
+            ? 'bg-gradient-to-br from-cyan-400/80 via-blue-500/80 to-indigo-600/80 shadow-2xl shadow-cyan-500/50 scale-110'
+            : state === 'thinking'
+            ? 'bg-gradient-to-br from-purple-400/80 via-violet-500/80 to-purple-600/80 shadow-2xl shadow-purple-500/50 scale-105'
+            : 'bg-gradient-to-br from-slate-400/50 via-slate-500/50 to-slate-600/50 shadow-lg'
+        }`}>
+          {/* Inner glow */}
+          <div className="absolute inset-4 rounded-full bg-white/20 backdrop-blur-sm"></div>
+          
+          {/* Icon */}
+          <div className="relative z-10">
+            {state === 'listening' ? (
+              <Waves className="w-16 h-16 text-white drop-shadow-lg animate-pulse" />
+            ) : state === 'speaking' ? (
+              <Sparkles className="w-16 h-16 text-white drop-shadow-lg animate-pulse" />
+            ) : state === 'thinking' ? (
+              <div className="relative">
+                <Leaf className="w-16 h-16 text-white drop-shadow-lg animate-spin" style={{ animationDuration: '3s' }} />
+                <Droplet className="w-6 h-6 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
+              </div>
             ) : (
-              <MicOff className="w-10 h-10 text-white" />
+              <Mic className="w-16 h-16 text-white/70 drop-shadow-lg" />
             )}
           </div>
-        </div>
-        
-        <div className="space-y-1">
-          <p className="text-lg font-semibold">
-            {state === 'listening' && '🎤 Listening...'}
-            {state === 'thinking' && '🤔 Thinking...'}
-            {state === 'speaking' && '🗣️ Jarvis is speaking...'}
-            {state === 'idle' && '💤 Ready'}
-          </p>
-          <p className="text-sm text-gray-500">
-            {state === 'listening' && 'Say something to Jarvis'}
-            {state === 'thinking' && 'Processing your request'}
-            {state === 'speaking' && 'Speaking response'}
-            {state === 'idle' && 'Click start to begin'}
-          </p>
-        </div>
-      </div>
-
-      {/* Audio Visualizer */}
-      {audioTrack && (
-        <Card className="w-full max-w-md p-4 bg-gradient-to-r from-green-500/10 to-emerald-500/10 border-green-500/20">
-          <BarVisualizer
-            state={state}
-            barCount={25}
-            trackRef={audioTrack}
-            className="h-16"
-            options={{
-              minHeight: 8,
-              maxHeight: 60,
-            }}
-          />
-        </Card>
-      )}
-
-      {/* Control Bar */}
-      <div className="w-full max-w-md">
-        <VoiceAssistantControlBar controls={{ leave: false }} />
-      </div>
-
-      {/* Transcript Area */}
-      <Card className="w-full max-w-2xl p-4 bg-black/20 border-green-500/20 max-h-64 overflow-y-auto">
-        <div className="space-y-3">
-          <div className="flex items-center space-x-2 mb-2">
-            <Volume2 className="w-4 h-4 text-green-500" />
-            <span className="text-sm font-semibold text-green-500">Conversation</span>
-          </div>
-          {transcript.length === 0 ? (
-            <p className="text-sm text-gray-400 italic">Start talking to see the transcript...</p>
-          ) : (
-            transcript.map((entry, idx) => (
-              <div key={idx} className={`text-sm ${
-                entry.speaker === 'user' ? 'text-white' : 'text-green-400'
-              }`}>
-                <span className="font-semibold">{entry.speaker === 'user' ? 'You' : 'Jarvis'}:</span>{' '}
-                {entry.text}
-              </div>
-            ))
+          
+          {/* Particle effects for active states */}
+          {(state === 'listening' || state === 'speaking') && (
+            <>
+              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '0s' }}></div>
+              <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
+              <div className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+            </>
           )}
         </div>
-      </Card>
+      </div>
 
-      {/* Tips */}
-      <Card className="w-full max-w-2xl p-4 bg-green-500/5 border-green-500/20">
-        <div className="space-y-2">
-          <p className="text-xs font-semibold text-green-500">💡 Try asking:</p>
-          <ul className="text-xs text-gray-400 space-y-1 pl-4">
-            <li>"What's the room temperature?"</li>
-            <li>"Check moisture levels for all bags"</li>
-            <li>"Analyze system conditions"</li>
-            <li>"Turn on water pump for bag 1"</li>
-          </ul>
+      {/* Status Text - Gemini Style */}
+      <div className="text-center space-y-2">
+        <h3 className={`text-2xl font-semibold transition-colors duration-300 ${
+          state === 'listening' 
+            ? 'text-blue-500 dark:text-blue-400' 
+            : state === 'speaking'
+            ? 'text-cyan-500 dark:text-cyan-400'
+            : state === 'thinking'
+            ? 'text-purple-500 dark:text-purple-400'
+            : 'text-slate-500 dark:text-slate-400'
+        }`}>
+          {state === 'listening' && 'Listening...'}
+          {state === 'thinking' && 'Processing...'}
+          {state === 'speaking' && 'Speaking...'}
+          {state === 'connecting' && 'Connecting...'}
+          {!state && 'Ready to assist'}
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          {state === 'listening' && 'Speak naturally, I\'m listening'}
+          {state === 'thinking' && 'Analyzing your request'}
+          {state === 'speaking' && 'Playing response'}
+          {state === 'connecting' && 'Establishing connection...'}
+          {!state && 'Tap the mic to start a conversation'}
+        </p>
+      </div>
+
+      {/* Audio Visualizer - Modern Style */}
+      {audioTrack && (
+        <div className="w-full max-w-md">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-blue-500/10 backdrop-blur-sm border border-blue-500/20 p-6">
+            <BarVisualizer
+              state={state}
+              barCount={30}
+              trackRef={audioTrack}
+              className="h-20"
+              options={{
+                minHeight: 4,
+                maxHeight: 80,
+              }}
+            />
+          </div>
         </div>
-      </Card>
+      )}
+
+      {/* Control Bar - Minimalist Style */}
+      <div className="w-full max-w-md">
+        <div className="rounded-full bg-background/50 backdrop-blur-sm border shadow-lg overflow-hidden">
+          <VoiceAssistantControlBar controls={{ leave: false }} />
+        </div>
+      </div>
+
+      {/* Quick Suggestions - iPhone Siri Style */}
+      <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 border border-blue-500/20 hover:border-blue-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 text-blue-500">
+              <Droplet className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">PAW status</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Check plasma activation</p>
+            </div>
+          </div>
+        </button>
+        
+        <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 hover:from-cyan-500/20 hover:to-blue-500/20 border border-cyan-500/20 hover:border-cyan-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+          <div className="flex items-start gap-3">
+            <div className="mt-0.5 text-cyan-500">
+              <Leaf className="w-5 h-5" />
+            </div>
+            <div>
+              <p className="text-sm font-medium text-foreground">AMF network</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Monitor colonization</p>
+            </div>
+          </div>
+        </button>
+      </div>
+
+      {/* Help Text - Subtle */}
+      <p className="text-xs text-muted-foreground text-center max-w-md">
+        Ask about PAW dosing, AMF colonization, substrate conditions, or to control the bioregenerative system
+      </p>
     </div>
   );
 }
 
-export function JarvisAssistant({ open, onOpenChange }: JarvisAssistantProps) {
+export function QubitAssistant({ open, onOpenChange }: QubitAssistantProps) {
   const [token, setToken] = useState<string>('');
   const [isConnecting, setIsConnecting] = useState(false);
 
+  // Fetch a fresh token every time the dialog opens
   useEffect(() => {
     if (open && !token) {
       fetchToken();
     }
-  }, [open]);
+    // Clear token when dialog closes to force new connection next time
+    if (!open && token) {
+      console.log('🔄 Dialog closed, clearing token for next connection');
+      setToken('');
+    }
+  }, [open, token]);
 
   const fetchToken = async () => {
     setIsConnecting(true);
     try {
-      const response = await fetch('/api/livekit/token?room=hydro-nexus-voice&participant=User');
+      // Generate unique room name for each session so agent creates new connection
+      // This allows dev mode agent to handle multiple sequential connections
+      const timestamp = Date.now();
+      const roomName = `qbm-hydronet-${timestamp}`;
+      const participantName = 'User';
+      const response = await fetch(`/api/livekit/token?room=${roomName}&participant=${participantName}`);
       const data = await response.json();
       setToken(data.token);
+      console.log('✅ Token fetched for room:', roomName);
     } catch (error) {
       console.error('Error fetching LiveKit token:', error);
     } finally {
@@ -145,20 +201,27 @@ export function JarvisAssistant({ open, onOpenChange }: JarvisAssistantProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto bg-gradient-to-br from-gray-900 via-gray-800 to-gray-900 border-green-500/30">
-        <DialogHeader>
-          <DialogTitle className="text-2xl font-bold bg-gradient-to-r from-green-400 to-emerald-500 bg-clip-text text-transparent">
-            🤖 Jarvis AI Assistant
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/30 dark:from-slate-950 dark:via-blue-950/30 dark:to-cyan-950/30 border-blue-500/20 dark:border-cyan-500/20 backdrop-blur-xl">
+        <DialogHeader className="border-b border-border/50 pb-4">
+          <DialogTitle className="text-2xl font-semibold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-400 bg-clip-text text-transparent flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-blue-500 dark:text-cyan-400" />
+            Qubit AI Assistant
           </DialogTitle>
-          <DialogDescription className="text-gray-400">
-            Your AI-powered hydroponic system manager
+          <DialogDescription className="text-muted-foreground">
+            QBM-HydroNet Intelligent Control System
           </DialogDescription>
         </DialogHeader>
 
         {isConnecting ? (
-          <div className="flex flex-col items-center justify-center py-12 space-y-4">
-            <div className="w-16 h-16 border-4 border-green-500 border-t-transparent rounded-full animate-spin" />
-            <p className="text-sm text-gray-400">Connecting to Jarvis...</p>
+          <div className="flex flex-col items-center justify-center py-20 space-y-6">
+            <div className="relative">
+              <div className="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
+              <div className="absolute inset-0 w-20 h-20 border-4 border-cyan-500/20 border-b-cyan-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-base font-medium text-foreground">Connecting to Qubit...</p>
+              <p className="text-sm text-muted-foreground">Establishing secure connection</p>
+            </div>
           </div>
         ) : token ? (
           <LiveKitRoom
@@ -167,16 +230,22 @@ export function JarvisAssistant({ open, onOpenChange }: JarvisAssistantProps) {
             connect={true}
             audio={true}
             video={false}
-            className="min-h-[500px]"
+            className="min-h-[500px] overflow-y-auto"
           >
             <VoiceAssistantUI />
             <RoomAudioRenderer />
           </LiveKitRoom>
         ) : (
-          <div className="flex flex-col items-center justify-center py-12 space-y-4">
-            <p className="text-sm text-gray-400">Failed to connect. Please try again.</p>
-            <Button onClick={fetchToken} variant="outline" className="border-green-500/30">
-              Retry Connection
+          <div className="flex flex-col items-center justify-center py-20 space-y-6">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+              <MicOff className="w-8 h-8 text-destructive" />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-base font-medium text-foreground">Connection failed</p>
+              <p className="text-sm text-muted-foreground">Unable to establish connection</p>
+            </div>
+            <Button onClick={fetchToken} variant="outline" className="border-blue-500/30 hover:bg-blue-500/10 hover:border-blue-500/50">
+              Try Again
             </Button>
           </div>
         )}
@@ -185,24 +254,24 @@ export function JarvisAssistant({ open, onOpenChange }: JarvisAssistantProps) {
   );
 }
 
-// Floating Button Component
-export function JarvisButton() {
+// Floating Button Component - Gemini/Siri Style
+export function QubitButton() {
   const [open, setOpen] = useState(false);
 
   return (
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 shadow-lg shadow-green-500/50 transition-all hover:scale-110 z-50"
+        className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 hover:from-blue-600 hover:via-cyan-600 hover:to-blue-700 shadow-2xl shadow-blue-500/50 hover:shadow-cyan-500/60 transition-all hover:scale-110 active:scale-95 z-50 border-2 border-white/20 backdrop-blur-sm"
         size="icon"
       >
         <div className="flex flex-col items-center">
-          <Mic className="w-6 h-6" />
-          <span className="text-[8px] mt-0.5">Jarvis</span>
+          <Sparkles className="w-6 h-6 animate-pulse" />
+          <span className="text-[9px] mt-0.5 font-medium">Qubit</span>
         </div>
       </Button>
 
-      <JarvisAssistant open={open} onOpenChange={setOpen} />
+      <QubitAssistant open={open} onOpenChange={setOpen} />
     </>
   );
 }

@@ -111,3 +111,77 @@
 .dark .rdp-button:hover:not([disabled]):not(.rdp-day_selected) {
   background-color: hsl(var(--accent));
 }
+
+/* Qubit Voice Assistant Custom Styles - Gemini/Siri Inspired */
+@keyframes qubit-pulse {
+  0%, 100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.8;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes qubit-float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes qubit-shimmer {
+  0% {
+    background-position: -1000px 0;
+  }
+  100% {
+    background-position: 1000px 0;
+  }
+}
+
+.qubit-orb-active {
+  animation: qubit-pulse 2s ease-in-out infinite;
+}
+
+.qubit-float {
+  animation: qubit-float 3s ease-in-out infinite;
+}
+
+.qubit-shimmer {
+  background: linear-gradient(
+    90deg,
+    transparent 0%,
+    rgba(255, 255, 255, 0.1) 50%,
+    transparent 100%
+  );
+  background-size: 2000px 100%;
+  animation: qubit-shimmer 3s linear infinite;
+}
+
+/* Smooth glassmorphism for voice assistant */
+.qubit-glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(12px) saturate(180%);
+  -webkit-backdrop-filter: blur(12px) saturate(180%);
+}
+
+/* Custom scrollbar for transcript area */
+.qubit-scrollbar::-webkit-scrollbar {
+  width: 6px;
+}
+
+.qubit-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.qubit-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(59, 130, 246, 0.3);
+  border-radius: 3px;
+}
+
+.qubit-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(59, 130, 246, 0.5);
+}
