@@ -1,4 +1,4 @@
-Hydro-Nexus is an innovative agricultural system designed to help users grow exotic crops efficiently by combining the benefits of subsurface drip irrigation (SDI) and hydroponics. The project focuses on using a specially engineered, soilless buffer medium in modular grow bags, managed with advanced IoT sensors and AI automation for real-time monitoring and adaptive control.
+QBM-HydroNet (Quantum/Plasma-driven, Bio-integrated, Machine-managed Hydroponic Network) is an innovative bioregenerative agricultural system designed to help users grow exotic crops efficiently by combining the benefits of subsurface drip irrigation (SDI) and hydroponics. The project focuses on using a specially engineered, soilless buffer medium in modular grow bags, managed with advanced IoT sensors and AI automation for real-time monitoring and adaptive control.
 
 Key Features
 Custom Buffer Medium: Uses a unique mix of cocopeat, perlite, biochar, and recycled polymer beads for optimal moisture, aeration, and microbial support, greatly reducing root rot and boosting plant health.
@@ -20,4 +20,4 @@ Lower risk of root and fungal diseases, thanks to optimal aeration and microbial
 
 Cloud-based dashboard for remote management and monitoring.
 
-Hydro-Nexus makes it easy for both hobbyists and professional growers to adopt sustainable, high-tech crop cultivation with minimal resource use and maximum output.
+QBM-HydroNet makes it easy for both hobbyists and professional growers to adopt sustainable, high-tech crop cultivation with minimal resource use and maximum output.

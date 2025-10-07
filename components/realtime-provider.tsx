@@ -2,9 +2,11 @@
 
 import type React from "react"
 
-import { createContext, useContext, useEffect, useState, useCallback, useRef } from "react"
+import { createContext, useContext, useEffect, useState, useCallback, useRef, useMemo } from "react"
 import { useToast } from "@/hooks/use-toast"
 import { useAuth } from "@/components/auth-provider"
+import { usePathname } from "next/navigation"
+import { usePreferencesStore } from "@/lib/stores/preferences-store"
 
 interface SensorData {
   deviceId: string
@@ -24,9 +26,10 @@ interface RealtimeContextType {
     id: string
     deviceId: string
     message: string
-    severity: "info" | "warning" | "error"
+    severity: "info" | "warning" | "alert" | "error"
     timestamp: string
   }>
+  clearParametersCache: () => void
 }
 
 const RealtimeContext = createContext<RealtimeContextType | undefined>(undefined)
@@ -38,6 +41,18 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const lastWaterAlertTimeRef = useRef<Record<string, number>>({})
   const { toast } = useToast()
   const { isAuthenticated } = useAuth()
+  const pathname = usePathname()
+  const { notificationSettings } = usePreferencesStore()
+  
+  // Determine if we need real-time updates based on current page
+  const needsRealTimeUpdates = useMemo(() => {
+    return pathname === '/dashboard' || pathname === '/digital-twin'
+  }, [pathname])
+  
+  // Determine if we need alerts based on current page  
+  const needsAlerts = useMemo(() => {
+    return pathname === '/dashboard' || needsRealTimeUpdates
+  }, [pathname, needsRealTimeUpdates])
   
   // Stable interval ref
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
@@ -45,6 +60,83 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const isAuthenticatedRef = useRef(isAuthenticated)
   // Ref to store initial water levels for each device (simulate slow depletion)
   const initialWaterLevelsRef = useRef<Record<string, number>>({})
+
+  // Generate unique ID for alerts
+  const generateUniqueId = useCallback(() => {
+    return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+  }, [])
+
+  // Cache parameters to avoid frequent localStorage reads
+  const parametersCache = useRef<Record<string, any>>({})
+  const lastCacheUpdateRef = useRef<number>(0)
+  const CACHE_DURATION = 10000 // 10 seconds cache
+
+  // Function to clear parameters cache (call when parameters are updated)
+  const clearParametersCache = useCallback(() => {
+    parametersCache.current = {}
+    lastCacheUpdateRef.current = 0
+  }, [])
+
+  // Get device-specific alert thresholds with caching
+  const getDeviceAlertThresholds = useCallback((deviceId: string) => {
+    const now = Date.now()
+    const cacheKey = deviceId
+    
+    // Return cached version if still valid
+    if (parametersCache.current[cacheKey] && (now - lastCacheUpdateRef.current) < CACHE_DURATION) {
+      return parametersCache.current[cacheKey]
+    }
+
+    // Define fallback defaults with new structure (no threshold fields)
+    const defaultThresholds = {
+      temperature: { min: 20, max: 28 },
+      humidity: { min: 60, max: 80 },
+      pH: { min: 5.5, max: 6.8 },
+      ec: { min: 1.2, max: 2.4 },
+    }
+
+    try {
+      // Try device-specific settings first
+      const deviceParams = localStorage.getItem(`hydro-nexus-parameters-${deviceId}`)
+      if (deviceParams) {
+        const parsed = JSON.parse(deviceParams)
+        const result = {
+          temperature: parsed.temperature || defaultThresholds.temperature,
+          humidity: parsed.humidity || defaultThresholds.humidity,
+          pH: parsed.pH || defaultThresholds.pH,
+          ec: parsed.ec || defaultThresholds.ec,
+        }
+        parametersCache.current[cacheKey] = result
+        lastCacheUpdateRef.current = now
+        return result
+      }
+      
+      // Try global settings
+      const globalParams = localStorage.getItem('hydro-nexus-parameters')
+      if (globalParams) {
+        const parsed = JSON.parse(globalParams)
+        const result = {
+          temperature: parsed.temperature || defaultThresholds.temperature,
+          humidity: parsed.humidity || defaultThresholds.humidity,
+          pH: parsed.pH || defaultThresholds.pH,
+          ec: parsed.ec || defaultThresholds.ec,
+        }
+        parametersCache.current[cacheKey] = result
+        lastCacheUpdateRef.current = now
+        return result
+      }
+      
+      // Cache and return defaults
+      parametersCache.current[cacheKey] = defaultThresholds
+      lastCacheUpdateRef.current = now
+      return defaultThresholds
+    } catch (error) {
+      console.error('Failed to parse device-specific parameters:', error)
+      parametersCache.current[cacheKey] = defaultThresholds
+      lastCacheUpdateRef.current = now
+      return defaultThresholds
+    }
+  }, [])
 
   const generateMockSensorData = useCallback((deviceId: string): SensorData => {
     const baseValues = {
@@ -97,84 +189,53 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
+  // Check for alerts based on sensor thresholds with new ±2/±4 logic
   const checkForAlerts = useCallback((data: SensorData) => {
-    // Generate alerts regardless of authentication status
+    const thresholds = getDeviceAlertThresholds(data.deviceId)
     const newAlerts: RealtimeContextType["alerts"] = []
-    const baseTimestamp = Date.now()
-    const currentTime = Date.now()
+    const now = Date.now()
 
-    if (data.pH < 5.2 || data.pH > 6.8) {
-      newAlerts.push({
-        id: `${data.deviceId}-ph-${baseTimestamp}-${newAlerts.length}`,
-        deviceId: data.deviceId,
-        message: `pH out of range: ${data.pH.toFixed(2)}`,
-        severity: "error",
-        timestamp: data.timestamp,
-      })
+    // Helper function to check parameter status - ONLY add alerts (±4) to alerts array
+    const checkParameter = (value: number, range: { min: number; max: number }, paramName: string, unit: string) => {
+      if (value < range.min - 4 || value > range.max + 4) {
+        // Alert: ±4 from range - add to alerts array for notifications
+        newAlerts.push({
+          id: generateUniqueId(),
+          deviceId: data.deviceId,
+          message: `${paramName} alert: ${value.toFixed(1)}${unit} (Range: ${range.min}-${range.max}${unit})`,
+          severity: "alert",
+          timestamp: new Date(now).toISOString(),
+        })
+      }
+      // Warning alerts (±2 from range) are NOT added to alerts array - they only show in components
     }
 
-    if (data.ec < 0.8 || data.ec > 2.9) {
-      newAlerts.push({
-        id: `${data.deviceId}-ec-${baseTimestamp}-${newAlerts.length}`,
-        deviceId: data.deviceId,
-        message: `EC out of range: ${data.ec.toFixed(2)} mS/cm`,
-        severity: "warning",
-        timestamp: data.timestamp,
-      })
-    }
+    // Check each parameter
+    checkParameter(data.roomTemp, thresholds.temperature, "Temperature", "°C")
+    checkParameter(data.pH, thresholds.pH, "pH", "")
+    checkParameter(data.ec, thresholds.ec, "EC", " mS/cm")
+    checkParameter(data.humidity, thresholds.humidity, "Humidity", "%")
 
-    // Water level alert with 5-minute throttling
+    // Water level check (simple) - critical system error
     if (data.waterLevel === "Below Required Level") {
       const lastAlertTime = lastWaterAlertTimeRef.current[data.deviceId] || 0
-      const timeSinceLastAlert = currentTime - lastAlertTime
-      const fiveMinutes = 5 * 60 * 1000 // 5 minutes in milliseconds
-      
-      if (timeSinceLastAlert >= fiveMinutes) {
+      if (now - lastAlertTime > 60000) { // Only alert every minute
         newAlerts.push({
-          id: `${data.deviceId}-water-${baseTimestamp}-${newAlerts.length}`,
+          id: generateUniqueId(),
           deviceId: data.deviceId,
-          message: `Water level below required threshold`,
+          message: "Water level is below required level",
           severity: "error",
-          timestamp: data.timestamp,
+          timestamp: new Date(now).toISOString(),
         })
-        
-        // Update the last alert time for this device
-        lastWaterAlertTimeRef.current[data.deviceId] = currentTime
+        lastWaterAlertTimeRef.current[data.deviceId] = now
       }
     }
 
-    if (data.moisture < 50) {
-      newAlerts.push({
-        id: `${data.deviceId}-moisture-${baseTimestamp}-${newAlerts.length}`,
-        deviceId: data.deviceId,
-        message: `Low substrate moisture: ${data.moisture.toFixed(1)}%`,
-        severity: "warning",
-        timestamp: data.timestamp,
-      })
-    }
-
-    if (data.roomTemp < 18 || data.roomTemp > 32) {
-      newAlerts.push({
-        id: `${data.deviceId}-temp-${baseTimestamp}-${newAlerts.length}`,
-        deviceId: data.deviceId,
-        message: `Room temperature out of range: ${data.roomTemp.toFixed(1)}°C`,
-        severity: "warning",
-        timestamp: data.timestamp,
-      })
-    }
-
-    if (data.humidity > 90) {
-      newAlerts.push({
-        id: `${data.deviceId}-humidity-${baseTimestamp}-${newAlerts.length}`,
-        deviceId: data.deviceId,
-        message: `High humidity: ${data.humidity.toFixed(1)}%`,
-        severity: "warning",
-        timestamp: data.timestamp,
-      })
-    }
+    // Low moisture is only a warning - do NOT add to alerts array
+    // It will only be displayed in the component itself
 
     return newAlerts
-  }, [])
+  }, [getDeviceAlertThresholds, generateUniqueId])
 
   // Stable reference to toast and functions used in interval
   const stableToast = useCallback((options: Parameters<typeof toast>[0]) => {
@@ -186,78 +247,178 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, [checkForAlerts])
 
   useEffect(() => {
-    // Always show mock data for the dashboard UI
+    // Always show mock data for the dashboard UI, but only update when needed
     setIsConnected(true)
     
     // Update the ref whenever authentication state changes
     isAuthenticatedRef.current = isAuthenticated
     
-    // Clear alerts when not authenticated
-    if (!isAuthenticated) {
+    // Clear alerts when not authenticated or when alerts aren't needed
+    if (!isAuthenticated || !needsAlerts) {
       setAlerts([])
-      console.log('User not authenticated, clearing alerts')
+      console.log('Alerts disabled - user not authenticated or page does not need alerts')
     } else {
-      console.log('User authenticated, alerts enabled')
+      console.log('User authenticated and alerts enabled for this page')
     }
 
-    // Generate initial mock data for 6 grow bags
-    const initialData: Record<string, SensorData> = {}
-    for (let i = 1; i <= 6; i++) {
-      initialData[`grow-bag-${i}`] = generateMockSensorData(`grow-bag-${i}`)
+    // Fetch real sensor data from API
+    const fetchRealSensorData = async () => {
+      try {
+        const response = await fetch('/api/sensors/latest')
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success && result.data) {
+            console.log('✅ Fetched real ESP32 data:', result.data)
+            setSensorData(result.data)
+            return
+          }
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch real sensor data, using mock data:', error)
+      }
+      
+      // Fallback to mock data if API fails
+      const initialData: Record<string, SensorData> = {}
+      for (let i = 1; i <= 6; i++) {
+        initialData[`grow-bag-${i}`] = generateMockSensorData(`grow-bag-${i}`)
+      }
+      setSensorData(initialData)
     }
-    setSensorData(initialData)
+    
+    fetchRealSensorData()
 
     // Clear any existing interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
     }
 
-    // Simulate real-time updates every 3 seconds
-    intervalRef.current = setInterval(() => {
-      setSensorData((prev) => {
-        const updated = { ...prev }
-        const allNewAlerts: RealtimeContextType["alerts"] = []
-        
-        Object.keys(updated).forEach((deviceId) => {
-          updated[deviceId] = generateMockSensorData(deviceId)
-          
-          // Only check for alerts and show notifications if authenticated (using ref for current state)
-          if (isAuthenticatedRef.current) {
-            // Check for alerts
-            const newAlerts = stableCheckForAlerts(updated[deviceId])
-            allNewAlerts.push(...newAlerts)
-          }
-        })
-        
-        // Update alerts if any new ones were found and user is authenticated
-        if (allNewAlerts.length > 0 && isAuthenticatedRef.current) {
-          console.log('New alerts generated:', allNewAlerts.length)
-          setAlerts((prev) => [...allNewAlerts, ...prev].slice(0, 50))
-          
-          // Show toast notifications only for authenticated users
-          setTimeout(() => {
-            allNewAlerts.forEach((alert) => {
-              stableToast({
-                title: `Alert: ${alert.deviceId}`,
-                description: alert.message,
-                variant: alert.severity === "error" ? "destructive" : "default",
-              })
-            })
-          }, 0)
+    // Only start intensive real-time updates if needed
+    if (needsRealTimeUpdates && isAuthenticated) {
+      console.log('Starting real-time updates for page:', pathname)
+      
+      // Fetch real-time updates every 5 seconds
+      intervalRef.current = setInterval(async () => {
+        // Check if component is still mounted and authenticated
+        if (!isAuthenticatedRef.current) {
+          return
         }
         
-        return updated
-      })
-    }, 3000)
+        try {
+          const response = await fetch('/api/sensors/latest')
+          if (response.ok) {
+            const result = await response.json()
+            if (result.success) {
+              // NEW FORMAT: Convert room + bags back to legacy format for compatibility
+              const legacyData: Record<string, any> = {}
+              
+              if (result.bags) {
+                Object.values(result.bags).forEach((bag: any) => {
+                  legacyData[bag.deviceId] = {
+                    deviceId: bag.deviceId,
+                    moisture: bag.moisture,
+                    moistureTimestamp: bag.moistureTimestamp,
+                    // Add room sensors to each bag for backward compatibility
+                    roomTemp: result.room?.roomTemp || 0,
+                    humidity: result.room?.humidity || 0,
+                    pH: result.room?.pH || 0,
+                    ec: result.room?.ec || 0,
+                    waterLevel: result.room?.waterLevel || 'Unknown',
+                    timestamp: result.room?.timestamp || bag.moistureTimestamp
+                  }
+                })
+              }
+              
+              console.log('🔄 Real-time update:', Object.keys(legacyData).length, 'devices')
+              
+              setSensorData((prev) => {
+                const updated = { ...legacyData }
+                const allNewAlerts: RealtimeContextType["alerts"] = []
+                
+                // Check for alerts if needed
+                if (isAuthenticatedRef.current && needsAlerts) {
+                  Object.values(updated).forEach((deviceData: any) => {
+                    const newAlerts = stableCheckForAlerts(deviceData)
+                    allNewAlerts.push(...newAlerts)
+                  })
+                  
+                  // Update alerts
+                  if (allNewAlerts.length > 0) {
+                    setAlerts((prevAlerts) => [...allNewAlerts, ...prevAlerts].slice(0, 50))
+                  }
+                }
+                
+                return updated
+              })
+              return
+            }
+          }
+        } catch (error) {
+          console.error('❌ Failed to fetch real-time data:', error)
+        }
+        
+        // Fallback to mock data if API fails
+        setSensorData((prev) => {
+          const updated = { ...prev }
+          const allNewAlerts: RealtimeContextType["alerts"] = []
+          
+          Object.keys(updated).forEach((deviceId) => {
+            updated[deviceId] = generateMockSensorData(deviceId)
+            
+            // Only check for alerts if needed for this page
+            if (isAuthenticatedRef.current && needsAlerts) {
+              // Check for alerts
+              const newAlerts = stableCheckForAlerts(updated[deviceId])
+              allNewAlerts.push(...newAlerts)
+            }
+          })
+          
+          // Update alerts if any new ones were found and alerts are needed
+          if (allNewAlerts.length > 0 && isAuthenticatedRef.current && needsAlerts) {
+            console.log('New alerts generated:', allNewAlerts.length)
+            setAlerts((prev) => {
+              // Combine new alerts with existing ones
+              const combined = [...allNewAlerts, ...prev]
+              // Remove duplicates based on ID
+              const uniqueAlerts = combined.filter((alert, index, self) => 
+                self.findIndex(a => a.id === alert.id) === index
+              )
+              // Keep only the 50 most recent alerts
+              return uniqueAlerts.slice(0, 50)
+            })
+            
+            // Show toast notifications for alerts (±4) and errors (system issues)
+            setTimeout(() => {
+              allNewAlerts.forEach((alert) => {
+                // Show popup notifications for both 'alert' (±4 sensor) and 'error' (system) severity
+                if ((alert.severity === "alert" || alert.severity === "error") && notificationSettings.masterEnabled) {
+                  const title = alert.severity === "error" ? "Critical System Error" : "Sensor Alert"
+                  stableToast({
+                    title: `${title}: ${alert.deviceId}`,
+                    description: alert.message,
+                    variant: "destructive",
+                  })
+                }
+              })
+            }, 0)
+          }
+          
+          return updated
+        })
+      }, 5000) // Reduced frequency to 5 seconds for better performance
+    } else {
+      console.log('Real-time updates disabled for page:', pathname)
+    }
 
     return () => {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
       }
-      setIsConnected(false)
+      if (!needsRealTimeUpdates) {
+        setIsConnected(false)
+      }
     }
-  }, [isAuthenticated, generateMockSensorData, stableCheckForAlerts, stableToast]) // Stable dependencies
+  }, [isAuthenticated, needsRealTimeUpdates, needsAlerts, pathname, generateMockSensorData, stableCheckForAlerts, stableToast, notificationSettings.masterEnabled]) // Include notification settings
 
   // Separate effect for cleanup when component unmounts
   useEffect(() => {
@@ -268,7 +429,15 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     }
   }, [])
 
-  return <RealtimeContext.Provider value={{ sensorData, isConnected, alerts }}>{children}</RealtimeContext.Provider>
+  // Memoize context value to prevent unnecessary re-renders
+  const contextValue = useMemo(() => ({
+    sensorData,
+    isConnected,
+    alerts,
+    clearParametersCache
+  }), [sensorData, isConnected, alerts, clearParametersCache])
+
+  return <RealtimeContext.Provider value={contextValue}>{children}</RealtimeContext.Provider>
 }
 
 export function useRealtime() {

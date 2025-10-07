@@ -124,7 +124,16 @@ export default function LoginPage() {
               </Button>
             </form>
 
-            <div className="mt-6 p-3 sm:p-4 bg-primary/10 rounded-lg">
+            <div className="mt-6 text-center">
+              <p className="text-sm text-muted-foreground">
+                Don't have an account?{" "}
+                <Link href="/signup" className="text-primary hover:text-primary/90 font-medium">
+                  Sign up here
+                </Link>
+              </p>
+            </div>
+
+            <div className="mt-4 p-3 sm:p-4 bg-primary/10 rounded-lg">
               <p className="text-sm font-medium text-primary mb-2">Demo Credentials:</p>
               <p className="text-xs sm:text-sm text-primary/90">
                 Username: <code className="bg-primary/20 px-1 rounded text-xs">admin</code>

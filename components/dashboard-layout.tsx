@@ -2,8 +2,9 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useState, useCallback, useEffect } from "react"
 import { useAuth } from "@/components/auth-provider"
+import { useAvatar } from "@/components/avatar-provider"
 import { Button } from "@/components/ui/button"
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
@@ -16,7 +17,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {
   Leaf,
   Menu,
@@ -37,6 +38,7 @@ import { usePathname } from "next/navigation"
 import { useTheme } from "next-themes"
 import { useRealtime } from "@/components/realtime-provider"
 import { RealtimeProvider } from "@/components/realtime-provider"
+import ErrorBoundary from "@/components/error-boundary"
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
@@ -50,6 +52,7 @@ const navigation = [
 // Dashboard layout content component
 function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const { user, logout } = useAuth()
+  const { avatarUrl } = useAvatar()
   const { alerts } = useRealtime()
   const { theme, setTheme } = useTheme()
   const pathname = usePathname()
@@ -63,6 +66,16 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
   const handleThemeToggle = () => {
     setTheme(theme === "dark" ? "light" : "dark")
   }
+
+  const handleLogout = useCallback(() => {
+    try {
+      logout()
+    } catch (error) {
+      console.error('Logout error:', error)
+      // Fallback logout
+      window.location.href = '/login'
+    }
+  }, [logout])
 
   const Sidebar = ({ mobile = false }: { mobile?: boolean }) => (
     <div className={`flex flex-col h-full ${mobile ? "p-4" : "p-4 sm:p-6"}`}>
@@ -167,7 +180,12 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                           <DropdownMenuItem key={alert.id} className="flex-col items-start p-3 space-y-1">
                             <div className="flex items-center justify-between w-full">
                               <Badge 
-                                variant={alert.severity === "error" ? "destructive" : alert.severity === "warning" ? "secondary" : "outline"}
+                                variant={
+                                  alert.severity === "error" ? "destructive" : 
+                                  alert.severity === "alert" ? "destructive" : 
+                                  alert.severity === "warning" ? "secondary" : 
+                                  "outline"
+                                }
                                 className="text-xs"
                               >
                                 {alert.severity.toUpperCase()}
@@ -205,6 +223,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" className="relative h-8 w-8 rounded-full">
                     <Avatar className="h-8 w-8">
+                      <AvatarImage src={avatarUrl || "/placeholder.svg"} alt={user?.username || "User"} />
                       <AvatarFallback className="bg-primary/10 text-primary text-sm">
                         {user?.username?.charAt(0).toUpperCase()}
                       </AvatarFallback>
@@ -232,7 +251,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
-                  <DropdownMenuItem onClick={logout}>
+                  <DropdownMenuItem onClick={handleLogout}>
                     <LogOut className="mr-2 h-4 w-4" />
                     <span>Log out</span>
                   </DropdownMenuItem>
@@ -252,8 +271,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
 // Dashboard layout wrapper that provides the RealtimeProvider
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
   return (
-    <RealtimeProvider>
-      <DashboardLayoutContent>{children}</DashboardLayoutContent>
-    </RealtimeProvider>
+    <ErrorBoundary>
+      <RealtimeProvider>
+        <DashboardLayoutContent>{children}</DashboardLayoutContent>
+      </RealtimeProvider>
+    </ErrorBoundary>
   )
 }
