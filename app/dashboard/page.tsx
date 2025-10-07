@@ -8,33 +8,14 @@ import { Button } from "@/components/ui/button"
 import { SensorCard } from "@/components/sensor-card"
 import { QuickActions } from "@/components/quick-actions"
 import { AlertPanel } from "@/components/alert-panel"
-import { QubitButton } from "@/components/qubit-assistant"
-import { 
-  getTemperatureStatus, 
-  getHumidityStatus, 
-  getPHStatus, 
-  getECStatus, 
-  getMoistureStatus, 
-  getWaterLevelStatus 
-} from "@/lib/parameter-utils"
 import { Thermometer, Droplets, Zap, Activity, Wind, Beaker } from "lucide-react"
-import { useEffect, useState, useMemo, memo, Suspense } from "react"
+import { useEffect, useState } from "react"
 import { redirect } from "next/navigation"
-import ErrorBoundary from "@/components/error-boundary"
-
-// Memoized components to prevent unnecessary re-renders
-const MemoizedSensorCard = memo(SensorCard)
-const MemoizedQuickActions = memo(QuickActions)
-const MemoizedAlertPanel = memo(AlertPanel)
 
 export default function DashboardPage() {
   const { user, isLoading, isAuthenticated } = useAuth()
   const { sensorData, isConnected, alerts } = useRealtime()
   const [selectedGrowBag, setSelectedGrowBag] = useState("grow-bag-1")
-
-  // Memoize expensive calculations
-  const currentData = useMemo(() => sensorData[selectedGrowBag], [sensorData, selectedGrowBag])
-  const growBagIds = useMemo(() => Object.keys(sensorData), [sensorData])
 
   useEffect(() => {
     // Immediate redirect if not authenticated
@@ -44,7 +25,6 @@ export default function DashboardPage() {
     }
   }, [isLoading, isAuthenticated])
 
-  // Show loading state
   if (isLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -56,7 +36,6 @@ export default function DashboardPage() {
     )
   }
 
-  // Show redirect message (but don't render main content)
   if (!isAuthenticated) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -66,6 +45,9 @@ export default function DashboardPage() {
       </div>
     )
   }
+
+  const currentData = sensorData[selectedGrowBag]
+  const growBagIds = Object.keys(sensorData)
 
   return (
     <div className="space-y-6">
@@ -119,7 +101,7 @@ export default function DashboardPage() {
               value={currentData.roomTemp}
               unit="°C"
               icon={Thermometer}
-              status={getTemperatureStatus(currentData.roomTemp, selectedGrowBag)}
+              status={currentData.roomTemp >= 22 && currentData.roomTemp <= 28 ? "good" : "warning"}
               trend={Math.random() > 0.5 ? "up" : "down"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
@@ -132,7 +114,7 @@ export default function DashboardPage() {
               value={currentData.pH}
               unit=""
               icon={Beaker}
-              status={getPHStatus(currentData.pH, selectedGrowBag)}
+              status={currentData.pH >= 5.5 && currentData.pH <= 6.5 ? "good" : "alert"}
               trend={Math.random() > 0.5 ? "up" : "down"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
@@ -145,7 +127,7 @@ export default function DashboardPage() {
               value={currentData.ec}
               unit="mS/cm"
               icon={Zap}
-              status={getECStatus(currentData.ec, selectedGrowBag)}
+              status={currentData.ec >= 1.2 && currentData.ec <= 2.5 ? "good" : "warning"}
               trend={Math.random() > 0.5 ? "up" : "down"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
@@ -158,7 +140,7 @@ export default function DashboardPage() {
               value={currentData.moisture}
               unit="%"
               icon={Droplets}
-              status={getMoistureStatus(currentData.moisture)}
+              status={currentData.moisture >= 60 ? "good" : "warning"}
               trend={Math.random() > 0.5 ? "up" : "down"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
@@ -171,7 +153,7 @@ export default function DashboardPage() {
               value={currentData.waterLevel === "Below Required Level" ? 0 : 100}
               unit="%"
               icon={Activity}
-              status={getWaterLevelStatus(currentData.waterLevel)}
+              status={currentData.waterLevel === "Below Required Level" ? "alert" : "good"}
               trend={"stable"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
@@ -184,7 +166,7 @@ export default function DashboardPage() {
               value={currentData.humidity}
               unit="%"
               icon={Wind}
-              status={getHumidityStatus(currentData.humidity, selectedGrowBag)}
+              status={currentData.humidity <= 85 ? "good" : "warning"}
               trend={Math.random() > 0.5 ? "up" : "down"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
@@ -199,9 +181,6 @@ export default function DashboardPage() {
 
         {/* Alerts Panel */}
         <AlertPanel alerts={alerts.slice(0, 10)} />
-
-        {/* Qubit AI Voice Assistant - Floating Button */}
-        <QubitButton />
       </div>
   )
 }

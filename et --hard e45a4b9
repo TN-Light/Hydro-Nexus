@@ -1,0 +1,38 @@
+[33me45a4b9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mversion-5[m[33m)[m HEAD@{0}: reset: moving to HEAD~1
+[33m24c95bb[m[33m ([m[1;31morigin/version-5[m[33m)[m HEAD@{1}: reset: moving to HEAD
+[33m24c95bb[m[33m ([m[1;31morigin/version-5[m[33m)[m HEAD@{2}: commit: live transcription
+[33me45a4b9[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mversion-5[m[33m)[m HEAD@{3}: commit: removing unwanted files
+[33m05bfce3[m HEAD@{4}: commit: Qubit is working but , need some improvements
+[33m09633a0[m HEAD@{5}: commit: trying ai agent
+[33m13d9235[m HEAD@{6}: reset: moving to HEAD
+[33m13d9235[m HEAD@{7}: commit: real data from esp32
+[33m7f44aca[m[33m ([m[1;32mversion-4[m[33m)[m HEAD@{8}: checkout: moving from version-4 to version-5
+[33m7f44aca[m[33m ([m[1;32mversion-4[m[33m)[m HEAD@{9}: checkout: moving from version-4 to version-4
+[33m7f44aca[m[33m ([m[1;32mversion-4[m[33m)[m HEAD@{10}: commit: new updates for optimization and database(V5)
+[33m5d5c2e9[m[33m ([m[1;31morigin/version-4[m[33m, [m[1;31morigin/version-3[m[33m, [m[1;32mversion-3[m[33m)[m HEAD@{11}: checkout: moving from version-4 to version-4
+[33m5d5c2e9[m[33m ([m[1;31morigin/version-4[m[33m, [m[1;31morigin/version-3[m[33m, [m[1;32mversion-3[m[33m)[m HEAD@{12}: checkout: moving from version-3 to version-4
+[33m5d5c2e9[m[33m ([m[1;31morigin/version-4[m[33m, [m[1;31morigin/version-3[m[33m, [m[1;32mversion-3[m[33m)[m HEAD@{13}: checkout: moving from version-4 to version-3
+[33m5d5c2e9[m[33m ([m[1;31morigin/version-4[m[33m, [m[1;31morigin/version-3[m[33m, [m[1;32mversion-3[m[33m)[m HEAD@{14}: reset: moving to HEAD~1
+[33m97828bf[m HEAD@{15}: commit: version 4
+[33m5d5c2e9[m[33m ([m[1;31morigin/version-4[m[33m, [m[1;31morigin/version-3[m[33m, [m[1;32mversion-3[m[33m)[m HEAD@{16}: checkout: moving from version-3 to version-4
+[33m5d5c2e9[m[33m ([m[1;31morigin/version-4[m[33m, [m[1;31morigin/version-3[m[33m, [m[1;32mversion-3[m[33m)[m HEAD@{17}: commit: new updates
+[33m9ecffaa[m HEAD@{18}: checkout: moving from version-3 to version-3
+[33m9ecffaa[m HEAD@{19}: commit: analytics problem solved
+[33mafd0dac[m HEAD@{20}: commit: solved parameters and msg alert
+[33m25addbe[m[33m ([m[1;31morigin/feature/empty-space-fix[m[33m)[m HEAD@{21}: Branch: renamed refs/heads/feature/empty-space-fix to refs/heads/version-3
+[33m25addbe[m[33m ([m[1;31morigin/feature/empty-space-fix[m[33m)[m HEAD@{23}: reset: moving to HEAD~1
+[33m265ea51[m HEAD@{24}: reset: moving to HEAD~1
+[33md44e7dd[m HEAD@{25}: pull origin feature/empty-space-fix --rebase (finish): returning to refs/heads/feature/empty-space-fix
+[33md44e7dd[m HEAD@{26}: pull origin feature/empty-space-fix --rebase (pick): Fix: new version error
+[33m265ea51[m HEAD@{27}: pull origin feature/empty-space-fix --rebase (start): checkout 265ea518167ab3d179542f6b78abb897836677aa
+[33m8e9ad7c[m HEAD@{28}: checkout: moving from main to feature/empty-space-fix
+[33m2559f9a[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{29}: checkout: moving from feature/empty-space-fix to main
+[33m8e9ad7c[m HEAD@{30}: commit: Fix: new version error
+[33m25addbe[m[33m ([m[1;31morigin/feature/empty-space-fix[m[33m)[m HEAD@{31}: reset: moving to HEAD~1
+[33m265ea51[m HEAD@{32}: checkout: moving from feature/empty-space-fix to feature/empty-space-fix
+[33m265ea51[m HEAD@{33}: checkout: moving from 265ea518167ab3d179542f6b78abb897836677aa to feature/empty-space-fix
+[33m265ea51[m HEAD@{34}: checkout: moving from feature/empty-space-fix to 265ea518167ab3d179542f6b78abb897836677aa
+[33m265ea51[m HEAD@{35}: commit: new version
+[33m25addbe[m[33m ([m[1;31morigin/feature/empty-space-fix[m[33m)[m HEAD@{36}: commit: brown changed to black
+[33mf24ad57[m HEAD@{37}: checkout: moving from main to feature/empty-space-fix
+[33m2559f9a[m[33m ([m[1;31morigin/master[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m, [m[1;32mmain[m[33m)[m HEAD@{38}: clone: from https://github.com/TN-Light/Hydro-Nexus.git

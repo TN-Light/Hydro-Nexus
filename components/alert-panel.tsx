@@ -11,7 +11,7 @@ interface Alert {
   id: string
   deviceId: string
   message: string
-  severity: "info" | "warning" | "alert" | "error"
+  severity: "info" | "warning" | "error"
   timestamp: string
 }
 
@@ -29,11 +29,6 @@ const severityConfig = {
     icon: AlertTriangle,
     color: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
     bgColor: "bg-yellow-500/10",
-  },
-  alert: {
-    icon: AlertTriangle,
-    color: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-    bgColor: "bg-orange-500/10",
   },
   error: {
     icon: AlertTriangle,
