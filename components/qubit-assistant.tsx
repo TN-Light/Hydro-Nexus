@@ -30,22 +30,22 @@ function VoiceAssistantUI() {
         {/* Outer glow rings */}
         <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
           state === 'listening' 
-            ? 'animate-ping bg-blue-500/30' 
+            ? 'animate-ping bg-green-500/30' 
             : state === 'speaking'
-            ? 'animate-pulse bg-gradient-to-r from-cyan-500/30 to-blue-500/30'
+            ? 'animate-pulse bg-gradient-to-r from-emerald-500/30 to-lime-500/30'
             : state === 'thinking'
-            ? 'animate-pulse bg-purple-500/30'
+            ? 'animate-pulse bg-lime-500/30'
             : 'bg-slate-500/10'
         }`} style={{ animationDuration: '2s' }}></div>
         
         {/* Main orb */}
         <div className={`relative w-40 h-40 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
           state === 'listening' 
-            ? 'bg-gradient-to-br from-blue-400/80 via-cyan-500/80 to-blue-600/80 shadow-2xl shadow-blue-500/50 scale-110' 
+            ? 'bg-gradient-to-br from-green-400/80 via-emerald-500/80 to-green-600/80 shadow-2xl shadow-green-500/50 scale-110' 
             : state === 'speaking'
-            ? 'bg-gradient-to-br from-cyan-400/80 via-blue-500/80 to-indigo-600/80 shadow-2xl shadow-cyan-500/50 scale-110'
+            ? 'bg-gradient-to-br from-emerald-400/80 via-lime-500/80 to-green-600/80 shadow-2xl shadow-emerald-500/50 scale-110'
             : state === 'thinking'
-            ? 'bg-gradient-to-br from-purple-400/80 via-violet-500/80 to-purple-600/80 shadow-2xl shadow-purple-500/50 scale-105'
+            ? 'bg-gradient-to-br from-lime-400/80 via-emerald-500/80 to-green-600/80 shadow-2xl shadow-lime-500/50 scale-105'
             : 'bg-gradient-to-br from-slate-400/50 via-slate-500/50 to-slate-600/50 shadow-lg'
         }`}>
           {/* Inner glow */}
@@ -82,11 +82,11 @@ function VoiceAssistantUI() {
       <div className="text-center space-y-2">
         <h3 className={`text-2xl font-semibold transition-colors duration-300 ${
           state === 'listening' 
-            ? 'text-blue-500 dark:text-blue-400' 
+            ? 'text-green-500 dark:text-green-400' 
             : state === 'speaking'
-            ? 'text-cyan-500 dark:text-cyan-400'
+            ? 'text-emerald-500 dark:text-emerald-400'
             : state === 'thinking'
-            ? 'text-purple-500 dark:text-purple-400'
+            ? 'text-lime-500 dark:text-lime-400'
             : 'text-slate-500 dark:text-slate-400'
         }`}>
           {state === 'listening' && 'Listening...'}
@@ -107,7 +107,7 @@ function VoiceAssistantUI() {
       {/* Audio Visualizer - Modern Style */}
       {audioTrack && (
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-blue-500/10 via-cyan-500/10 to-blue-500/10 backdrop-blur-sm border border-blue-500/20 p-6">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-lime-500/10 backdrop-blur-sm border border-green-500/20 p-6">
             <BarVisualizer
               state={state}
               barCount={30}
@@ -131,9 +131,9 @@ function VoiceAssistantUI() {
 
       {/* Quick Suggestions - iPhone Siri Style */}
       <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
-        <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-500/10 to-cyan-500/10 hover:from-blue-500/20 hover:to-cyan-500/20 border border-blue-500/20 hover:border-blue-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+        <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 border border-green-500/20 hover:border-green-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 text-blue-500">
+            <div className="mt-0.5 text-green-500">
               <Droplet className="w-5 h-5" />
             </div>
             <div>
@@ -143,9 +143,9 @@ function VoiceAssistantUI() {
           </div>
         </button>
         
-        <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-cyan-500/10 to-blue-500/10 hover:from-cyan-500/20 hover:to-blue-500/20 border border-cyan-500/20 hover:border-cyan-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+        <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 to-lime-500/10 hover:from-emerald-500/20 hover:to-lime-500/20 border border-emerald-500/20 hover:border-emerald-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
           <div className="flex items-start gap-3">
-            <div className="mt-0.5 text-cyan-500">
+            <div className="mt-0.5 text-emerald-500">
               <Leaf className="w-5 h-5" />
             </div>
             <div>
@@ -201,10 +201,10 @@ export function QubitAssistant({ open, onOpenChange }: QubitAssistantProps) {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/30 dark:from-slate-950 dark:via-blue-950/30 dark:to-cyan-950/30 border-blue-500/20 dark:border-cyan-500/20 backdrop-blur-xl">
+      <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-slate-50 via-green-50/30 to-emerald-50/30 dark:from-slate-950 dark:via-green-950/30 dark:to-emerald-950/30 border-green-500/20 dark:border-emerald-500/20 backdrop-blur-xl">
         <DialogHeader className="border-b border-border/50 pb-4">
-          <DialogTitle className="text-2xl font-semibold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-400 bg-clip-text text-transparent flex items-center gap-2">
-            <Sparkles className="w-6 h-6 text-blue-500 dark:text-cyan-400" />
+          <DialogTitle className="text-2xl font-semibold bg-gradient-to-r from-green-600 via-emerald-600 to-green-600 dark:from-green-400 dark:via-emerald-400 dark:to-green-400 bg-clip-text text-transparent flex items-center gap-2">
+            <Sparkles className="w-6 h-6 text-green-500 dark:text-emerald-400" />
             Qubit AI Assistant
           </DialogTitle>
           <DialogDescription className="text-muted-foreground">
@@ -215,8 +215,8 @@ export function QubitAssistant({ open, onOpenChange }: QubitAssistantProps) {
         {isConnecting ? (
           <div className="flex flex-col items-center justify-center py-20 space-y-6">
             <div className="relative">
-              <div className="w-20 h-20 border-4 border-blue-500/30 border-t-blue-500 rounded-full animate-spin" />
-              <div className="absolute inset-0 w-20 h-20 border-4 border-cyan-500/20 border-b-cyan-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+              <div className="w-20 h-20 border-4 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
+              <div className="absolute inset-0 w-20 h-20 border-4 border-emerald-500/20 border-b-emerald-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
             </div>
             <div className="text-center space-y-2">
               <p className="text-base font-medium text-foreground">Connecting to Qubit...</p>
@@ -244,7 +244,7 @@ export function QubitAssistant({ open, onOpenChange }: QubitAssistantProps) {
               <p className="text-base font-medium text-foreground">Connection failed</p>
               <p className="text-sm text-muted-foreground">Unable to establish connection</p>
             </div>
-            <Button onClick={fetchToken} variant="outline" className="border-blue-500/30 hover:bg-blue-500/10 hover:border-blue-500/50">
+            <Button onClick={fetchToken} variant="outline" className="border-green-500/30 hover:bg-green-500/10 hover:border-green-500/50">
               Try Again
             </Button>
           </div>
@@ -262,7 +262,7 @@ export function QubitButton() {
     <>
       <Button
         onClick={() => setOpen(true)}
-        className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-to-br from-blue-500 via-cyan-500 to-blue-600 hover:from-blue-600 hover:via-cyan-600 hover:to-blue-700 shadow-2xl shadow-blue-500/50 hover:shadow-cyan-500/60 transition-all hover:scale-110 active:scale-95 z-50 border-2 border-white/20 backdrop-blur-sm"
+        className="fixed bottom-6 right-6 w-16 h-16 rounded-full bg-gradient-to-br from-green-500 via-emerald-500 to-green-600 hover:from-green-600 hover:via-emerald-600 hover:to-green-700 shadow-2xl shadow-green-500/50 hover:shadow-emerald-500/60 transition-all hover:scale-110 active:scale-95 z-50 border-2 border-white/20 backdrop-blur-sm"
         size="icon"
       >
         <div className="flex flex-col items-center">

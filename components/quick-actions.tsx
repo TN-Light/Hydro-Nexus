@@ -25,34 +25,69 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
     setIsLoading(action)
 
     try {
-      // Simulate API call
-      await new Promise((resolve) => setTimeout(resolve, 1000))
+      // Map UI actions to ESP32 commands
+      let commandAction = ''
+      switch (action) {
+        case "pump":
+          commandAction = newState ? 'water_pump_on' : 'water_pump_off'
+          break
+        case "led":
+          commandAction = newState ? 'led_on' : 'led_off'
+          break
+        case "dosing":
+          commandAction = newState ? 'nutrient_pump_on' : 'nutrient_pump_off'
+          break
+      }
 
+      // Send real command to ESP32 via API
+      const response = await fetch(`/api/devices/${selectedGrowBag}/commands`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: commandAction,
+          parameters: {},
+          priority: 'high'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to send command to device')
+      }
+
+      const result = await response.json()
+      console.log('Command sent:', result)
+
+      // Update UI state on success
       switch (action) {
         case "pump":
           setPumpActive(newState)
           toast({
             title: `Water Pump ${newState ? "Started" : "Stopped"}`,
-            description: `${selectedGrowBag} water circulation ${newState ? "activated" : "deactivated"}`,
+            description: `Command sent to ${selectedGrowBag}. ESP32 will execute in ~30 seconds.`,
           })
           break
         case "led":
           setLedActive(newState)
           toast({
             title: `LED Lights ${newState ? "On" : "Off"}`,
-            description: `${selectedGrowBag} lighting system ${newState ? "enabled" : "disabled"}`,
+            description: `Command sent to ${selectedGrowBag}. ESP32 will execute in ~30 seconds.`,
           })
           break
         case "dosing":
           setDosingActive(newState)
           toast({
             title: `Nutrient Dosing ${newState ? "Started" : "Stopped"}`,
-            description: `${selectedGrowBag} nutrient injection ${newState ? "activated" : "deactivated"}`,
+            description: `Command sent to ${selectedGrowBag}. ESP32 will execute in ~30 seconds.`,
           })
           break
       }
     } catch (error) {
       console.error('Action failed:', error)
+      toast({
+        title: "Command Failed",
+        description: `Unable to send command to ${selectedGrowBag}. Check connection.`,
+        variant: "destructive"
+      })
     } finally {
       setIsLoading(null)
     }
@@ -64,15 +99,37 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
     setIsLoading("cycle")
 
     try {
-      // Simulate dosing cycle
-      await new Promise((resolve) => setTimeout(resolve, 2000))
+      // Send manual dosing cycle command to ESP32
+      const response = await fetch(`/api/devices/${selectedGrowBag}/commands`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'manual_dosing_cycle',
+          parameters: {
+            duration: 10 // 10 seconds dosing cycle
+          },
+          priority: 'high'
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to start dosing cycle')
+      }
+
+      const result = await response.json()
+      console.log('Dosing cycle command sent:', result)
 
       toast({
-        title: "Dosing Cycle Complete",
-        description: `Nutrient dosing cycle completed for ${selectedGrowBag}`,
+        title: "Dosing Cycle Started",
+        description: `Manual nutrient cycle initiated for ${selectedGrowBag}. ESP32 will execute in ~30 seconds.`,
       })
     } catch (error) {
       console.error('Dosing cycle failed:', error)
+      toast({
+        title: "Cycle Failed",
+        description: `Unable to start dosing cycle for ${selectedGrowBag}. Check connection.`,
+        variant: "destructive"
+      })
     } finally {
       setIsLoading(null)
     }
@@ -153,7 +210,7 @@ export function QuickActions({ selectedGrowBag }: QuickActionsProps) {
             <div className="flex items-center space-x-2">
               <Droplets className="h-4 w-4 text-green-500" />
               <Label htmlFor="dosing-switch" className="text-sm font-medium">
-                Auto Dosing
+                Nutrient Pump
               </Label>
             </div>
             <div className="flex items-center space-x-2">

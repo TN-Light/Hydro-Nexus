@@ -24,6 +24,10 @@ export default function LoginPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Prevent double submission
+    if (isLoading) return
+    
     setError("")
     setIsLoading(true)
 
@@ -33,10 +37,10 @@ export default function LoginPage() {
         router.push("/dashboard")
       } else {
         setError("Invalid username or password")
+        setIsLoading(false)
       }
     } catch (err) {
       setError("An error occurred during login")
-    } finally {
       setIsLoading(false)
     }
   }
@@ -117,7 +121,7 @@ export default function LoginPage() {
 
               <Button
                 type="submit"
-                className="w-full agriculture-gradient text-white hover:opacity-90 text-sm sm:text-base py-2 sm:py-3"
+                className={`w-full agriculture-gradient text-white hover:opacity-90 text-sm sm:text-base py-2 sm:py-3 ${isLoading ? 'pointer-events-none opacity-70' : ''}`}
                 disabled={isLoading}
               >
                 {isLoading ? "Signing In..." : "Sign In"}

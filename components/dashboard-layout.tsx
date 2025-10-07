@@ -32,6 +32,7 @@ import {
   Moon,
   Sun,
   CuboidIcon as Cube,
+  ScanLine,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -44,6 +45,7 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Digital Twin", href: "/digital-twin", icon: Cube },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
+  { name: "Prediction", href: "/prediction", icon: ScanLine },
   { name: "Devices", href: "/devices", icon: Smartphone },
   { name: "Optimization", href: "/optimization", icon: Beaker },
   { name: "Settings", href: "/settings", icon: Settings },

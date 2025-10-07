@@ -95,8 +95,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         console.error('Login failed:', data.error)
         return false
       }
-
-        const token = "mock-jwt-token-" + Date.now()
     } catch (error) {
       console.error("Login error:", error)
       return false

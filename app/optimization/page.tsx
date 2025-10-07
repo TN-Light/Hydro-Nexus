@@ -77,21 +77,45 @@ export default function OptimizationPage() {
   }, [isLoading, isAuthenticated])
 
   useEffect(() => {
-    // Load saved parameters from localStorage
-    const storageKey = selectedDevice === "all" ? 'hydro-nexus-parameters' : `hydro-nexus-parameters-${selectedDevice}`
-    const saved = localStorage.getItem(storageKey)
-    if (saved) {
+    // Load user-specific parameters from API
+    const loadParameters = async () => {
       try {
-        setParameters(JSON.parse(saved))
+        // Build query params - don't send deviceId at all if "all" is selected
+        const params = new URLSearchParams()
+        if (selectedDevice !== "all") {
+          params.append('deviceId', selectedDevice)
+        }
+        
+        const url = `/api/user/parameters${params.toString() ? '?' + params.toString() : ''}`
+        const response = await fetch(url, {
+          credentials: 'include', // Ensure cookies are sent
+        })
+        
+        if (response.ok) {
+          const result = await response.json()
+          if (result.success) {
+            setParameters(result.parameters)
+            console.log('✅ Loaded user-specific parameters:', result.isDefault ? 'defaults' : 'saved', result.parameters)
+          } else {
+            console.warn('Failed to load parameters, using defaults')
+            setParameters(defaultParameters)
+          }
+        } else {
+          const errorText = await response.text()
+          console.error('API error loading parameters:', response.status, errorText)
+          setParameters(defaultParameters)
+        }
       } catch (error) {
-        console.error('Failed to load saved parameters:', error)
+        console.error('Failed to load parameters from API:', error)
         setParameters(defaultParameters)
       }
-    } else {
-      setParameters(defaultParameters)
+      setHasChanges(false)
     }
-    setHasChanges(false)
-  }, [selectedDevice]) // Reload when device selection changes
+
+    if (isAuthenticated) {
+      loadParameters()
+    }
+  }, [selectedDevice, isAuthenticated]) // Reload when device selection changes
 
   if (isLoading) {
     return (
@@ -133,7 +157,7 @@ export default function OptimizationPage() {
     }
   }
 
-  const saveParameters = () => {
+  const saveParameters = async () => {
     // Convert any string values back to numbers before saving
     const parametersToSave: SystemParameters = {} as SystemParameters
     
@@ -146,27 +170,64 @@ export default function OptimizationPage() {
       }
     })
     
-    const storageKey = selectedDevice === "all" ? 'hydro-nexus-parameters' : `hydro-nexus-parameters-${selectedDevice}`
-    localStorage.setItem(storageKey, JSON.stringify(parametersToSave))
-    
-    // If saving for "all", also update individual device settings
-    if (selectedDevice === "all") {
-      for (let i = 1; i <= 6; i++) {
-        localStorage.setItem(`hydro-nexus-parameters-grow-bag-${i}`, JSON.stringify(parametersToSave))
+    try {
+      // Save to database via API (user-specific)
+      const deviceParam = selectedDevice === "all" ? null : selectedDevice
+      const response = await fetch('/api/user/parameters', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include', // Ensure cookies with token are sent
+        body: JSON.stringify({
+          deviceId: deviceParam,
+          parameters: parametersToSave
+        })
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('❌ Save failed:', errorData)
+        throw new Error(errorData.error || 'Failed to save parameters')
       }
+
+      const result = await response.json()
+      console.log('✅ Parameters saved to database:', result)
+
+      // If saving for "all", also save individual device settings
+      if (selectedDevice === "all") {
+        for (let i = 1; i <= 6; i++) {
+          await fetch('/api/user/parameters', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            credentials: 'include',
+            body: JSON.stringify({
+              deviceId: `grow-bag-${i}`,
+              parameters: parametersToSave
+            })
+          })
+        }
+      }
+
+      setParameters(parametersToSave) // Update state with numeric values
+      setHasChanges(false)
+      
+      // Clear the parameters cache in realtime provider so it picks up the new values immediately
+      clearParametersCache()
+      
+      const deviceName = selectedDevice === "all" ? "all devices" : selectedDevice
+      toast({
+        title: "Settings Saved",
+        description: `Parameter ranges for ${deviceName} have been saved to your account. Alerts will now use these thresholds immediately.`,
+      })
+    } catch (error) {
+      console.error('❌ Failed to save parameters:', error)
+      toast({
+        title: "Save Failed",
+        description: "Could not save parameters. Please try again.",
+        variant: "destructive"
+      })
     }
-    
-    setParameters(parametersToSave) // Update state with numeric values
-    setHasChanges(false)
-    
-    // Clear the parameters cache in realtime provider so it picks up the new values immediately
-    clearParametersCache()
-    
-    const deviceName = selectedDevice === "all" ? "all devices" : selectedDevice
-    toast({
-      title: "Settings Saved",
-      description: `Parameter ranges for ${deviceName} have been saved successfully. Alerts will now use these thresholds immediately.`,
-    })
   }
 
   const resetToDefaults = () => {

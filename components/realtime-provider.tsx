@@ -22,6 +22,7 @@ interface SensorData {
 interface RealtimeContextType {
   sensorData: Record<string, SensorData>
   isConnected: boolean
+  isRealData: boolean
   alerts: Array<{
     id: string
     deviceId: string
@@ -38,7 +39,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [sensorData, setSensorData] = useState<Record<string, SensorData>>({})
   const [isConnected, setIsConnected] = useState(false)
   const [alerts, setAlerts] = useState<RealtimeContextType["alerts"]>([])
+  const [isRealData, setIsRealData] = useState(false) // Track if using real ESP32 data
   const lastWaterAlertTimeRef = useRef<Record<string, number>>({})
+  const lastRealDataTimeRef = useRef<number>(0) // Track when we last got real data
   const { toast } = useToast()
   const { isAuthenticated } = useAuth()
   const pathname = usePathname()
@@ -61,6 +64,44 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   // Ref to store initial water levels for each device (simulate slow depletion)
   const initialWaterLevelsRef = useRef<Record<string, number>>({})
 
+  // Fetch user-specific parameters from API and populate cache
+  const fetchUserParameters = useCallback(async (deviceId?: string) => {
+    if (!isAuthenticated) return
+    
+    try {
+      const deviceParam = deviceId || ''
+      const response = await fetch(`/api/user/parameters?deviceId=${deviceParam}`)
+      
+      if (response.ok) {
+        const result = await response.json()
+        if (result.success) {
+          const params = result.parameters
+          const thresholds = {
+            temperature: params.temperature || { min: 20, max: 28 },
+            humidity: params.humidity || { min: 60, max: 80 },
+            pH: params.pH || { min: 5.5, max: 6.8 },
+            ec: params.ec || { min: 1.2, max: 2.4 },
+          }
+          
+          const cacheKey = deviceId || 'all'
+          parametersCache.current[cacheKey] = thresholds
+          
+          // Also cache for specific devices if loading "all"
+          if (!deviceId) {
+            for (let i = 1; i <= 6; i++) {
+              parametersCache.current[`grow-bag-${i}`] = thresholds
+            }
+          }
+          
+          lastCacheUpdateRef.current = Date.now()
+          console.log('✅ User parameters loaded from API:', cacheKey)
+        }
+      }
+    } catch (error) {
+      console.error('❌ Failed to fetch user parameters:', error)
+    }
+  }, [isAuthenticated])
+
   // Generate unique ID for alerts
   const generateUniqueId = useCallback(() => {
     return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
@@ -71,11 +112,13 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const lastCacheUpdateRef = useRef<number>(0)
   const CACHE_DURATION = 10000 // 10 seconds cache
 
-  // Function to clear parameters cache (call when parameters are updated)
+  // Function to clear parameters cache and refetch (call when parameters are updated)
   const clearParametersCache = useCallback(() => {
     parametersCache.current = {}
     lastCacheUpdateRef.current = 0
-  }, [])
+    // Refetch from API to get updated values
+    fetchUserParameters()
+  }, [fetchUserParameters])
 
   // Get device-specific alert thresholds with caching
   const getDeviceAlertThresholds = useCallback((deviceId: string) => {
@@ -95,38 +138,17 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       ec: { min: 1.2, max: 2.4 },
     }
 
+    // Note: This function is called synchronously in alerts, so we use cached data
+    // The cache is populated by fetchUserParameters function at component mount
+    // If no cached data exists yet, we return defaults
+    
     try {
-      // Try device-specific settings first
-      const deviceParams = localStorage.getItem(`hydro-nexus-parameters-${deviceId}`)
-      if (deviceParams) {
-        const parsed = JSON.parse(deviceParams)
-        const result = {
-          temperature: parsed.temperature || defaultThresholds.temperature,
-          humidity: parsed.humidity || defaultThresholds.humidity,
-          pH: parsed.pH || defaultThresholds.pH,
-          ec: parsed.ec || defaultThresholds.ec,
-        }
-        parametersCache.current[cacheKey] = result
-        lastCacheUpdateRef.current = now
-        return result
+      // Check if we have cached parameters from the API
+      if (parametersCache.current[cacheKey]) {
+        return parametersCache.current[cacheKey]
       }
       
-      // Try global settings
-      const globalParams = localStorage.getItem('hydro-nexus-parameters')
-      if (globalParams) {
-        const parsed = JSON.parse(globalParams)
-        const result = {
-          temperature: parsed.temperature || defaultThresholds.temperature,
-          humidity: parsed.humidity || defaultThresholds.humidity,
-          pH: parsed.pH || defaultThresholds.pH,
-          ec: parsed.ec || defaultThresholds.ec,
-        }
-        parametersCache.current[cacheKey] = result
-        lastCacheUpdateRef.current = now
-        return result
-      }
-      
-      // Cache and return defaults
+      // Cache and return defaults if no API data loaded yet
       parametersCache.current[cacheKey] = defaultThresholds
       lastCacheUpdateRef.current = now
       return defaultThresholds
@@ -246,6 +268,13 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
     return checkForAlerts(data)
   }, [checkForAlerts])
 
+  // Load user parameters when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchUserParameters() // Load global "all devices" parameters
+    }
+  }, [isAuthenticated, fetchUserParameters])
+
   useEffect(() => {
     // Always show mock data for the dashboard UI, but only update when needed
     setIsConnected(true)
@@ -268,16 +297,29 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         if (response.ok) {
           const result = await response.json()
           if (result.success && result.data) {
-            console.log('✅ Fetched real ESP32 data:', result.data)
-            setSensorData(result.data)
-            return
+            // Check if we got actual data from database
+            const deviceKeys = Object.keys(result.data)
+            if (deviceKeys.length > 0) {
+              console.log('✅ Fetched real ESP32 data from database:', deviceKeys)
+              setSensorData(result.data)
+              setIsRealData(true)
+              lastRealDataTimeRef.current = Date.now()
+              return
+            }
           }
         }
       } catch (error) {
         console.error('❌ Failed to fetch real sensor data, using mock data:', error)
       }
       
-      // Fallback to mock data if API fails
+      // Check if we recently had real data (within last 2 minutes)
+      const timeSinceRealData = Date.now() - lastRealDataTimeRef.current
+      if (timeSinceRealData > 120000) { // 2 minutes
+        setIsRealData(false)
+        console.log('⚠️ No ESP32 data for >2 minutes, switching to demo mode')
+      }
+      
+      // Fallback to mock data if API fails or no real data
       const initialData: Record<string, SensorData> = {}
       for (let i = 1; i <= 6; i++) {
         initialData[`grow-bag-${i}`] = generateMockSensorData(`grow-bag-${i}`)
@@ -433,9 +475,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const contextValue = useMemo(() => ({
     sensorData,
     isConnected,
+    isRealData,
     alerts,
     clearParametersCache
-  }), [sensorData, isConnected, alerts, clearParametersCache])
+  }), [sensorData, isConnected, isRealData, alerts, clearParametersCache])
 
   return <RealtimeContext.Provider value={contextValue}>{children}</RealtimeContext.Provider>
 }

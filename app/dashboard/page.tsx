@@ -9,6 +9,8 @@ import { SensorCard } from "@/components/sensor-card"
 import { QuickActions } from "@/components/quick-actions"
 import { AlertPanel } from "@/components/alert-panel"
 import { QubitButton } from "@/components/qubit-assistant"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
 import { 
   getTemperatureStatus, 
   getHumidityStatus, 
@@ -29,12 +31,129 @@ const MemoizedAlertPanel = memo(AlertPanel)
 
 export default function DashboardPage() {
   const { user, isLoading, isAuthenticated } = useAuth()
-  const { sensorData, isConnected, alerts } = useRealtime()
+  const { sensorData, isConnected, isRealData, alerts } = useRealtime()
+  const { toast } = useToast()
   const [selectedGrowBag, setSelectedGrowBag] = useState("grow-bag-1")
+  const [historicalData, setHistoricalData] = useState<any>(null)
+  const [isLoadingHistory, setIsLoadingHistory] = useState(false)
+  const [crops, setCrops] = useState<any[]>([])
+  const [deviceCrops, setDeviceCrops] = useState<Record<string, any>>({})
+  const [isChangingCrop, setIsChangingCrop] = useState(false)
 
   // Memoize expensive calculations
   const currentData = useMemo(() => sensorData[selectedGrowBag], [sensorData, selectedGrowBag])
   const growBagIds = useMemo(() => Object.keys(sensorData), [sensorData])
+
+  // Fetch available crops on mount
+  useEffect(() => {
+    const fetchCrops = async () => {
+      try {
+        const response = await fetch('/api/crops')
+        if (response.ok) {
+          const result = await response.json()
+          setCrops(result.crops || [])
+        }
+      } catch (error) {
+        console.error('Failed to fetch crops:', error)
+      }
+    }
+
+    if (isAuthenticated) {
+      fetchCrops()
+    }
+  }, [isAuthenticated])
+
+  // Fetch device crop assignments
+  useEffect(() => {
+    const fetchDeviceCrops = async () => {
+      const cropData: Record<string, any> = {}
+      
+      for (const bagId of growBagIds) {
+        try {
+          const response = await fetch(`/api/devices/${bagId}/crop`)
+          if (response.ok) {
+            const result = await response.json()
+            cropData[bagId] = result.device
+          }
+        } catch (error) {
+          console.error(`Failed to fetch crop for ${bagId}:`, error)
+        }
+      }
+      
+      setDeviceCrops(cropData)
+    }
+
+    if (isAuthenticated && growBagIds.length > 0) {
+      fetchDeviceCrops()
+    }
+  }, [isAuthenticated, growBagIds])
+
+  // Handle crop change for a device
+  const handleCropChange = async (deviceId: string, cropId: number) => {
+    setIsChangingCrop(true)
+    try {
+      const response = await fetch(`/api/devices/${deviceId}/crop`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cropId })
+      })
+
+      if (response.ok) {
+        const result = await response.json()
+        
+        // Update local state
+        setDeviceCrops(prev => ({
+          ...prev,
+          [deviceId]: result.device
+        }))
+
+        toast({
+          title: "Crop Updated",
+          description: `Device ${deviceId} is now growing ${crops.find(c => c.id === cropId)?.name}`,
+        })
+      } else {
+        throw new Error('Failed to update crop')
+      }
+    } catch (error) {
+      console.error('Error updating crop:', error)
+      toast({
+        title: "Update Failed",
+        description: "Could not update crop type. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsChangingCrop(false)
+    }
+  }
+
+  // Fetch historical data when grow bag changes
+  useEffect(() => {
+    const fetchHistoricalData = async () => {
+      if (!selectedGrowBag || !isAuthenticated) return
+      
+      setIsLoadingHistory(true)
+      try {
+        const response = await fetch(
+          `/api/sensors/history?deviceId=${selectedGrowBag}&hours=24&interval=60`
+        )
+        if (response.ok) {
+          const result = await response.json()
+          setHistoricalData(result.data)
+          console.log(`✅ Loaded ${result.dataPoints} historical points for ${selectedGrowBag}`)
+        } else {
+          console.warn('⚠️ Historical data API failed, will use fallback')
+          setHistoricalData(null)
+        }
+      } catch (error) {
+        console.error('❌ Failed to fetch historical data:', error)
+        setHistoricalData(null)
+      } finally {
+        setIsLoadingHistory(false)
+      }
+    }
+
+    fetchHistoricalData()
+  }, [selectedGrowBag, isAuthenticated])
 
   useEffect(() => {
     // Immediate redirect if not authenticated
@@ -43,6 +162,32 @@ export default function DashboardPage() {
       return
     }
   }, [isLoading, isAuthenticated])
+
+  // Helper function to generate chart data - uses real data if available, fallback to mock
+  const getChartData = (dataKey: 'roomTemp' | 'pH' | 'ec' | 'moisture' | 'humidity') => {
+    // If we have historical data from API, use it
+    if (historicalData && historicalData.length > 0) {
+      return historicalData.map((point: any) => ({
+        time: point.time,
+        value: point[dataKey] || 0
+      }))
+    }
+
+    // Fallback: Generate mock data with patterns (for demo when no ESP32 data)
+    const mockPatterns: Record<typeof dataKey, { base: number, range: number, wave: number }> = {
+      roomTemp: { base: 24, range: 6, wave: 3 },
+      pH: { base: 6.0, range: 0.6, wave: 0.2 },
+      ec: { base: 1.8, range: 0.6, wave: 0.3 },
+      moisture: { base: 70, range: 20, wave: 10 },
+      humidity: { base: 70, range: 20, wave: 10 }
+    }
+
+    const pattern = mockPatterns[dataKey]
+    return Array.from({ length: 24 }, (_, i) => ({
+      time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
+      value: pattern.base + Math.random() * pattern.range + Math.sin(i / 6) * pattern.wave,
+    }))
+  }
 
   // Show loading state
   if (isLoading) {
@@ -75,9 +220,15 @@ export default function DashboardPage() {
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <p className="text-muted-foreground">Real-time monitoring for {growBagIds.length} grow bags</p>
         </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <Badge variant={isConnected ? "default" : "destructive"}>
               {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
+            </Badge>
+            <Badge 
+              variant={isRealData ? "default" : "secondary"}
+              className={isRealData ? "bg-green-600 hover:bg-green-700" : "bg-amber-500 hover:bg-amber-600"}
+            >
+              {isRealData ? "📡 Live ESP32 Data" : "🎭 Demo Mode"}
             </Badge>
             <Badge variant="outline">
               Last update: {currentData ? new Date(currentData.timestamp).toLocaleTimeString() : "N/A"}
@@ -85,16 +236,17 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Grow Bag Selector */}
+        {/* Grow Bag Selector with Crop Assignment */}
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <Activity className="h-5 w-5 text-primary" />
-              Grow Bag Selection
+              Grow Bag Selection & Crop Assignment
             </CardTitle>
-            <CardDescription>Select a grow bag to view detailed sensor data</CardDescription>
+            <CardDescription>Select a grow bag and assign crop type for optimal parameter tracking</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-4">
+            {/* Grow Bag Buttons */}
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
               {growBagIds.map((bagId) => (
                 <Button
@@ -108,6 +260,45 @@ export default function DashboardPage() {
                 </Button>
               ))}
             </div>
+
+            {/* Crop Selector for Selected Bag */}
+            {selectedGrowBag && (
+              <div className="border-t pt-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                  <div className="flex items-center gap-2 flex-1">
+                    <span className="text-sm font-medium text-muted-foreground">
+                      Crop for {selectedGrowBag.replace("grow-bag-", "Bag ")}:
+                    </span>
+                    {deviceCrops[selectedGrowBag]?.cropName && (
+                      <Badge variant="outline" className="bg-green-50 dark:bg-green-950 border-green-200 dark:border-green-800">
+                        🌱 {deviceCrops[selectedGrowBag].cropName}
+                      </Badge>
+                    )}
+                  </div>
+                  <Select
+                    value={deviceCrops[selectedGrowBag]?.cropId?.toString() || ""}
+                    onValueChange={(value) => handleCropChange(selectedGrowBag, parseInt(value))}
+                    disabled={isChangingCrop}
+                  >
+                    <SelectTrigger className="w-full sm:w-[200px]">
+                      <SelectValue placeholder="Select crop type..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {crops.map((crop) => (
+                        <SelectItem key={crop.id} value={crop.id.toString()}>
+                          {crop.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                {deviceCrops[selectedGrowBag]?.notes && (
+                  <p className="text-xs text-muted-foreground mt-2 italic">
+                    💡 {deviceCrops[selectedGrowBag].notes}
+                  </p>
+                )}
+              </div>
+            )}
           </CardContent>
         </Card>
 
@@ -121,10 +312,7 @@ export default function DashboardPage() {
               icon={Thermometer}
               status={getTemperatureStatus(currentData.roomTemp, selectedGrowBag)}
               trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 24 + Math.random() * 6 + Math.sin(i / 4) * 3,
-              }))}
+              data={getChartData('roomTemp')}
             />
 
             <SensorCard
@@ -134,10 +322,7 @@ export default function DashboardPage() {
               icon={Beaker}
               status={getPHStatus(currentData.pH, selectedGrowBag)}
               trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 6.0 + Math.random() * 0.6 + Math.sin(i / 6) * 0.2,
-              }))}
+              data={getChartData('pH')}
             />
 
             <SensorCard
@@ -147,10 +332,7 @@ export default function DashboardPage() {
               icon={Zap}
               status={getECStatus(currentData.ec, selectedGrowBag)}
               trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 1.8 + Math.random() * 0.6 + Math.sin(i / 8) * 0.3,
-              }))}
+              data={getChartData('ec')}
             />
 
             <SensorCard
@@ -160,10 +342,7 @@ export default function DashboardPage() {
               icon={Droplets}
               status={getMoistureStatus(currentData.moisture)}
               trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 70 + Math.random() * 20 + Math.sin(i / 5) * 10,
-              }))}
+              data={getChartData('moisture')}
             />
 
             <SensorCard
@@ -175,7 +354,7 @@ export default function DashboardPage() {
               trend={"stable"}
               data={Array.from({ length: 24 }, (_, i) => ({
                 time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: Math.random() > 0.8 ? 0 : 1, // 0 for low, 1 for ok
+                value: Math.random() > 0.8 ? 0 : 1, // Water level is binary, keep mock for now
               }))}
             />
 
@@ -186,10 +365,7 @@ export default function DashboardPage() {
               icon={Wind}
               status={getHumidityStatus(currentData.humidity, selectedGrowBag)}
               trend={Math.random() > 0.5 ? "up" : "down"}
-              data={Array.from({ length: 24 }, (_, i) => ({
-                time: new Date(Date.now() - (23 - i) * 60 * 60 * 1000).toISOString(),
-                value: 70 + Math.random() * 20 + Math.sin(i / 3) * 10,
-              }))}
+              data={getChartData('humidity')}
             />
           </div>
         )}

@@ -1,4 +1,4 @@
-"use client"
+﻿"use client"
 
 import { useAuth } from "@/components/auth-provider"
 import { useRealtime } from "@/components/realtime-provider"
