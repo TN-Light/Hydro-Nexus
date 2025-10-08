@@ -1,0 +1,51 @@
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build outputs
+.next
+out
+dist
+build
+
+# Development files
+.env
+.env.local
+.env*.local
+
+# Testing
+coverage
+*.log
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git
+.gitignore
+
+# Documentation (optional - remove if you want to deploy docs)
+*.md
+!README.md
+
+# Agent files (these run separately, not on Vercel)
+agent.ts
+agent.js
+agent.d.ts
+
+# Scripts
+jules-scratch
+
+# Database migrations (run manually)
+migration-*.sql
+
+# Mock data
+data/mock-*.json
