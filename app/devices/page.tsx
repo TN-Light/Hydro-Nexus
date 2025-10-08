@@ -24,7 +24,6 @@ import {
 import { useState, useEffect } from "react"
 import { redirect } from "next/navigation"
 import { formatDistanceToNow } from "date-fns"
-import mockDevices from "@/data/mock-devices.json"
 
 interface Device {
   id: string
@@ -63,11 +62,75 @@ const statusConfig = {
   },
 }
 
+// Mock devices data (inline to avoid build issues with JSON imports)
+const mockDevices: Device[] = [
+  {
+    id: "device-001",
+    nickname: "GrowBag-A1",
+    status: "active",
+    lastPing: "2024-01-15T10:30:00Z",
+    rssi: -65,
+    battery: 85,
+    healthScore: 98,
+    firmwareVersion: "v2.1.3",
+    location: "Grow Bag 1",
+    uptime: "15 days"
+  },
+  {
+    id: "device-002",
+    nickname: "GrowBag-A2",
+    status: "active",
+    lastPing: "2024-01-15T10:29:45Z",
+    rssi: -72,
+    battery: 92,
+    healthScore: 95,
+    firmwareVersion: "v2.1.3",
+    location: "Grow Bag 2",
+    uptime: "12 days"
+  },
+  {
+    id: "device-003",
+    nickname: "GrowBag-B1",
+    status: "warning",
+    lastPing: "2024-01-15T10:25:12Z",
+    rssi: -78,
+    battery: 45,
+    healthScore: 72,
+    firmwareVersion: "v2.0.8",
+    location: "Grow Bag 3",
+    uptime: "8 days"
+  },
+  {
+    id: "device-004",
+    nickname: "GrowBag-B2",
+    status: "active",
+    lastPing: "2024-01-15T10:30:15Z",
+    rssi: -68,
+    battery: 78,
+    healthScore: 89,
+    firmwareVersion: "v2.1.3",
+    location: "Grow Bag 4",
+    uptime: "20 days"
+  },
+  {
+    id: "device-005",
+    nickname: "GrowBag-C1",
+    status: "inactive",
+    lastPing: "2024-01-14T18:45:30Z",
+    rssi: -85,
+    battery: 12,
+    healthScore: 35,
+    firmwareVersion: "v2.0.5",
+    location: "Grow Bag 5",
+    uptime: "3 days"
+  }
+]
+
 export default function DevicesPage() {
   const { user, isLoading } = useAuth()
   const { toast } = useToast()
   const [refreshKey, setRefreshKey] = useState(0)
-  const [devices, setDevices] = useState<Device[]>(mockDevices as Device[])
+  const [devices, setDevices] = useState<Device[]>(mockDevices)
   const [selectedDevice, setSelectedDevice] = useState<Device | null>(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [isUpdating, setIsUpdating] = useState(false)

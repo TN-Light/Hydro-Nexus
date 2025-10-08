@@ -47,5 +47,5 @@ jules-scratch
 # Database migrations (run manually)
 migration-*.sql
 
-# Mock data
+# Mock data (now inline in code, so these can be excluded)
 data/mock-*.json
