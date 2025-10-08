@@ -202,12 +202,27 @@ export const dbHelpers = {
   },
 
   // Alert operations
-  async getActiveAlerts(deviceId?: string) {
-    const query = deviceId
-      ? 'SELECT * FROM active_alerts WHERE device_id = $1'
-      : 'SELECT * FROM active_alerts'
+  async getActiveAlerts(deviceId?: string, userId?: string) {
+    let query: string
+    let params: any[]
     
-    const params = deviceId ? [deviceId] : []
+    if (deviceId && userId) {
+      query = `SELECT * FROM active_alerts 
+               WHERE device_id = $1 
+               AND NOT ($2::uuid = ANY(dismissed_by))`
+      params = [deviceId, userId]
+    } else if (deviceId) {
+      query = 'SELECT * FROM active_alerts WHERE device_id = $1'
+      params = [deviceId]
+    } else if (userId) {
+      query = `SELECT * FROM active_alerts 
+               WHERE NOT ($1::uuid = ANY(dismissed_by))`
+      params = [userId]
+    } else {
+      query = 'SELECT * FROM active_alerts'
+      params = []
+    }
+    
     const result = await db.query(query, params)
     return result.rows
   },

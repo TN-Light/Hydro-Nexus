@@ -10,7 +10,7 @@ import '@livekit/components-styles/index.css';
 
 interface QubitAssistantProps {
   open: boolean;
-  onOpenChange: (open: boolean) => void;
+  onOpenChangeAction?: (open: boolean) => void;
 }
 
 function VoiceAssistantUI() {
@@ -164,7 +164,7 @@ function VoiceAssistantUI() {
   );
 }
 
-export function QubitAssistant({ open, onOpenChange }: QubitAssistantProps) {
+export function QubitAssistant({ open, onOpenChangeAction = () => {} }: QubitAssistantProps) {
   const [token, setToken] = useState<string>('');
   const [isConnecting, setIsConnecting] = useState(false);
 
@@ -200,7 +200,7 @@ export function QubitAssistant({ open, onOpenChange }: QubitAssistantProps) {
   };
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={open} onOpenChange={onOpenChangeAction}>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-cyan-50/30 dark:from-slate-950 dark:via-blue-950/30 dark:to-cyan-950/30 border-blue-500/20 dark:border-cyan-500/20 backdrop-blur-xl">
         <DialogHeader className="border-b border-border/50 pb-4">
           <DialogTitle className="text-2xl font-semibold bg-gradient-to-r from-blue-600 via-cyan-600 to-blue-600 dark:from-blue-400 dark:via-cyan-400 dark:to-blue-400 bg-clip-text text-transparent flex items-center gap-2">
@@ -271,7 +271,7 @@ export function QubitButton() {
         </div>
       </Button>
 
-      <QubitAssistant open={open} onOpenChange={setOpen} />
+      <QubitAssistant open={open} onOpenChangeAction={setOpen} />
     </>
   );
 }

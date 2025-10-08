@@ -19,10 +19,10 @@ const pool = new Pool({
  */
 export async function POST(
   request: NextRequest,
-  { params }: { params: { deviceId: string } }
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
-    const { deviceId } = params
+    const { deviceId } = await params
     const body = await request.json()
     const { cropId } = body
 
@@ -78,10 +78,10 @@ export async function POST(
  */
 export async function GET(
   request: NextRequest,
-  { params }: { params: { deviceId: string } }
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
-    const { deviceId } = params
+    const { deviceId } = await params
 
     console.log(`📋 Fetching crop for device ${deviceId}`)
 

@@ -4,11 +4,11 @@ import { dbHelpers } from '@/lib/database'
 // GET sensor data for a specific device
 export async function GET(
   request: NextRequest,
-  { params }: { params: { deviceId: string } }
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
     const { searchParams } = new URL(request.url)
-    const deviceId = params.deviceId
+    const { deviceId } = await params
     
     // Get query parameters
     const startTime = searchParams.get('start_time')
@@ -53,7 +53,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error(`Error fetching sensor data for device ${params.deviceId}:`, error)
+    console.error(`Error fetching sensor data for device:`, error)
     
     return NextResponse.json(
       { 

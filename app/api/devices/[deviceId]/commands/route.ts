@@ -4,11 +4,11 @@ import { dbHelpers } from '@/lib/database'
 // GET device commands (for ESP32 to poll)
 export async function GET(
   request: NextRequest,
-  { params }: { params: { deviceId: string } }
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
     const apiKey = request.headers.get('x-api-key')
-    const deviceId = params.deviceId
+    const { deviceId } = await params
     
     if (!apiKey) {
       return NextResponse.json(
@@ -42,7 +42,7 @@ export async function GET(
     })
 
   } catch (error) {
-    console.error(`Error getting commands for device ${params.deviceId}:`, error)
+    console.error(`Error getting commands for device:`, error)
     
     return NextResponse.json(
       { 
@@ -57,10 +57,10 @@ export async function GET(
 // POST new command for device (from dashboard)
 export async function POST(
   request: NextRequest,
-  { params }: { params: { deviceId: string } }
+  { params }: { params: Promise<{ deviceId: string }> }
 ) {
   try {
-    const deviceId = params.deviceId
+    const { deviceId } = await params
     const commandData = await request.json()
     
     // Validate command data
@@ -106,7 +106,7 @@ export async function POST(
     })
 
   } catch (error) {
-    console.error(`Error creating command for device ${params.deviceId}:`, error)
+    console.error(`Error creating command for device:`, error)
     
     return NextResponse.json(
       { 

@@ -5,7 +5,8 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { AlertTriangle, Info, X } from "lucide-react"
-import { useState } from "react"
+import { useState, useCallback } from "react"
+import { useToast } from "@/hooks/use-toast"
 
 interface Alert {
   id: string
@@ -43,13 +44,113 @@ const severityConfig = {
 }
 
 export function AlertPanel({ alerts }: AlertPanelProps) {
-  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(new Set())
+  const [dismissedAlerts, setDismissedAlerts] = useState<Set<string>>(() => {
+    // Load dismissed alerts from localStorage on mount
+    if (typeof window !== 'undefined') {
+      try {
+        const userData = localStorage.getItem('hydro-nexus-user')
+        if (userData) {
+          const user = JSON.parse(userData)
+          const stored = localStorage.getItem(`hydro-nexus-dismissed-alerts-${user.username}`)
+          if (stored) {
+            const data = JSON.parse(stored)
+            // Filter out alerts older than 24 hours
+            const now = Date.now()
+            const validDismissed = Object.entries(data)
+              .filter(([_, timestamp]) => now - (timestamp as number) < 24 * 60 * 60 * 1000)
+              .map(([id]) => id)
+            return new Set(validDismissed)
+          }
+        }
+      } catch (e) {
+        console.error('Failed to load dismissed alerts:', e)
+      }
+    }
+    return new Set()
+  })
+  const [isDismissing, setIsDismissing] = useState(false)
+  const { toast } = useToast()
 
   const visibleAlerts = alerts.filter((alert) => !dismissedAlerts.has(alert.id))
 
-  const dismissAlert = (alertId: string) => {
-    setDismissedAlerts((prev) => new Set([...prev, alertId]))
-  }
+  // Save dismissed alerts to localStorage
+  const saveDismissedAlerts = useCallback((alertIds: Set<string>) => {
+    if (typeof window !== 'undefined') {
+      try {
+        const userData = localStorage.getItem('hydro-nexus-user')
+        if (userData) {
+          const user = JSON.parse(userData)
+          const dismissedData: Record<string, number> = {}
+          const now = Date.now()
+          alertIds.forEach(id => {
+            dismissedData[id] = now
+          })
+          localStorage.setItem(
+            `hydro-nexus-dismissed-alerts-${user.username}`,
+            JSON.stringify(dismissedData)
+          )
+        }
+      } catch (e) {
+        console.error('Failed to save dismissed alerts:', e)
+      }
+    }
+  }, [])
+
+  const dismissAlert = useCallback(async (alertId: string) => {
+    try {
+      const newDismissed = new Set([...dismissedAlerts, alertId])
+      setDismissedAlerts(newDismissed)
+      saveDismissedAlerts(newDismissed)
+
+      // Also save to database for analytics
+      await fetch('/api/alerts/dismiss', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ alertId })
+      }).catch(err => console.warn('Failed to save dismiss to DB:', err))
+
+    } catch (error) {
+      console.error('Error dismissing alert:', error)
+    }
+  }, [dismissedAlerts, saveDismissedAlerts])
+
+  const dismissAllAlerts = useCallback(async () => {
+    if (isDismissing) return
+    
+    setIsDismissing(true)
+    try {
+      const newDismissed = new Set(alerts.map((a) => a.id))
+      setDismissedAlerts(newDismissed)
+      saveDismissedAlerts(newDismissed)
+
+      // Also save to database for analytics
+      await fetch('/api/alerts/dismiss', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        credentials: 'include',
+        body: JSON.stringify({ dismissAll: true })
+      }).catch(err => console.warn('Failed to save dismiss to DB:', err))
+
+      toast({
+        title: "Alerts Dismissed",
+        description: "All alerts have been dismissed for 24 hours.",
+      })
+    } catch (error) {
+      console.error('Error dismissing all alerts:', error)
+      toast({
+        title: "Error",
+        description: "Failed to dismiss alerts. Please try again.",
+        variant: "destructive"
+      })
+    } finally {
+      setIsDismissing(false)
+    }
+  }, [alerts, isDismissing, toast, saveDismissedAlerts])
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -127,9 +228,10 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
               variant="outline"
               size="sm"
               className="w-full"
-              onClick={() => setDismissedAlerts(new Set(alerts.map((a) => a.id)))}
+              onClick={dismissAllAlerts}
+              disabled={isDismissing}
             >
-              Dismiss All Alerts
+              {isDismissing ? "Dismissing..." : "Dismiss All Alerts"}
             </Button>
           </div>
         )}
