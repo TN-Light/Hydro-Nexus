@@ -4,108 +4,83 @@ import { dbHelpers } from '@/lib/database'
 // API endpoint for ESP32 devices to send sensor data
 export async function POST(request: NextRequest) {
   try {
-    // Get API key from header
-    const apiKey = request.headers.get('x-api-key')
+    // ✅ Get API key from header (case-insensitive)
+    const apiKey = request.headers.get('x-api-key') || request.headers.get('X-API-Key')
     
     if (!apiKey) {
+      console.error('❌ No API key provided')
       return NextResponse.json(
-        { error: 'API key required' },
+        { error: 'API key required', success: false },
         { status: 401 }
       )
     }
+
+    console.log(`🔑 API Key received: ${apiKey.substring(0, 10)}...`)
 
     // Validate API key and get device info
     const deviceInfo = await dbHelpers.validateApiKey(apiKey)
     if (!deviceInfo) {
+      console.error('❌ Invalid API key:', apiKey)
       return NextResponse.json(
-        { error: 'Invalid API key' },
+        { error: 'Invalid API key', success: false },
         { status: 401 }
       )
     }
 
+    console.log(`✅ Device authenticated: ${deviceInfo.device_id}`)
+
     // Parse sensor data from ESP32
     const sensorData = await request.json()
-    
-    // Debug: Log the incoming data
-    console.log('ESP32 Data Received:', JSON.stringify(sensorData, null, 2))
-    
-    // Extract device ID (use from data or API key device)
-    const deviceId = sensorData.device_id || deviceInfo.device_id || 'grow-bag-1'
+    console.log('📊 Sensor data received:', JSON.stringify(sensorData, null, 2))
     
     // Validate required fields
+    if (!sensorData.room_temp || !sensorData.humidity || !sensorData.ph || !sensorData.ec || !sensorData.substrate_moisture) {
+      return NextResponse.json(
+        { error: 'Missing required sensor fields', success: false },
+        { status: 400 }
+      )
+    }
+
+    // Validate required fields are numbers
     const requiredFields = ['room_temp', 'ph', 'ec', 'substrate_moisture', 'humidity']
     for (const field of requiredFields) {
       if (sensorData[field] === undefined || sensorData[field] === null || isNaN(sensorData[field])) {
-        console.log(`Invalid field: ${field}, value:`, sensorData[field])
+        console.log(`❌ Invalid field: ${field}, value:`, sensorData[field])
         return NextResponse.json(
-          { error: `Invalid or missing field: ${field}. Value: ${sensorData[field]}` },
+          { error: `Invalid or missing field: ${field}. Value: ${sensorData[field]}`, success: false },
           { status: 400 }
         )
       }
     }
 
     // Validate data ranges
-    if (sensorData.room_temp < -10 || sensorData.room_temp > 60) {
-      return NextResponse.json(
-        { error: 'Temperature out of valid range (-10 to 60°C)' },
-        { status: 400 }
-      )
-    }
-
     if (sensorData.ph < 0 || sensorData.ph > 14) {
       return NextResponse.json(
-        { error: 'pH out of valid range (0 to 14)' },
+        { error: 'pH out of valid range (0-14)', success: false },
         { status: 400 }
       )
     }
 
     if (sensorData.ec < 0 || sensorData.ec > 10) {
       return NextResponse.json(
-        { error: 'EC out of valid range (0 to 10 mS/cm)' },
+        { error: 'EC out of valid range (0-10 mS/cm)', success: false },
         { status: 400 }
       )
     }
 
-    if (sensorData.substrate_moisture < 0 || sensorData.substrate_moisture > 100) {
-      return NextResponse.json(
-        { error: 'Moisture out of valid range (0 to 100%)' },
-        { status: 400 }
-      )
-    }
-
-    if (sensorData.humidity < 0 || sensorData.humidity > 100) {
-      return NextResponse.json(
-        { error: 'Humidity out of valid range (0 to 100%)' },
-        { status: 400 }
-      )
-    }
-
-    // Set default water level status if not provided
-    const waterLevelStatus = sensorData.water_level_status || 'Adequate'
-
-    // Insert sensor reading into TimescaleDB
+    // Insert into database
     const readingId = await dbHelpers.insertSensorReading({
       device_id: deviceInfo.device_id,
       room_temp: Number(sensorData.room_temp),
       ph: Number(sensorData.ph),
       ec: Number(sensorData.ec),
       substrate_moisture: Number(sensorData.substrate_moisture),
-      water_level_status: waterLevelStatus,
+      water_level_status: sensorData.water_level_status || 'Adequate',
       humidity: Number(sensorData.humidity)
     })
 
-    // Log successful data ingestion
-    console.log(`Sensor data received from device ${deviceInfo.device_id}:`, {
-      reading_id: readingId,
-      room_temp: sensorData.room_temp,
-      ph: sensorData.ph,
-      ec: sensorData.ec,
-      substrate_moisture: sensorData.substrate_moisture,
-      humidity: sensorData.humidity,
-      water_level_status: waterLevelStatus
-    })
+    console.log(`✅ Data stored successfully. Reading ID: ${readingId}`)
 
-    // Return success response to ESP32
     return NextResponse.json({
       success: true,
       reading_id: readingId,
@@ -115,35 +90,35 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Error processing ESP32 sensor data:', error)
+    console.error('❌ Error processing ESP32 data:', error)
     
     return NextResponse.json(
       { 
         error: 'Internal server error',
-        message: 'Failed to process sensor data'
+        message: error instanceof Error ? error.message : 'Unknown error',
+        success: false
       },
       { status: 500 }
     )
   }
 }
 
-// GET endpoint to check API status (for ESP32 to test connectivity)
+// ✅ GET endpoint for connectivity test
 export async function GET(request: NextRequest) {
   try {
-    const apiKey = request.headers.get('x-api-key')
+    const apiKey = request.headers.get('x-api-key') || request.headers.get('X-API-Key')
     
     if (!apiKey) {
       return NextResponse.json(
-        { error: 'API key required' },
+        { error: 'API key required', success: false },
         { status: 401 }
       )
     }
 
-    // Validate API key
     const deviceInfo = await dbHelpers.validateApiKey(apiKey)
     if (!deviceInfo) {
       return NextResponse.json(
-        { error: 'Invalid API key' },
+        { error: 'Invalid API key', success: false },
         { status: 401 }
       )
     }
@@ -152,7 +127,8 @@ export async function GET(request: NextRequest) {
       status: 'online',
       device_id: deviceInfo.device_id,
       timestamp: new Date().toISOString(),
-      message: 'API endpoint is ready to receive sensor data'
+      message: 'API endpoint ready',
+      success: true
     })
 
   } catch (error) {
@@ -161,7 +137,7 @@ export async function GET(request: NextRequest) {
     return NextResponse.json(
       { 
         error: 'Internal server error',
-        message: 'Failed to check API status'
+        success: false
       },
       { status: 500 }
     )

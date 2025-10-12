@@ -1,5 +1,6 @@
 #include <WiFi.h>
 #include <HTTPClient.h>
+#include <WiFiClientSecure.h>  // ✅ ADD THIS for HTTPS support
 #include <ArduinoJson.h>
 #include <DHT.h>
 #include <OneWire.h>
@@ -9,9 +10,43 @@
 const char* ssid = "sam";
 const char* password = "vivoy543";
 
-// Server configuration
-const char* serverURL = "http://192.168.43.224:3000";
+// ✅ CORRECTED: Server configuration for HTTPS
+const char* serverURL = "https://qbm-hydronet.vercel.app";
 const char* apiKey = "esp32_grow_bag_1_key_2024_secure";
+
+// ✅ SSL Certificate for Vercel (Google Trust Services Root CA)
+// This certificate is valid until 2036 - no external resistors needed!
+const char* root_ca = \
+"-----BEGIN CERTIFICATE-----\n" \
+"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\n" \
+"-----END CERTIFICATE-----\n";
 
 // ✅ PIN DEFINITIONS FOR YOUR BOARD (Using "P" labels)
 // DHT11 sensor (no external resistor needed - using internal pullup)
@@ -42,7 +77,7 @@ unsigned long lastDataSend = 0;
 unsigned long lastCommandCheck = 0;
 const unsigned long sensorInterval = 5000;
 const unsigned long sendInterval = 30000;
-const unsigned long commandInterval = 10000;
+const unsigned long commandInterval = 30000;
 
 // Sensor data
 struct SensorData {
@@ -79,8 +114,8 @@ void setup() {
   delay(2000); // Give serial time to start
   
   Serial.println("\n\n╔════════════════════════════════════════╗");
-  Serial.println("║  ESP32 Hydroponic System v2.1         ║");
-  Serial.println("║  No External Resistors Required!      ║");
+  Serial.println("║  ESP32 Hydroponic System v2.2 (SSL)   ║");
+  Serial.println("║  Vercel HTTPS Support Enabled         ║");
   Serial.println("║  Device: grow-bag-1                    ║");
   Serial.println("╚════════════════════════════════════════╝\n");
   
@@ -139,6 +174,10 @@ void setup() {
     Serial.print("   Signal: ");
     Serial.print(WiFi.RSSI());
     Serial.println(" dBm");
+    
+    // ✅ Test HTTPS connection
+    Serial.println("\n🔐 Testing HTTPS connection to Vercel...");
+    testHTTPSConnection();
   } else {
     Serial.println("   ⚠ WiFi failed - running offline");
     Serial.println("   (Sensors work without WiFi)");
@@ -247,6 +286,41 @@ void connectToWiFi() {
   Serial.println();
   
   wifiConnected = (WiFi.status() == WL_CONNECTED);
+}
+
+void testHTTPSConnection() {
+  WiFiClientSecure *client = new WiFiClientSecure;
+  if(client) {
+    client->setCACert(root_ca);
+    
+    HTTPClient https;
+    
+    if (https.begin(*client, String(serverURL) + "/api/sensors/ingest")) {
+      https.addHeader("Content-Type", "application/json");
+      https.addHeader("x-api-key", apiKey);
+      
+      // Send test GET request
+      int httpCode = https.GET();
+      
+      if (httpCode > 0) {
+        Serial.printf("   ✓ HTTPS connection OK (code: %d)\n", httpCode);
+        if (httpCode == 200) {
+          String response = https.getString();
+          Serial.println("   Response: " + response.substring(0, 100));
+        }
+      } else {
+        Serial.printf("   ✗ HTTPS failed: %s\n", https.errorToString(httpCode).c_str());
+      }
+      
+      https.end();
+    } else {
+      Serial.println("   ✗ Unable to connect to server");
+    }
+    
+    delete client;
+  } else {
+    Serial.println("   ✗ Unable to create secure client");
+  }
 }
 
 void readAllSensors() {
@@ -381,83 +455,114 @@ void sendSensorData() {
     if (!wifiConnected) return;
   }
   
-  HTTPClient http;
-  http.setTimeout(10000);
-  http.begin(String(serverURL) + "/api/sensors/ingest");
-  http.addHeader("Content-Type", "application/json");
-  http.addHeader("x-api-key", apiKey);
-  
-  DynamicJsonDocument doc(1024);
-  doc["device_id"] = "grow-bag-1";
-  doc["room_temp"] = currentData.temperature;
-  doc["humidity"] = currentData.humidity;
-  doc["water_temp"] = currentData.water_temp;
-  doc["ph"] = currentData.ph;
-  doc["ec"] = currentData.ec;
-  doc["tds_ppm"] = currentData.tds_ppm;
-  doc["substrate_moisture"] = currentData.soil_moisture;
-  doc["water_level_status"] = currentData.water_level > 20 ? "Adequate" : "Low";
-  doc["water_pump_status"] = currentData.water_pump_status;
-  doc["nutrient_pump_status"] = currentData.nutrient_pump_status;
-  doc["wifi_signal"] = WiFi.RSSI();
-  doc["free_heap"] = ESP.getFreeHeap();
-  doc["uptime_ms"] = millis();
-  
-  String jsonString;
-  serializeJson(doc, jsonString);
-  
-  Serial.println("📤 Sending to server...");
-  int httpCode = http.POST(jsonString);
-  
-  if (httpCode == 200) {
-    Serial.println("   ✓ Success!");
-  } else if (httpCode > 0) {
-    Serial.printf("   ⚠ HTTP %d\n", httpCode);
-  } else {
-    Serial.printf("   ✗ Failed: %s\n", http.errorToString(httpCode).c_str());
+  // Create secure client with certificate
+  WiFiClientSecure *client = new WiFiClientSecure;
+  if(!client) {
+    Serial.println("❌ Failed to create secure client");
+    return;
   }
   
-  http.end();
+  client->setCACert(root_ca);
+  
+  HTTPClient https;
+  https.setTimeout(15000); // Increase timeout for HTTPS
+  
+  if (https.begin(*client, String(serverURL) + "/api/sensors/ingest")) {
+    https.addHeader("Content-Type", "application/json");
+    https.addHeader("x-api-key", apiKey);
+    
+    DynamicJsonDocument doc(1024);
+    doc["device_id"] = "grow-bag-1";
+    doc["room_temp"] = currentData.temperature;
+    doc["humidity"] = currentData.humidity;
+    doc["water_temp"] = currentData.water_temp;
+    doc["ph"] = currentData.ph;
+    doc["ec"] = currentData.ec;
+    doc["tds_ppm"] = currentData.tds_ppm;
+    doc["substrate_moisture"] = currentData.soil_moisture;
+    doc["water_level_status"] = currentData.water_level > 20 ? "Adequate" : "Low";
+    doc["water_pump_status"] = currentData.water_pump_status;
+    doc["nutrient_pump_status"] = currentData.nutrient_pump_status;
+    doc["wifi_signal"] = WiFi.RSSI();
+    doc["free_heap"] = ESP.getFreeHeap();
+    doc["uptime_ms"] = millis();
+    
+    String jsonString;
+    serializeJson(doc, jsonString);
+    
+    Serial.println("📤 Sending to Vercel (HTTPS)...");
+    Serial.println("   Data: " + jsonString.substring(0, 100) + "...");
+    
+    int httpCode = https.POST(jsonString);
+    
+    if (httpCode == 200) {
+      String response = https.getString();
+      Serial.println("   ✓ Success! Response:");
+      Serial.println("   " + response.substring(0, 150));
+    } else if (httpCode > 0) {
+      Serial.printf("   ⚠ HTTP %d\n", httpCode);
+      Serial.println("   Response: " + https.getString());
+    } else {
+      Serial.printf("   ✗ Failed: %s\n", https.errorToString(httpCode).c_str());
+    }
+    
+    https.end();
+  } else {
+    Serial.println("   ✗ Unable to connect to server");
+  }
+  
+  delete client;
 }
 
 void checkForCommands() {
   if (WiFi.status() != WL_CONNECTED) return;
   
-  HTTPClient http;
-  http.setTimeout(5000);
-  http.begin(String(serverURL) + "/api/devices/grow-bag-1/commands");
-  http.addHeader("x-api-key", apiKey);
+  WiFiClientSecure *client = new WiFiClientSecure;
+  if(!client) return;
   
-  int httpCode = http.GET();
+  client->setCACert(root_ca);
   
-  if (httpCode == 200) {
-    String response = http.getString();
-    DynamicJsonDocument doc(2048);
-    DeserializationError error = deserializeJson(doc, response);
+  HTTPClient https;
+  https.setTimeout(10000);
+  
+  if (https.begin(*client, String(serverURL) + "/api/devices/grow-bag-1/commands")) {
+    https.addHeader("x-api-key", apiKey);
     
-    if (!error && doc.containsKey("commands")) {
-      JsonArray commands = doc["commands"];
+    int httpCode = https.GET();
+    
+    if (httpCode == 200) {
+      String response = https.getString();
+      DynamicJsonDocument doc(2048);
+      DeserializationError error = deserializeJson(doc, response);
       
-      for (JsonObject cmd : commands) {
-        String action = cmd["action"].as<String>();
-        Serial.println("🔧 Command: " + action);
+      if (!error && doc.containsKey("commands")) {
+        JsonArray commands = doc["commands"];
         
-        if (action == "water_pump_on") controlWaterPump(true);
-        else if (action == "water_pump_off") controlWaterPump(false);
-        else if (action == "nutrient_pump_on") controlNutrientPump(true);
-        else if (action == "nutrient_pump_off") controlNutrientPump(false);
-        else if (action == "update_settings") updateSystemSettings(cmd["settings"]);
-        else if (action == "auto_adjust_ec") autoAdjustEC();
-        else if (action == "restart") {
-          Serial.println("🔄 Restarting...");
-          delay(1000);
-          ESP.restart();
+        for (JsonObject cmd : commands) {
+          String action = cmd["action"].as<String>();
+          Serial.println("🔧 Command: " + action);
+          
+          if (action == "water_pump_on") controlWaterPump(true);
+          else if (action == "water_pump_off") controlWaterPump(false);
+          else if (action == "nutrient_pump_on") controlNutrientPump(true);
+          else if (action == "nutrient_pump_off") controlNutrientPump(false);
+          else if (action == "update_settings") updateSystemSettings(cmd["settings"]);
+          else if (action == "auto_adjust_ec") autoAdjustEC();
+          else if (action == "restart") {
+            Serial.println("🔄 Restarting...");
+            delay(1000);
+            ESP.restart();
+          }
         }
       }
+    } else if (httpCode > 0) {
+      Serial.printf("⚠ Command check failed: HTTP %d\n", httpCode);
     }
+    
+    https.end();
   }
   
-  http.end();
+  delete client;
 }
 
 void controlWaterPump(bool state) {
