@@ -12,7 +12,9 @@ const nextConfig = {
   },
   // Enable production optimizations
   experimental: {
-    optimizeCss: true,
+    // Note: optimizeCss is disabled because it requires 'critters'/'beasties' package
+    // and may cause build issues on Vercel. Uncomment if you install beasties:
+    // optimizeCss: true,
     optimizePackageImports: ['@radix-ui/react-icons', 'lucide-react'],
   },
   // Bundle optimization
