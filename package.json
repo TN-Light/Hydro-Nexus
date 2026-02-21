@@ -72,7 +72,7 @@
     "livekit-client": "^2.5.0",
     "livekit-server-sdk": "^2.15.0",
     "lucide-react": "^0.454.0",
-    "next": "^15.2.4",
+    "next": "15.2.8",
     "next-themes": "latest",
     "pg": "^8.16.3",
     "react": "^19.1.0",
