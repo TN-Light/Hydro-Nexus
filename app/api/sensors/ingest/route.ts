@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
     console.log('📊 Sensor data received:', JSON.stringify(sensorData, null, 2))
     
     // Validate required fields
-    if (!sensorData.room_temp || !sensorData.humidity || !sensorData.ph || !sensorData.ec || !sensorData.substrate_moisture) {
+    if (sensorData.room_temp == null || sensorData.humidity == null || sensorData.ph == null || sensorData.ec == null || sensorData.substrate_moisture == null) {
       return NextResponse.json(
         { error: 'Missing required sensor fields', success: false },
         { status: 400 }
@@ -68,7 +68,7 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    // Insert into database
+    // Insert into database (bag-level: sensor_readings table)
     const readingId = await dbHelpers.insertSensorReading({
       device_id: deviceInfo.device_id,
       room_temp: Number(sensorData.room_temp),
@@ -78,6 +78,22 @@ export async function POST(request: NextRequest) {
       water_level_status: sensorData.water_level_status || 'Adequate',
       humidity: Number(sensorData.humidity)
     })
+
+    // Also insert room-level sensors into room_sensors table
+    // (dashboard reads room data from this table via get_latest_sensor_readings_v2)
+    try {
+      await dbHelpers.insertRoomSensorReading({
+        room_id: 'main-room',
+        room_temp: Number(sensorData.room_temp),
+        humidity: Number(sensorData.humidity),
+        ph: Number(sensorData.ph),
+        ec: Number(sensorData.ec),
+        water_level_status: sensorData.water_level_status || 'Adequate'
+      })
+    } catch (roomErr) {
+      // Non-fatal: bag data is already stored
+      console.warn('⚠ Room sensor insert failed:', roomErr)
+    }
 
     console.log(`✅ Data stored successfully. Reading ID: ${readingId}`)
 

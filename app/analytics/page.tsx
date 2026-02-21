@@ -10,11 +10,14 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { Badge } from "@/components/ui/badge"
 import { LineChart, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { Line } from "@/components/ui/recharts/line"
-import { CalendarIcon, BarChart3, TrendingUp, Brain, Download } from "lucide-react"
+import { CalendarIcon, BarChart3, TrendingUp, Brain, Download, FlaskConical, Waves, Award, Leaf } from "lucide-react"
 import { useState, useEffect, useMemo, Suspense, lazy } from "react"
+import { usePersistedState } from "@/hooks/use-persisted-state"
 import { redirect } from "next/navigation"
 import { format, subDays, startOfDay, endOfDay } from "date-fns"
 import { cn } from "@/lib/utils"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Separator } from "@/components/ui/separator"
 
 interface HistoricalDataPoint {
   timestamp: string
@@ -29,15 +32,26 @@ interface HistoricalDataPoint {
 }
 
 const METRICS = [
-  { id: "roomTemp", label: "Room Temperature", color: "#ef4444", unit: "°C" }, // Red
-  { id: "pH", label: "pH Level", color: "#3b82f6", unit: "" }, // Blue
-  { id: "ec", label: "EC", color: "#10b981", unit: "mS/cm" }, // Green
-  { id: "moisture", label: "Substrate Moisture", color: "#f59e0b", unit: "%" }, // Orange
-  { id: "humidity", label: "Humidity", color: "#8b5cf6", unit: "%" }, // Purple
+  { id: "roomTemp", label: "Room Temperature", color: "#ef4444", unit: "°C" },
+  { id: "pH", label: "pH Level", color: "#3b82f6", unit: "" },
+  { id: "ec", label: "EC", color: "#10b981", unit: "mS/cm" },
+  { id: "moisture", label: "Substrate Moisture", color: "#f59e0b", unit: "%" },
+  { id: "humidity", label: "Humidity", color: "#8b5cf6", unit: "%" },
 ]
 
-const CROP_TYPES = ["All", "Tomato", "Lettuce", "Basil", "Spinach"]
+const QBM_CROP_LIST = [
+  "All",
+  "Turmeric (High-Curcumin)",
+  "Bhut Jolokia",
+  "Aji Charapita",
+  "Kanthari Chili",
+]
+
+// Legacy alias for filter
+const CROP_TYPES = QBM_CROP_LIST
 const GROW_BAGS = ["All", "grow-bag-1", "grow-bag-2", "grow-bag-3", "grow-bag-4", "grow-bag-5", "grow-bag-6"]
+
+
 
 export default function AnalyticsPage() {
   const { user, isLoading } = useAuth()
@@ -45,11 +59,38 @@ export default function AnalyticsPage() {
     from: subDays(new Date(), 30),
     to: new Date(),
   })
-  const [aggregation, setAggregation] = useState("Daily")
-  const [selectedMetrics, setSelectedMetrics] = useState(["roomTemp", "pH", "ec", "moisture", "humidity"])
-  const [cropType, setCropType] = useState("All")
-  const [growBag, setGrowBag] = useState("All")
+  const [aggregation, setAggregation] = usePersistedState("analytics:aggregation", "Daily")
+  const [selectedMetrics, setSelectedMetrics] = usePersistedState("analytics:selectedMetrics", ["roomTemp", "pH", "ec", "moisture", "humidity"])
+  const [cropType, setCropType] = usePersistedState("analytics:cropType", "All")
+  const [growBag, setGrowBag] = usePersistedState("analytics:growBag", "All")
   const [isCalendarOpen, setIsCalendarOpen] = useState(false)
+  // Real grow-cycle data fetched from DB
+  const [growCycleData, setGrowCycleData] = useState<Record<string, { accumulated_gdd: number; paw_applications: number; phosphorus_ppm: number | null }>>({});
+  const [isLoadingAnalytics, setIsLoadingAnalytics] = useState(false)
+
+  const pCompliantPercent = useMemo(() => {
+    const vals = Object.values(growCycleData).map(d => d.phosphorus_ppm).filter((v): v is number => v !== null)
+    if (!vals.length) return 0
+    return Math.round((vals.filter(v => v >= 40 && v <= 60).length / vals.length) * 100)
+  }, [growCycleData])
+
+  const gddData = useMemo(() => GROW_BAGS.slice(1).map(bag => ({
+    bag: bag.replace("grow-bag-", "Bag "),
+    accumulated: growCycleData[bag]?.accumulated_gdd ?? 0,
+  })), [growCycleData])
+
+  const pawData = useMemo(() => GROW_BAGS.slice(1).map(bag => ({
+    bag: bag.replace("grow-bag-", "Bag "),
+    applications: growCycleData[bag]?.paw_applications ?? 0,
+  })), [growCycleData])
+
+  const phosphorusLog = useMemo(() => GROW_BAGS.slice(1).map(bag => ({
+    bag: bag.replace("grow-bag-", "Bag "),
+    ppm: growCycleData[bag]?.phosphorus_ppm ?? null,
+    compliant: growCycleData[bag]?.phosphorus_ppm !== null &&
+               (growCycleData[bag]?.phosphorus_ppm ?? 0) >= 40 &&
+               (growCycleData[bag]?.phosphorus_ppm ?? 0) <= 60,
+  })), [growCycleData])
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -57,42 +98,60 @@ export default function AnalyticsPage() {
     }
   }, [user, isLoading])
 
-  // Generate extended mock data for the last 90 days
-  const extendedMockData = useMemo(() => {
-    const data: HistoricalDataPoint[] = []
-    const startDate = subDays(new Date(), 90)
+  // Real sensor data state
+  const [analyticsData, setAnalyticsData] = useState<HistoricalDataPoint[]>([])
+  const extendedMockData = analyticsData
 
-    for (let day = 0; day < 90; day++) {
-      for (let hour = 0; hour < 24; hour += 1) {
-        const timestamp = new Date(startDate)
-        timestamp.setDate(timestamp.getDate() + day)
-        timestamp.setHours(hour, 0, 0, 0)
+  // Fetch real sensor history + grow-cycle data
+  useEffect(() => {
+    if (!user) return
+    setIsLoadingAnalytics(true)
+    const bags = GROW_BAGS.slice(1)
+    const defaultCrops = ["Turmeric (High-Curcumin)", "Bhut Jolokia", "Aji Charapita", "Kanthari Chili", "Turmeric (High-Curcumin)", "Bhut Jolokia"]
+    const deviceCropMap: Record<string, string> = {}
 
-        GROW_BAGS.slice(1).forEach((bagId, index) => {
-          const cropTypes = ["Tomato", "Lettuce", "Basil", "Spinach"]
-          const cropType = cropTypes[index % cropTypes.length]
-
-          // Add some realistic variation and trends
-          const dayFactor = Math.sin((day / 90) * 2 * Math.PI) * 0.5
-          const hourFactor = Math.sin((hour / 24) * 2 * Math.PI) * 0.3
-          const randomFactor = (Math.random() - 0.5) * 0.2
-
-          data.push({
-            timestamp: timestamp.toISOString(),
-            deviceId: bagId,
-            cropType,
-            roomTemp: 24 + dayFactor * 4 + hourFactor * 3 + randomFactor * 2,
-            pH: 6.0 + dayFactor * 0.4 + hourFactor * 0.2 + randomFactor * 0.3,
-            ec: 1.8 + dayFactor * 0.5 + hourFactor * 0.3 + randomFactor * 0.4,
-            moisture: 70 + dayFactor * 15 + hourFactor * 10 + randomFactor * 8,
-            waterLevel: Math.random() > 0.85 ? "Below Required Level" : "Adequate",
-            humidity: 70 + dayFactor * 10 + hourFactor * 5 + randomFactor * 8,
+    // Fetch crop assignments, then sensor history + grow-cycle in parallel
+    Promise.all(bags.map(bag => fetch(`/api/devices/${bag}/crop`).then(r => r.ok ? r.json() : null)))
+      .then(cropResults => {
+        cropResults.forEach((res, i) => { if (res?.device?.cropName) deviceCropMap[bags[i]] = res.device.cropName })
+      })
+      .catch(() => {})
+      .finally(() => {
+        const hours = 90 * 24
+        // Sensor history
+        Promise.all(bags.map(bag =>
+          fetch(`/api/sensors/history?deviceId=${bag}&hours=${hours}&interval=60`).then(r => r.ok ? r.json() : null)
+        )).then(results => {
+          const merged: HistoricalDataPoint[] = []
+          results.forEach((res, i) => {
+            const bag = bags[i]
+            const cropName = deviceCropMap[bag] ?? defaultCrops[i]
+            if (res?.data?.length) {
+              res.data.forEach((pt: any) => {
+                merged.push({ timestamp: pt.time, deviceId: bag, cropType: cropName,
+                  roomTemp: pt.roomTemp, pH: pt.pH, ec: pt.ec, moisture: pt.moisture,
+                  waterLevel: "Adequate", humidity: pt.humidity })
+              })
+            }
           })
-        })
-      }
-    }
-    return data
-  }, [])
+          setAnalyticsData(merged)
+        }).catch(console.error).finally(() => setIsLoadingAnalytics(false))
+
+        // Grow-cycle data
+        Promise.all(bags.map(bag => fetch(`/api/grow-cycle?deviceId=${bag}`).then(r => r.ok ? r.json() : null)))
+          .then(gcResults => {
+            const gcMap: Record<string, any> = {}
+            gcResults.forEach((res, i) => {
+              if (res) gcMap[bags[i]] = {
+                accumulated_gdd: parseFloat(res.accumulated_gdd) || 0,
+                paw_applications: parseInt(res.paw_applications) || 0,
+                phosphorus_ppm: res.phosphorus_ppm !== null ? parseFloat(res.phosphorus_ppm) : null,
+              }
+            })
+            setGrowCycleData(gcMap)
+          }).catch(console.error)
+      })
+  }, [user])
 
   // Filter and aggregate data
   const processedData = useMemo(() => {
@@ -180,7 +239,7 @@ export default function AnalyticsPage() {
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob)
       link.setAttribute('href', url)
-      link.setAttribute('download', `hydro-nexus-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`)
+      link.setAttribute('download', `qbm-hydronet-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`)
       link.style.visibility = 'hidden'
       document.body.appendChild(link)
       link.click()
@@ -208,7 +267,7 @@ export default function AnalyticsPage() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Analytics Studio</h1>
             <p className="text-muted-foreground text-sm sm:text-base">
-              Explore historical sensor data and identify trends over time
+              Sensor trends · QBM protocol compliance · Bioactive accumulation intelligence
             </p>
           </div>
           <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
@@ -227,6 +286,20 @@ export default function AnalyticsPage() {
             </Button>
           </div>
         </div>
+
+        {/* Main Tabs */}
+        <Tabs defaultValue="sensors">
+          <TabsList className="grid grid-cols-2 w-full max-w-md">
+            <TabsTrigger value="sensors" className="flex items-center gap-1">
+              <BarChart3 className="h-3.5 w-3.5" /> Sensor Analytics
+            </TabsTrigger>
+            <TabsTrigger value="qbm" className="flex items-center gap-1">
+              <FlaskConical className="h-3.5 w-3.5" /> QBM Intelligence
+            </TabsTrigger>
+          </TabsList>
+
+          {/* ─── Sensor Analytics Tab ─── */}
+          <TabsContent value="sensors" className="space-y-4 sm:space-y-6 mt-4">
 
         {/* Control Panel */}
         <Card>
@@ -533,6 +606,131 @@ export default function AnalyticsPage() {
             </CardContent>
           </Card>
         </div>
+          </TabsContent>
+
+          {/* ─── QBM Intelligence Tab ─── */}
+          <TabsContent value="qbm" className="space-y-6 mt-4">
+
+            {/* Summary KPIs */}
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+              {[
+                { label: "Peak GDD", value: `${Math.max(0, ...gddData.map(d => d.accumulated)).toFixed(0)}`, sub: "°C·days max bag", icon: Leaf, color: "text-blue-600" },
+                { label: "PAW Applications", value: `${pawData.reduce((a, d) => a + d.applications, 0)}`, sub: "total across all bags", icon: Waves, color: "text-cyan-600" },
+                { label: "P Compliance", value: `${pCompliantPercent}%`, sub: "bags at 40–60 ppm", icon: FlaskConical, color: pCompliantPercent >= 80 ? "text-emerald-600" : "text-yellow-600" },
+                { label: "Bioactive Index", value: `${Math.round(Math.min(100, Math.max(0, ...gddData.map(d => d.accumulated)) / 2200 * 100) * 0.4 + Math.min(100, pawData.reduce((a,d) => a+d.applications,0) / 8 * 100) * 0.35 + pCompliantPercent * 0.25)}`, sub: "/ 100 composite", icon: Award, color: "text-amber-600" },
+              ].map((kpi) => (
+                <Card key={kpi.label}>
+                  <CardContent className="pt-4">
+                    <div className={`text-2xl font-black ${kpi.color}`}>{kpi.value}</div>
+                    <div className="font-semibold text-sm">{kpi.label}</div>
+                    <div className="text-xs text-muted-foreground">{kpi.sub}</div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+
+            {/* GDD Per Bag */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Leaf className="h-4 w-4 text-blue-500" /> GDD Progress Per Bag
+                </CardTitle>
+                <CardDescription>Accumulated Growing Degree Days. Harvest window: 1800–2200 GDD.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {gddData.map(({ bag, accumulated }) => {
+                    const pct = Math.min(100, Math.round(accumulated / 2200 * 100))
+                    return (
+                      <div key={bag}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="font-medium">{bag}</span>
+                          <span className="text-muted-foreground">{accumulated.toFixed(0)} / 1800–2200 °C·days</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted">
+                          <div className={`h-2 rounded-full transition-all ${pct >= 100 ? 'bg-green-500' : pct > 70 ? 'bg-yellow-500' : 'bg-blue-500'}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {Object.keys(growCycleData).length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">No GDD data yet. Log grow-cycle data via the dashboard.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Phosphorus Per Bag */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FlaskConical className="h-4 w-4 text-emerald-500" /> Phosphorus Status Per Bag
+                </CardTitle>
+                <CardDescription>AMF active zone: 40–60 ppm. Log readings via dashboard Settings.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <thead>
+                      <tr className="border-b border-border">
+                        <th className="text-left py-2 px-2 text-muted-foreground">Bag</th>
+                        <th className="text-right py-2 px-2 text-muted-foreground">P (ppm)</th>
+                        <th className="text-left py-2 px-2 text-muted-foreground">AMF Status</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {phosphorusLog.map(row => (
+                        <tr key={row.bag} className="border-b border-border/50">
+                          <td className="py-1.5 px-2 font-medium">{row.bag}</td>
+                          <td className="py-1.5 px-2 text-right font-mono">{row.ppm !== null ? row.ppm.toFixed(1) : '—'}</td>
+                          <td className="py-1.5 px-2">
+                            {row.ppm === null
+                              ? <span className="text-muted-foreground italic">Not logged</span>
+                              : <span className={`px-1.5 py-0.5 rounded ${row.compliant ? 'bg-emerald-100 text-emerald-700' : 'bg-red-100 text-red-700'}`}>
+                                  {row.compliant ? 'AMF Active' : 'Out of range'}
+                                </span>}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* PAW Per Bag */}
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Waves className="h-4 w-4 text-cyan-500" /> PAW Applications Per Bag
+                </CardTitle>
+                <CardDescription>Total Plasma-Activated Water applications this cycle. Target: ≥ 8 per cycle.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-3">
+                  {pawData.map(({ bag, applications }) => {
+                    const pct = Math.min(100, Math.round(applications / 8 * 100))
+                    return (
+                      <div key={bag}>
+                        <div className="flex justify-between text-xs mb-1">
+                          <span className="font-medium">{bag}</span>
+                          <span className="text-muted-foreground">{applications} / 8 applications</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-muted">
+                          <div className={`h-2 rounded-full transition-all ${pct >= 100 ? 'bg-cyan-500' : 'bg-cyan-400'}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    )
+                  })}
+                  {Object.keys(growCycleData).length === 0 && (
+                    <p className="text-xs text-muted-foreground italic">No PAW data yet. Log applications via the dashboard.</p>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+
+          </TabsContent>
+        </Tabs>
     </div>
   )
 }

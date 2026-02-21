@@ -1,15 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Pool } from 'pg'
+import { db } from '@/lib/database'
 import jwt from 'jsonwebtoken'
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
 
 // Helper to get user_id from JWT token
 function getUserIdFromToken(request: NextRequest): string | null {
   try {
-    const token = request.cookies.get('hydro-nexus-token')?.value
+    const token = request.cookies.get('qbm-hydronet-token')?.value
     const authHeader = request.headers.get('authorization')
     const headerToken = authHeader?.replace('Bearer ', '')
     const actualToken = token || headerToken
@@ -18,7 +14,7 @@ function getUserIdFromToken(request: NextRequest): string | null {
 
     const decoded = jwt.verify(
       actualToken,
-      process.env.JWT_SECRET || 'fallback-secret'
+      process.env.JWT_SECRET!
     ) as { userId: string }
 
     return decoded.userId
@@ -44,7 +40,7 @@ export async function POST(request: NextRequest) {
 
     if (dismissAll) {
       // Dismiss all active alerts for this user
-      await pool.query(
+      await db.query(
         `UPDATE alerts 
          SET dismissed_by = array_append(dismissed_by, $1::uuid)
          WHERE resolved_at IS NULL 
@@ -66,7 +62,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Dismiss single alert
-    await pool.query(
+    await db.query(
       `UPDATE alerts 
        SET dismissed_by = array_append(dismissed_by, $1::uuid)
        WHERE alert_id = $2 
@@ -87,3 +83,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

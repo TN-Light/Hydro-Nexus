@@ -1,4 +1,4 @@
-import { AccessToken } from 'livekit-server-sdk';
+import { AccessToken, RoomAgentDispatch, RoomConfiguration } from 'livekit-server-sdk';
 import { NextResponse } from 'next/server';
 
 export async function GET(request: Request) {
@@ -27,9 +27,19 @@ export async function GET(request: Request) {
     token.addGrant({
       room: roomName,
       roomJoin: true,
+      roomCreate: true,
       canPublish: true,
       canSubscribe: true,
       canPublishData: true,
+    });
+
+    // Auto-dispatch Qubit agent when room is created
+    token.roomConfig = new RoomConfiguration({
+      agents: [
+        new RoomAgentDispatch({
+          agentName: 'qubit',
+        }),
+      ],
     });
 
     const jwt = await token.toJwt();
@@ -46,3 +56,4 @@ export async function GET(request: Request) {
     );
   }
 }
+

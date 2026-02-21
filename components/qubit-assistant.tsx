@@ -1,10 +1,21 @@
 "use client"
 
 import { useState, useEffect } from 'react';
-import { LiveKitRoom, useVoiceAssistant, BarVisualizer, RoomAudioRenderer, VoiceAssistantControlBar } from '@livekit/components-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
+import {
+  LiveKitRoom,
+  useVoiceAssistant,
+  BarVisualizer,
+  RoomAudioRenderer,
+  VoiceAssistantControlBar,
+} from '@livekit/components-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { Card } from '@/components/ui/card';
 import { Mic, MicOff, Sparkles, Waves, Leaf, Droplet } from 'lucide-react';
 import '@livekit/components-styles/index.css';
 
@@ -13,44 +24,43 @@ interface QubitAssistantProps {
   onOpenChangeAction?: (open: boolean) => void;
 }
 
+// ── Voice Assistant UI ─────────────────────────────────────────────────────
 function VoiceAssistantUI() {
   const { state, audioTrack } = useVoiceAssistant();
-  const [transcript, setTranscript] = useState<Array<{ speaker: string; text: string }>>([]);
-
-  useEffect(() => {
-    if (state === 'speaking') {
-      // Could track what Qubit is saying here
-    }
-  }, [state]);
 
   return (
     <div className="flex flex-col items-center justify-center space-y-8 p-8">
-      {/* Modern Orb Visualizer - Gemini/Siri Style */}
+      {/* Modern Orb Visualizer */}
       <div className="relative">
         {/* Outer glow rings */}
-        <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
-          state === 'listening' 
-            ? 'animate-ping bg-green-500/30' 
-            : state === 'speaking'
-            ? 'animate-pulse bg-gradient-to-r from-emerald-500/30 to-lime-500/30'
-            : state === 'thinking'
-            ? 'animate-pulse bg-lime-500/30'
-            : 'bg-slate-500/10'
-        }`} style={{ animationDuration: '2s' }}></div>
-        
+        <div
+          className={`absolute inset-0 rounded-full transition-all duration-500 ${
+            state === 'listening'
+              ? 'animate-ping bg-green-500/30'
+              : state === 'speaking'
+              ? 'animate-pulse bg-gradient-to-r from-emerald-500/30 to-green-500/30'
+              : state === 'thinking'
+              ? 'animate-pulse bg-lime-500/30'
+              : 'bg-slate-500/10'
+          }`}
+          style={{ animationDuration: '2s' }}
+        />
+
         {/* Main orb */}
-        <div className={`relative w-40 h-40 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
-          state === 'listening' 
-            ? 'bg-gradient-to-br from-green-400/80 via-emerald-500/80 to-green-600/80 shadow-2xl shadow-green-500/50 scale-110' 
-            : state === 'speaking'
-            ? 'bg-gradient-to-br from-emerald-400/80 via-lime-500/80 to-green-600/80 shadow-2xl shadow-emerald-500/50 scale-110'
-            : state === 'thinking'
-            ? 'bg-gradient-to-br from-lime-400/80 via-emerald-500/80 to-green-600/80 shadow-2xl shadow-lime-500/50 scale-105'
-            : 'bg-gradient-to-br from-slate-400/50 via-slate-500/50 to-slate-600/50 shadow-lg'
-        }`}>
+        <div
+          className={`relative w-40 h-40 rounded-full flex items-center justify-center backdrop-blur-xl transition-all duration-300 ${
+            state === 'listening'
+              ? 'bg-gradient-to-br from-green-400/80 via-emerald-500/80 to-green-600/80 shadow-2xl shadow-green-500/50 scale-110'
+              : state === 'speaking'
+              ? 'bg-gradient-to-br from-emerald-400/80 via-green-500/80 to-teal-600/80 shadow-2xl shadow-emerald-500/50 scale-110'
+              : state === 'thinking'
+              ? 'bg-gradient-to-br from-lime-400/80 via-emerald-500/80 to-green-600/80 shadow-2xl shadow-lime-500/50 scale-105'
+              : 'bg-gradient-to-br from-slate-400/50 via-slate-500/50 to-slate-600/50 shadow-lg'
+          }`}
+        >
           {/* Inner glow */}
-          <div className="absolute inset-4 rounded-full bg-white/20 backdrop-blur-sm"></div>
-          
+          <div className="absolute inset-4 rounded-full bg-white/20 backdrop-blur-sm" />
+
           {/* Icon */}
           <div className="relative z-10">
             {state === 'listening' ? (
@@ -59,36 +69,52 @@ function VoiceAssistantUI() {
               <Sparkles className="w-16 h-16 text-white drop-shadow-lg animate-pulse" />
             ) : state === 'thinking' ? (
               <div className="relative">
-                <Leaf className="w-16 h-16 text-white drop-shadow-lg animate-spin" style={{ animationDuration: '3s' }} />
+                <Leaf
+                  className="w-16 h-16 text-white drop-shadow-lg animate-spin"
+                  style={{ animationDuration: '3s' }}
+                />
                 <Droplet className="w-6 h-6 text-white absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 animate-pulse" />
               </div>
+            ) : state === 'connecting' ? (
+              <div className="w-14 h-14 border-4 border-white/40 border-t-white rounded-full animate-spin" />
             ) : (
               <Mic className="w-16 h-16 text-white/70 drop-shadow-lg" />
             )}
           </div>
-          
+
           {/* Particle effects for active states */}
           {(state === 'listening' || state === 'speaking') && (
             <>
-              <div className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '0s' }}></div>
-              <div className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '0.5s' }}></div>
-              <div className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-white/60 rounded-full animate-ping" style={{ animationDelay: '1s' }}></div>
+              <div
+                className="absolute top-1/4 left-1/4 w-2 h-2 bg-white/60 rounded-full animate-ping"
+                style={{ animationDelay: '0s' }}
+              />
+              <div
+                className="absolute top-1/3 right-1/4 w-1.5 h-1.5 bg-white/60 rounded-full animate-ping"
+                style={{ animationDelay: '0.5s' }}
+              />
+              <div
+                className="absolute bottom-1/3 left-1/3 w-1 h-1 bg-white/60 rounded-full animate-ping"
+                style={{ animationDelay: '1s' }}
+              />
             </>
           )}
         </div>
       </div>
 
-      {/* Status Text - Gemini Style */}
+      {/* Status Text */}
       <div className="text-center space-y-2">
-        <h3 className={`text-2xl font-semibold transition-colors duration-300 ${
-          state === 'listening' 
-            ? 'text-green-500 dark:text-green-400' 
-            : state === 'speaking'
-            ? 'text-emerald-500 dark:text-emerald-400'
-            : state === 'thinking'
-            ? 'text-lime-500 dark:text-lime-400'
-            : 'text-slate-500 dark:text-slate-400'
-        }`}>
+        <h3
+          className={`text-2xl font-semibold transition-colors duration-300 ${
+            state === 'listening'
+              ? 'text-green-500 dark:text-green-400'
+              : state === 'speaking'
+              ? 'text-emerald-500 dark:text-emerald-400'
+              : state === 'thinking'
+              ? 'text-lime-500 dark:text-lime-400'
+              : 'text-slate-500 dark:text-slate-400'
+          }`}
+        >
           {state === 'listening' && 'Listening...'}
           {state === 'thinking' && 'Processing...'}
           {state === 'speaking' && 'Speaking...'}
@@ -96,7 +122,7 @@ function VoiceAssistantUI() {
           {!state && 'Ready to assist'}
         </h3>
         <p className="text-sm text-muted-foreground">
-          {state === 'listening' && 'Speak naturally, I\'m listening'}
+          {state === 'listening' && "Speak naturally, I'm listening"}
           {state === 'thinking' && 'Analyzing your request'}
           {state === 'speaking' && 'Playing response'}
           {state === 'connecting' && 'Establishing connection...'}
@@ -104,10 +130,10 @@ function VoiceAssistantUI() {
         </p>
       </div>
 
-      {/* Audio Visualizer - Modern Style */}
+      {/* Audio Visualizer */}
       {audioTrack && (
         <div className="w-full max-w-md">
-          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-lime-500/10 backdrop-blur-sm border border-green-500/20 p-6">
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-green-500/10 via-emerald-500/10 to-green-500/10 backdrop-blur-sm border border-green-500/20 p-6">
             <BarVisualizer
               state={state}
               barCount={30}
@@ -122,14 +148,14 @@ function VoiceAssistantUI() {
         </div>
       )}
 
-      {/* Control Bar - Minimalist Style */}
+      {/* Control Bar */}
       <div className="w-full max-w-md">
         <div className="rounded-full bg-background/50 backdrop-blur-sm border shadow-lg overflow-hidden">
           <VoiceAssistantControlBar controls={{ leave: false }} />
         </div>
       </div>
 
-      {/* Quick Suggestions - iPhone Siri Style */}
+      {/* Quick Suggestions */}
       <div className="w-full max-w-2xl grid grid-cols-1 sm:grid-cols-2 gap-3">
         <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-green-500/10 to-emerald-500/10 hover:from-green-500/20 hover:to-emerald-500/20 border border-green-500/20 hover:border-green-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
           <div className="flex items-start gap-3">
@@ -142,8 +168,8 @@ function VoiceAssistantUI() {
             </div>
           </div>
         </button>
-        
-        <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 to-lime-500/10 hover:from-emerald-500/20 hover:to-lime-500/20 border border-emerald-500/20 hover:border-emerald-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
+
+        <button className="group relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500/10 to-green-500/10 hover:from-emerald-500/20 hover:to-green-500/20 border border-emerald-500/20 hover:border-emerald-500/30 p-4 text-left transition-all duration-300 hover:scale-[1.02] hover:shadow-lg">
           <div className="flex items-start gap-3">
             <div className="mt-0.5 text-emerald-500">
               <Leaf className="w-5 h-5" />
@@ -156,7 +182,7 @@ function VoiceAssistantUI() {
         </button>
       </div>
 
-      {/* Help Text - Subtle */}
+      {/* Help Text */}
       <p className="text-xs text-muted-foreground text-center max-w-md">
         Ask about PAW dosing, AMF colonization, substrate conditions, or to control the bioregenerative system
       </p>
@@ -164,36 +190,59 @@ function VoiceAssistantUI() {
   );
 }
 
+// ── Main Component ─────────────────────────────────────────────────────────
 export function QubitAssistant({ open, onOpenChangeAction = () => {} }: QubitAssistantProps) {
   const [token, setToken] = useState<string>('');
   const [isConnecting, setIsConnecting] = useState(false);
+  const [error, setError] = useState<string>('');
 
-  // Fetch a fresh token every time the dialog opens
   useEffect(() => {
-    if (open && !token) {
+    if (open && !token && !isConnecting) {
       fetchToken();
     }
-    // Clear token when dialog closes to force new connection next time
-    if (!open && token) {
-      console.log('🔄 Dialog closed, clearing token for next connection');
+    if (!open) {
       setToken('');
+      setError('');
     }
-  }, [open, token]);
+  }, [open]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Suppress LiveKit WebSocket [object Event] unhandled rejections
+  useEffect(() => {
+    const handler = (e: PromiseRejectionEvent) => {
+      const reason = e.reason;
+      if (
+        reason instanceof Event ||
+        (reason instanceof Error && reason.message === '[object Event]') ||
+        (typeof reason === 'object' && reason !== null && reason.constructor?.name === 'Event')
+      ) {
+        e.preventDefault();
+        console.warn('LiveKit connection event suppressed');
+        setError('Voice connection failed — please try again');
+        setToken('');
+      }
+    };
+    window.addEventListener('unhandledrejection', handler);
+    return () => window.removeEventListener('unhandledrejection', handler);
+  }, []);
 
   const fetchToken = async () => {
     setIsConnecting(true);
+    setError('');
     try {
-      // Generate unique room name for each session so agent creates new connection
-      // This allows dev mode agent to handle multiple sequential connections
-      const timestamp = Date.now();
-      const roomName = `qbm-hydronet-${timestamp}`;
+      // Auto-start the agent
+      const agentRes = await fetch('/api/agent/start', { method: 'POST' });
+      const agentData = await agentRes.json();
+      if (!agentRes.ok) throw new Error(agentData.error ?? 'Agent failed to start');
+
+      const roomName = `qbm-hydronet-${Date.now()}`;
       const participantName = 'User';
-      const response = await fetch(`/api/livekit/token?room=${roomName}&participant=${participantName}`);
-      const data = await response.json();
+      const res = await fetch(`/api/livekit/token?room=${roomName}&participant=${participantName}`);
+      const data = await res.json();
+      if (!data.token) throw new Error('No token received');
       setToken(data.token);
-      console.log('✅ Token fetched for room:', roomName);
-    } catch (error) {
-      console.error('Error fetching LiveKit token:', error);
+    } catch (err: unknown) {
+      console.error('Error fetching LiveKit token:', err);
+      setError(err instanceof Error ? err.message : 'Connection failed');
     } finally {
       setIsConnecting(false);
     }
@@ -216,12 +265,32 @@ export function QubitAssistant({ open, onOpenChangeAction = () => {} }: QubitAss
           <div className="flex flex-col items-center justify-center py-20 space-y-6">
             <div className="relative">
               <div className="w-20 h-20 border-4 border-green-500/30 border-t-green-500 rounded-full animate-spin" />
-              <div className="absolute inset-0 w-20 h-20 border-4 border-emerald-500/20 border-b-emerald-500 rounded-full animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1.5s' }} />
+              <div
+                className="absolute inset-0 w-20 h-20 border-4 border-emerald-500/20 border-b-emerald-500 rounded-full animate-spin"
+                style={{ animationDirection: 'reverse', animationDuration: '1.5s' }}
+              />
             </div>
             <div className="text-center space-y-2">
               <p className="text-base font-medium text-foreground">Connecting to Qubit...</p>
               <p className="text-sm text-muted-foreground">Establishing secure connection</p>
             </div>
+          </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center py-20 space-y-6">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
+              <MicOff className="w-8 h-8 text-destructive" />
+            </div>
+            <div className="text-center space-y-2">
+              <p className="text-base font-medium text-foreground">Connection failed</p>
+              <p className="text-sm text-muted-foreground max-w-[300px]">{error}</p>
+            </div>
+            <Button
+              onClick={fetchToken}
+              variant="outline"
+              className="border-green-500/30 hover:bg-green-500/10 hover:border-green-500/50"
+            >
+              Try Again
+            </Button>
           </div>
         ) : token ? (
           <LiveKitRoom
@@ -231,30 +300,26 @@ export function QubitAssistant({ open, onOpenChangeAction = () => {} }: QubitAss
             audio={true}
             video={false}
             className="min-h-[500px] overflow-y-auto"
+            onError={(err) => {
+              console.error('LiveKit room error:', err);
+              setError(err?.message || 'LiveKit connection failed');
+              setToken('');
+            }}
+            onDisconnected={() => {
+              console.log('LiveKit room disconnected');
+              setToken('');
+            }}
           >
             <VoiceAssistantUI />
             <RoomAudioRenderer />
           </LiveKitRoom>
-        ) : (
-          <div className="flex flex-col items-center justify-center py-20 space-y-6">
-            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center">
-              <MicOff className="w-8 h-8 text-destructive" />
-            </div>
-            <div className="text-center space-y-2">
-              <p className="text-base font-medium text-foreground">Connection failed</p>
-              <p className="text-sm text-muted-foreground">Unable to establish connection</p>
-            </div>
-            <Button onClick={fetchToken} variant="outline" className="border-green-500/30 hover:bg-green-500/10 hover:border-green-500/50">
-              Try Again
-            </Button>
-          </div>
-        )}
+        ) : null}
       </DialogContent>
     </Dialog>
   );
 }
 
-// Floating Button Component - Gemini/Siri Style
+// ── Floating Button ────────────────────────────────────────────────────────
 export function QubitButton() {
   const [open, setOpen] = useState(false);
 

@@ -1,14 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Pool } from 'pg'
-
-// Database connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-})
+import { db } from '@/lib/database'
 
 /**
  * GET /api/sensors/history
@@ -50,30 +41,56 @@ export async function GET(request: NextRequest) {
 
     console.log(`📊 Fetching historical data: device=${deviceId}, hours=${hours}, interval=${interval}min`)
 
-    // Query TimescaleDB with time_bucket for aggregation
-    const query = `
-      SELECT 
-        time_bucket($1::interval, timestamp) AS time,
-        AVG(room_temp) as room_temp,
-        AVG(ph) as ph,
-        AVG(ec) as ec,
-        AVG(soil_moisture) as moisture,
-        AVG(humidity) as humidity,
-        AVG(water_temp) as water_temp,
-        AVG(tds_ppm) as tds_ppm,
-        COUNT(*) as reading_count
-      FROM sensor_readings
-      WHERE device_id = $2
-        AND timestamp >= NOW() - $3::interval
-      GROUP BY time
-      ORDER BY time ASC
-    `
-
-    const result = await pool.query(query, [
-      `${interval} minutes`,
-      deviceId,
-      `${hours} hours`
-    ])
+    // Try TimescaleDB time_bucket first, fall back to date_trunc for plain PostgreSQL
+    let result;
+    try {
+      const tsQuery = `
+        SELECT 
+          time_bucket($1::interval, timestamp) AS time,
+          AVG(room_temp) as room_temp,
+          AVG(ph) as ph,
+          AVG(ec) as ec,
+          AVG(substrate_moisture) as moisture,
+          AVG(humidity) as humidity,
+          AVG(water_temp) as water_temp,
+          AVG(tds_ppm) as tds_ppm,
+          COUNT(*) as reading_count
+        FROM sensor_readings
+        WHERE device_id = $2
+          AND timestamp >= NOW() - $3::interval
+        GROUP BY time
+        ORDER BY time ASC
+      `
+      result = await db.query(tsQuery, [
+        `${interval} minutes`,
+        deviceId,
+        `${hours} hours`
+      ])
+    } catch (tsError: any) {
+      // Fallback to standard date_trunc for plain PostgreSQL
+      const truncUnit = interval >= 1440 ? 'day' : interval >= 60 ? 'hour' : 'minute'
+      const fallbackQuery = `
+        SELECT 
+          date_trunc('${truncUnit}', timestamp) AS time,
+          AVG(room_temp) as room_temp,
+          AVG(ph) as ph,
+          AVG(ec) as ec,
+          AVG(substrate_moisture) as moisture,
+          AVG(humidity) as humidity,
+          AVG(water_temp) as water_temp,
+          AVG(tds_ppm) as tds_ppm,
+          COUNT(*) as reading_count
+        FROM sensor_readings
+        WHERE device_id = $1
+          AND timestamp >= NOW() - $2::interval
+        GROUP BY time
+        ORDER BY time ASC
+      `
+      result = await db.query(fallbackQuery, [
+        deviceId,
+        `${hours} hours`
+      ])
+    }
 
     console.log(`✅ Retrieved ${result.rows.length} data points for ${deviceId}`)
 
@@ -110,3 +127,4 @@ export async function GET(request: NextRequest) {
     )
   }
 }
+

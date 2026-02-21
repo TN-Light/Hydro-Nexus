@@ -1,16 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Pool } from 'pg'
+import { db } from '@/lib/database'
 import jwt from 'jsonwebtoken'
-
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-})
 
 // Helper to get user_id from JWT token
 function getUserIdFromToken(request: NextRequest): string | null {
   try {
     // Try to get token from cookie first
-    const token = request.cookies.get('hydro-nexus-token')?.value
+    const token = request.cookies.get('qbm-hydronet-token')?.value
     
     // If not in cookie, try Authorization header
     const authHeader = request.headers.get('authorization')
@@ -24,7 +20,7 @@ function getUserIdFromToken(request: NextRequest): string | null {
 
     const decoded = jwt.verify(
       actualToken,
-      process.env.JWT_SECRET || 'fallback-secret'
+      process.env.JWT_SECRET!
     ) as { userId: string }
 
     return decoded.userId
@@ -46,7 +42,7 @@ export async function GET(request: NextRequest) {
       )
     }
 
-    const result = await pool.query(
+    const result = await db.query(
       `SELECT 
         theme,
         language,
@@ -74,7 +70,7 @@ export async function GET(request: NextRequest) {
 
     if (result.rows.length === 0) {
       // Create default preferences if none exist
-      const insertResult = await pool.query(
+      const insertResult = await db.query(
         `INSERT INTO user_preferences (user_id)
          VALUES ($1)
          RETURNING *`,
@@ -133,8 +129,13 @@ export async function POST(request: NextRequest) {
 
     Object.keys(preferences).forEach(key => {
       if (allowedFields.includes(key)) {
-        updates.push(`${key} = $${paramIndex}`)
-        values.push(preferences[key])
+        if (key === 'custom_settings') {
+          // Merge JSONB instead of replacing — preserves other keys
+          updates.push(`custom_settings = COALESCE(user_preferences.custom_settings, '{}'::jsonb) || $${paramIndex}::jsonb`)
+        } else {
+          updates.push(`${key} = $${paramIndex}`)
+        }
+        values.push(key === 'custom_settings' ? JSON.stringify(preferences[key]) : preferences[key])
         paramIndex++
       }
     })
@@ -154,7 +155,7 @@ export async function POST(request: NextRequest) {
       RETURNING *
     `
 
-    const result = await pool.query(query, values)
+    const result = await db.query(query, values)
 
     return NextResponse.json({
       success: true,
@@ -175,3 +176,4 @@ export async function POST(request: NextRequest) {
 export async function PATCH(request: NextRequest) {
   return POST(request) // Same logic for partial updates
 }
+

@@ -17,6 +17,15 @@ interface SensorData {
   moisture: number
   waterLevel: string
   humidity: number
+  // ESP32 hardware fields
+  temperature?: number
+  tds_ppm?: number
+  substrate_moisture?: number
+  nutrient_pump_status?: boolean
+  paw_pump_status?: boolean
+  wifi_signal?: number
+  free_heap?: number
+  uptime_ms?: number
 }
 
 interface RealtimeContextType {
@@ -42,6 +51,9 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   const [isRealData, setIsRealData] = useState(false) // Track if using real ESP32 data
   const lastWaterAlertTimeRef = useRef<Record<string, number>>({})
   const lastRealDataTimeRef = useRef<number>(0) // Track when we last got real data
+  // Throttle toast notifications: key = "deviceId-severity", value = last fire time
+  const lastToastTimeRef = useRef<Record<string, number>>({})
+  const TOAST_THROTTLE_MS = 15 * 60 * 1000 // 15 minutes
   const { toast } = useToast()
   const { isAuthenticated } = useAuth()
   const pathname = usePathname()
@@ -59,6 +71,8 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   
   // Stable interval ref
   const intervalRef = useRef<NodeJS.Timeout | null>(null)
+  // SSE EventSource ref
+  const eventSourceRef = useRef<EventSource | null>(null)
   // Ref to track current authentication state in interval
   const isAuthenticatedRef = useRef(isAuthenticated)
   // Ref to store initial water levels for each device (simulate slow depletion)
@@ -86,10 +100,10 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
           const cacheKey = deviceId || 'all'
           parametersCache.current[cacheKey] = thresholds
           
-          // Also cache for specific devices if loading "all"
+          // Also cache for sensor bags (first + last only — bags are interconnected)
           if (!deviceId) {
-            for (let i = 1; i <= 6; i++) {
-              parametersCache.current[`grow-bag-${i}`] = thresholds
+            for (const bagId of ['grow-bag-1', 'grow-bag-6']) {
+              parametersCache.current[bagId] = thresholds
             }
           }
           
@@ -219,12 +233,14 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
 
     // Helper function to check parameter status - ONLY add alerts (±4) to alerts array
     const checkParameter = (value: number, range: { min: number; max: number }, paramName: string, unit: string) => {
-      if (value < range.min - 4 || value > range.max + 4) {
+      const numValue = Number(value)
+      if (isNaN(numValue)) return
+      if (numValue < range.min - 4 || numValue > range.max + 4) {
         // Alert: ±4 from range - add to alerts array for notifications
         newAlerts.push({
           id: generateUniqueId(),
           deviceId: data.deviceId,
-          message: `${paramName} alert: ${value.toFixed(1)}${unit} (Range: ${range.min}-${range.max}${unit})`,
+          message: `${paramName} alert: ${numValue.toFixed(1)}${unit} (Range: ${range.min}-${range.max}${unit})`,
           severity: "alert",
           timestamp: new Date(now).toISOString(),
         })
@@ -276,179 +292,217 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
   }, [isAuthenticated, fetchUserParameters])
 
   useEffect(() => {
-    // Always show mock data for the dashboard UI, but only update when needed
-    setIsConnected(true)
-    
     // Update the ref whenever authentication state changes
     isAuthenticatedRef.current = isAuthenticated
-    
+
     // Clear alerts when not authenticated or when alerts aren't needed
     if (!isAuthenticated || !needsAlerts) {
       setAlerts([])
-      console.log('Alerts disabled - user not authenticated or page does not need alerts')
-    } else {
-      console.log('User authenticated and alerts enabled for this page')
     }
 
-    // Fetch real sensor data from API
-    const fetchRealSensorData = async () => {
-      try {
-        const response = await fetch('/api/sensors/latest')
-        if (response.ok) {
-          const result = await response.json()
-          if (result.success && result.data) {
-            // Check if we got actual data from database
-            const deviceKeys = Object.keys(result.data)
-            if (deviceKeys.length > 0) {
-              console.log('✅ Fetched real ESP32 data from database:', deviceKeys)
-              setSensorData(result.data)
-              setIsRealData(true)
-              lastRealDataTimeRef.current = Date.now()
-              return
+    // ─── Helper: convert API room+bags response to legacy per-device format ───
+    const convertToLegacy = (result: any): Record<string, SensorData> => {
+      const legacyData: Record<string, SensorData> = {}
+      if (result.bags && typeof result.bags === 'object') {
+        Object.values(result.bags).forEach((bag: any) => {
+          legacyData[bag.deviceId] = {
+            deviceId: bag.deviceId,
+            moisture: Number(bag.moisture) || 0,
+            roomTemp: Number(result.room?.roomTemp) || 0,
+            humidity: Number(result.room?.humidity) || 0,
+            pH: Number(result.room?.pH) || 0,
+            ec: Number(result.room?.ec) || 0,
+            waterLevel: result.room?.waterLevel ?? 'Unknown',
+            timestamp: result.room?.timestamp ?? bag.moistureTimestamp ?? new Date().toISOString(),
+            // ESP32 hardware fields (pass through from raw ingest data)
+            temperature: Number(result.room?.roomTemp) || 0,
+            tds_ppm: Number(result.room?.tds_ppm) || 0,
+            substrate_moisture: Number(bag.moisture) || 0,
+            nutrient_pump_status: result.room?.nutrient_pump_status ?? false,
+            paw_pump_status: result.room?.paw_pump_status ?? false,
+            wifi_signal: Number(result.room?.wifi_signal) || 0,
+            free_heap: Number(result.room?.free_heap) || 0,
+            uptime_ms: Number(result.room?.uptime_ms) || 0,
+          } as SensorData
+        })
+      }
+      return legacyData
+    }
+
+    // ─── Helper: fire alerts + toasts for a set of devices ───
+    // All bags are interconnected and share room-level sensors (temp, pH, EC, humidity).
+    // Only check room-level alerts once (on the first bag) to avoid duplicate notifications.
+    const processAlerts = (devices: Record<string, SensorData>) => {
+      if (!isAuthenticatedRef.current || !needsAlerts) return
+      const allNewAlerts: RealtimeContextType["alerts"] = []
+      const deviceEntries = Object.values(devices)
+      if (deviceEntries.length > 0) {
+        // Check room-level + moisture for first bag only (room sensors are shared)
+        allNewAlerts.push(...stableCheckForAlerts(deviceEntries[0]))
+      }
+      if (allNewAlerts.length === 0) return
+      setAlerts((prev) => {
+        const combined = [...allNewAlerts, ...prev]
+        const unique = combined.filter((a, i, self) => self.findIndex(x => x.id === a.id) === i)
+        return unique.slice(0, 50)
+      })
+      if (notificationSettings.masterEnabled) {
+        setTimeout(() => {
+          const now = Date.now()
+          allNewAlerts.forEach((alert) => {
+            if (alert.severity === "alert" || alert.severity === "error") {
+              // Throttle: only show toast once per 15 minutes per device+severity
+              const toastKey = `${alert.deviceId}-${alert.severity}`
+              const lastFired = lastToastTimeRef.current[toastKey] ?? 0
+              if (now - lastFired < TOAST_THROTTLE_MS) return
+              lastToastTimeRef.current[toastKey] = now
+              stableToast({
+                title: alert.severity === "error" ? `🚨 Critical: ${alert.deviceId}` : `⚠️ Sensor Alert: ${alert.deviceId}`,
+                description: alert.message,
+                variant: "destructive",
+              })
             }
+          })
+        }, 0)
+      }
+    }
+
+    // ─── Helper: switch to demo/mock mode ───
+    const switchToMockMode = () => {
+      const timeSinceReal = Date.now() - lastRealDataTimeRef.current
+      // If we received real data within the last 30 seconds, keep showing it
+      // (don't overwrite real data with mock on a single transient failure)
+      if (timeSinceReal < 30000 && lastRealDataTimeRef.current > 0) {
+        return // Keep existing real data briefly
+      }
+      setIsRealData(false)
+      setIsConnected(false)
+      // Populate with mock data for first + last bag (interconnected system)
+      const mockData: Record<string, SensorData> = {}
+      for (const bagId of ['grow-bag-1', 'grow-bag-6']) {
+        mockData[bagId] = generateMockSensorData(bagId)
+      }
+      setSensorData((prev) => {
+        const next = Object.keys(prev).length > 0
+          ? Object.fromEntries(Object.keys(prev).map(id => [id, generateMockSensorData(id)]))
+          : mockData
+        processAlerts(next)
+        return next
+      })
+    }
+
+    // ─── Initial fetch ───
+    const initialFetch = async () => {
+      try {
+        const res = await fetch('/api/sensors/latest')
+        if (res.ok) {
+          const result = await res.json()
+          // Only treat as live if data exists AND is fresh (< 5 min old)
+          if (result.success && result.isDataFresh && result.bags && Object.keys(result.bags).length > 0) {
+            const legacyData = convertToLegacy(result)
+            console.log('✅ Initial real ESP32 data:', Object.keys(legacyData))
+            setSensorData(legacyData)
+            setIsRealData(true)
+            setIsConnected(true)
+            lastRealDataTimeRef.current = Date.now()
+            processAlerts(legacyData)
+            return
+          }
+          if (result.success && !result.isDataFresh) {
+            console.log(`🕰️ DB data is stale (${result.dataAgeSeconds}s old) — Demo Mode`)
           }
         }
-      } catch (error) {
-        console.error('❌ Failed to fetch real sensor data, using mock data:', error)
+      } catch (err) {
+        console.error('❌ Initial fetch failed:', err)
       }
-      
-      // Check if we recently had real data (within last 2 minutes)
-      const timeSinceRealData = Date.now() - lastRealDataTimeRef.current
-      if (timeSinceRealData > 120000) { // 2 minutes
-        setIsRealData(false)
-        console.log('⚠️ No ESP32 data for >2 minutes, switching to demo mode')
-      }
-      
-      // Fallback to mock data if API fails or no real data
-      const initialData: Record<string, SensorData> = {}
-      for (let i = 1; i <= 6; i++) {
-        initialData[`grow-bag-${i}`] = generateMockSensorData(`grow-bag-${i}`)
-      }
-      setSensorData(initialData)
+      console.log('🎭 No live ESP32 data — starting in Demo Mode')
+      setIsRealData(false)
+      setIsConnected(false)
+      switchToMockMode()
     }
-    
-    fetchRealSensorData()
+
+    initialFetch()
 
     // Clear any existing interval
     if (intervalRef.current) {
       clearInterval(intervalRef.current)
     }
 
-    // Only start intensive real-time updates if needed
     if (needsRealTimeUpdates && isAuthenticated) {
-      console.log('Starting real-time updates for page:', pathname)
-      
-      // Fetch real-time updates every 5 seconds
-      intervalRef.current = setInterval(async () => {
-        // Check if component is still mounted and authenticated
-        if (!isAuthenticatedRef.current) {
-          return
+      console.log('▶️ Starting real-time SSE stream for:', pathname)
+
+      // ── Try SSE first, fall back to polling ──
+      let sseConnected = false
+
+      try {
+        const es = new EventSource('/api/sensors/stream')
+        eventSourceRef.current = es
+
+        es.onopen = () => {
+          console.log('✅ SSE connected')
+          sseConnected = true
         }
-        
-        try {
-          const response = await fetch('/api/sensors/latest')
-          if (response.ok) {
-            const result = await response.json()
-            if (result.success) {
-              // NEW FORMAT: Convert room + bags back to legacy format for compatibility
-              const legacyData: Record<string, any> = {}
-              
-              if (result.bags) {
-                Object.values(result.bags).forEach((bag: any) => {
-                  legacyData[bag.deviceId] = {
-                    deviceId: bag.deviceId,
-                    moisture: bag.moisture,
-                    moistureTimestamp: bag.moistureTimestamp,
-                    // Add room sensors to each bag for backward compatibility
-                    roomTemp: result.room?.roomTemp || 0,
-                    humidity: result.room?.humidity || 0,
-                    pH: result.room?.pH || 0,
-                    ec: result.room?.ec || 0,
-                    waterLevel: result.room?.waterLevel || 'Unknown',
-                    timestamp: result.room?.timestamp || bag.moistureTimestamp
-                  }
-                })
+
+        es.onmessage = (event) => {
+          if (!isAuthenticatedRef.current) return
+          try {
+            const result = JSON.parse(event.data)
+            if (result.success && result.isDataFresh && result.bags && Object.keys(result.bags).length > 0) {
+              const legacyData = convertToLegacy(result)
+              setIsRealData(true)
+              setIsConnected(true)
+              lastRealDataTimeRef.current = Date.now()
+              setSensorData(legacyData)
+              processAlerts(legacyData)
+            } else {
+              switchToMockMode()
+            }
+          } catch {
+            // Ignore parse errors (keepalive pings, etc.)
+          }
+        }
+
+        es.onerror = () => {
+          console.log('⚠️ SSE error — falling back to polling')
+          es.close()
+          eventSourceRef.current = null
+          sseConnected = false
+          // Fall through to polling below
+          startPolling()
+        }
+      } catch {
+        console.log('⚠️ SSE not available — using polling')
+        startPolling()
+      }
+
+      function startPolling() {
+        if (intervalRef.current) clearInterval(intervalRef.current)
+        intervalRef.current = setInterval(async () => {
+          if (!isAuthenticatedRef.current) return
+
+          try {
+            const res = await fetch('/api/sensors/latest')
+            if (res.ok) {
+              const result = await res.json()
+              if (result.success && result.isDataFresh && result.bags && Object.keys(result.bags).length > 0) {
+                const legacyData = convertToLegacy(result)
+                setIsRealData(true)
+                setIsConnected(true)
+                lastRealDataTimeRef.current = Date.now()
+                setSensorData(legacyData)
+                processAlerts(legacyData)
+                return
               }
-              
-              console.log('🔄 Real-time update:', Object.keys(legacyData).length, 'devices')
-              
-              setSensorData((prev) => {
-                const updated = { ...legacyData }
-                const allNewAlerts: RealtimeContextType["alerts"] = []
-                
-                // Check for alerts if needed
-                if (isAuthenticatedRef.current && needsAlerts) {
-                  Object.values(updated).forEach((deviceData: any) => {
-                    const newAlerts = stableCheckForAlerts(deviceData)
-                    allNewAlerts.push(...newAlerts)
-                  })
-                  
-                  // Update alerts
-                  if (allNewAlerts.length > 0) {
-                    setAlerts((prevAlerts) => [...allNewAlerts, ...prevAlerts].slice(0, 50))
-                  }
-                }
-                
-                return updated
-              })
-              return
             }
+          } catch (err) {
+            console.error('❌ Interval fetch failed:', err)
           }
-        } catch (error) {
-          console.error('❌ Failed to fetch real-time data:', error)
-        }
-        
-        // Fallback to mock data if API fails
-        setSensorData((prev) => {
-          const updated = { ...prev }
-          const allNewAlerts: RealtimeContextType["alerts"] = []
-          
-          Object.keys(updated).forEach((deviceId) => {
-            updated[deviceId] = generateMockSensorData(deviceId)
-            
-            // Only check for alerts if needed for this page
-            if (isAuthenticatedRef.current && needsAlerts) {
-              // Check for alerts
-              const newAlerts = stableCheckForAlerts(updated[deviceId])
-              allNewAlerts.push(...newAlerts)
-            }
-          })
-          
-          // Update alerts if any new ones were found and alerts are needed
-          if (allNewAlerts.length > 0 && isAuthenticatedRef.current && needsAlerts) {
-            console.log('New alerts generated:', allNewAlerts.length)
-            setAlerts((prev) => {
-              // Combine new alerts with existing ones
-              const combined = [...allNewAlerts, ...prev]
-              // Remove duplicates based on ID
-              const uniqueAlerts = combined.filter((alert, index, self) => 
-                self.findIndex(a => a.id === alert.id) === index
-              )
-              // Keep only the 50 most recent alerts
-              return uniqueAlerts.slice(0, 50)
-            })
-            
-            // Show toast notifications for alerts (±4) and errors (system issues)
-            setTimeout(() => {
-              allNewAlerts.forEach((alert) => {
-                // Show popup notifications for both 'alert' (±4 sensor) and 'error' (system) severity
-                if ((alert.severity === "alert" || alert.severity === "error") && notificationSettings.masterEnabled) {
-                  const title = alert.severity === "error" ? "Critical System Error" : "Sensor Alert"
-                  stableToast({
-                    title: `${title}: ${alert.deviceId}`,
-                    description: alert.message,
-                    variant: "destructive",
-                  })
-                }
-              })
-            }, 0)
-          }
-          
-          return updated
-        })
-      }, 5000) // Reduced frequency to 5 seconds for better performance
+
+          switchToMockMode()
+        }, 5000)
+      }
     } else {
-      console.log('Real-time updates disabled for page:', pathname)
+      console.log('⏸ Real-time updates disabled for page:', pathname)
     }
 
     return () => {
@@ -456,11 +510,12 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
         clearInterval(intervalRef.current)
         intervalRef.current = null
       }
-      if (!needsRealTimeUpdates) {
-        setIsConnected(false)
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+        eventSourceRef.current = null
       }
     }
-  }, [isAuthenticated, needsRealTimeUpdates, needsAlerts, pathname, generateMockSensorData, stableCheckForAlerts, stableToast, notificationSettings.masterEnabled]) // Include notification settings
+  }, [isAuthenticated, needsRealTimeUpdates, needsAlerts, pathname, generateMockSensorData, stableCheckForAlerts, stableToast, notificationSettings.masterEnabled])
 
   // Separate effect for cleanup when component unmounts
   useEffect(() => {
@@ -468,8 +523,83 @@ export function RealtimeProvider({ children }: { children: React.ReactNode }) {
       if (intervalRef.current) {
         clearInterval(intervalRef.current)
       }
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close()
+      }
     }
   }, [])
+
+  // ── Periodic 15-minute browser notification with system status ──
+  const notifIntervalRef = useRef<NodeJS.Timeout | null>(null)
+  useEffect(() => {
+    if (!isAuthenticated || !needsRealTimeUpdates || !notificationSettings.masterEnabled) {
+      if (notifIntervalRef.current) {
+        clearInterval(notifIntervalRef.current)
+        notifIntervalRef.current = null
+      }
+      return
+    }
+
+    // Request browser notification permission on first load
+    if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission()
+    }
+
+    const sendPeriodicNotification = () => {
+      const devices = Object.values(sensorData)
+      if (devices.length === 0) return
+
+      // Compute summary
+      const temps = devices.map(d => d.roomTemp).filter(Boolean)
+      const pHs = devices.map(d => d.pH).filter(Boolean)
+      const moistures = devices.map(d => d.moisture).filter(Boolean)
+      const avgTemp = temps.length ? (temps.reduce((a, b) => a + b, 0) / temps.length).toFixed(1) : '—'
+      const avgpH = pHs.length ? (pHs.reduce((a, b) => a + b, 0) / pHs.length).toFixed(1) : '—'
+      const avgMoisture = moistures.length ? (moistures.reduce((a, b) => a + b, 0) / moistures.length).toFixed(0) : '—'
+
+      // Count issues
+      const warnings: string[] = []
+      devices.forEach(d => {
+        if (d.roomTemp > 28) warnings.push(`${d.deviceId}: Temp ${d.roomTemp.toFixed(1)}°C HIGH`)
+        else if (d.roomTemp < 20) warnings.push(`${d.deviceId}: Temp ${d.roomTemp.toFixed(1)}°C LOW`)
+        if (d.pH > 6.8 || d.pH < 5.5) warnings.push(`${d.deviceId}: pH ${d.pH.toFixed(1)} OUT OF RANGE`)
+        if (d.moisture < 50) warnings.push(`${d.deviceId}: Moisture ${d.moisture.toFixed(0)}% LOW`)
+      })
+
+      const statusLine = warnings.length > 0
+        ? `⚠️ ${warnings.length} issue${warnings.length > 1 ? 's' : ''} detected`
+        : '✅ All systems normal'
+
+      const body = `Temp: ${avgTemp}°C | pH: ${avgpH} | Moisture: ${avgMoisture}%\n${statusLine}`
+
+      // Browser notification
+      if (typeof window !== 'undefined' && 'Notification' in window && Notification.permission === 'granted') {
+        new Notification('QBM-HydroNet Status', {
+          body,
+          icon: '/icon-192x192.png',
+          tag: 'qbm-periodic-status', // Replace previous notification
+          silent: warnings.length === 0,
+        })
+      }
+
+      // Also show in-app toast
+      toast({
+        title: warnings.length > 0 ? '⚠️ System Status Update' : '✅ System Status Update',
+        description: `Avg Temp: ${avgTemp}°C | pH: ${avgpH} | Moisture: ${avgMoisture}%${warnings.length > 0 ? ` — ${warnings.length} issue(s)` : ''}`,
+        variant: warnings.length > 0 ? 'destructive' : undefined,
+      })
+    }
+
+    // Fire every 15 minutes
+    notifIntervalRef.current = setInterval(sendPeriodicNotification, 15 * 60 * 1000)
+
+    return () => {
+      if (notifIntervalRef.current) {
+        clearInterval(notifIntervalRef.current)
+        notifIntervalRef.current = null
+      }
+    }
+  }, [isAuthenticated, needsRealTimeUpdates, notificationSettings.masterEnabled, sensorData, toast])
 
   // Memoize context value to prevent unnecessary re-renders
   const contextValue = useMemo(() => ({

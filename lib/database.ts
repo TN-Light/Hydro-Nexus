@@ -2,22 +2,29 @@ import { Pool } from 'pg'
 
 const connectionString = process.env.DATABASE_URL
 
+// Don't throw at module load time; allow the app to boot even if DB is down/misconfigured.
+// Routes that require DB will still fail with a clear error.
 if (!connectionString) {
-  throw new Error('DATABASE_URL environment variable is not set')
+  console.warn('DATABASE_URL environment variable is not set - database features will be unavailable')
 }
 
-// Create a connection pool
-const pool = new Pool({
-  connectionString,
-  max: 20, // maximum number of clients in the pool
-  idleTimeoutMillis: 30000, // close idle clients after 30 seconds
-  connectionTimeoutMillis: 2000, // return error after 2 seconds if connection could not be established
-})
+// Create a connection pool only if we have a connection string
+const pool = connectionString
+  ? new Pool({
+      connectionString,
+      max: 20, // maximum number of clients in the pool
+      idleTimeoutMillis: 30000, // close idle clients after 30 seconds
+      connectionTimeoutMillis: 2000, // return error after 2 seconds if connection could not be established
+    })
+  : null
 
 // Database connection wrapper
 export const db = {
   // Execute a query with parameters
   async query(text: string, params?: any[]) {
+    if (!pool) {
+      throw new Error('Database is not configured (DATABASE_URL is missing)')
+    }
     const start = Date.now()
     try {
       const res = await pool.query(text, params)
@@ -32,11 +39,15 @@ export const db = {
 
   // Get a client from the pool for transactions
   async getClient() {
+    if (!pool) {
+      throw new Error('Database is not configured (DATABASE_URL is missing)')
+    }
     return await pool.connect()
   },
 
   // Close the pool
   async end() {
+    if (!pool) return
     await pool.end()
   }
 }
@@ -193,12 +204,65 @@ export const dbHelpers = {
     return result.rows[0].insert_sensor_reading
   },
 
+  // Insert room-level sensor data (shared across all bags)
+  async insertRoomSensorReading(data: {
+    room_id?: string;
+    room_temp: number;
+    humidity: number;
+    ph: number;
+    ec: number;
+    water_level_status: string;
+  }) {
+    try {
+      const result = await db.query(
+        'SELECT insert_room_sensor_reading($1, $2, $3, $4, $5, $6)',
+        [
+          data.room_id || 'main-room',
+          data.room_temp,
+          data.humidity,
+          data.ph,
+          data.ec,
+          data.water_level_status
+        ]
+      )
+      return result.rows[0]?.insert_room_sensor_reading
+    } catch (error: any) {
+      // Silently fail if room_sensors table or function doesn't exist yet
+      console.warn('⚠ insertRoomSensorReading failed (table may not exist):', error?.message)
+      return null
+    }
+  },
+
+  // Fallback: get room-level data from sensor_readings table
+  // Used when room_sensors table is stale but ESP32 is actively writing to sensor_readings
+  async getLatestRoomFromSensorReadings() {
+    try {
+      const result = await db.query(
+        `SELECT room_temp, humidity, ph, ec, water_level_status, timestamp
+         FROM sensor_readings
+         ORDER BY timestamp DESC
+         LIMIT 1`
+      )
+      return result.rows[0] || null
+    } catch {
+      return null
+    }
+  },
+
   async getLatestSensorReadings(deviceIds?: string[]) {
-    const result = await db.query(
-      'SELECT * FROM get_latest_sensor_readings($1)',
-      [deviceIds]
-    )
-    return result.rows
+    // Prefer the newer room-level + bag moisture function when available.
+    try {
+      const result = await db.query('SELECT * FROM get_latest_sensor_readings_v2($1)', [deviceIds])
+      return result.rows
+    } catch (error: any) {
+      // Fallback to legacy function for older databases.
+      const message = String(error?.message || '')
+      if (message.toLowerCase().includes('get_latest_sensor_readings_v2')) {
+        const result = await db.query('SELECT * FROM get_latest_sensor_readings($1)', [deviceIds])
+        return result.rows
+      }
+      throw error
+    }
   },
 
   // Alert operations

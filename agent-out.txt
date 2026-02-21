@@ -1,0 +1,3 @@
+{"level":30,"time":1771583382157,"pid":17824,"hostname":"Asus_vivobook","version":"0.1.0","msg":"starting worker"}
+{"level":30,"time":1771583382216,"pid":17824,"hostname":"Asus_vivobook","msg":"Server is listening on port 8081"}
+{"level":30,"time":1771583382535,"pid":17824,"hostname":"Asus_vivobook","version":"0.1.0","id":"AW_X3TjYBwW7GaB","server_info":{"edition":"Cloud","version":"1.9.11","protocol":16,"region":"India South","nodeId":"NC_OHYDERABAD1A_n7TQ2BMTrKBX","debugInfo":"","agentProtocol":0},"msg":"registered worker"}

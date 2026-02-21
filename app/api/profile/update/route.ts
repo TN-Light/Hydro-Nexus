@@ -7,7 +7,7 @@ export async function PUT(request: NextRequest) {
     // Get the token from Authorization header or cookie
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '') || 
-                  request.cookies.get('hydro-nexus-token')?.value
+                  request.cookies.get('qbm-hydronet-token')?.value
 
     if (!token) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function PUT(request: NextRequest) {
     }
 
     // Verify JWT token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
     const userId = decoded.userId
 
     const { firstName, lastName, fullName } = await request.json()

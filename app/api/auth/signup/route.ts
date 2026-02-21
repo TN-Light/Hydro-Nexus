@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
       full_name: `${firstName} ${lastName}`,
       first_name: firstName,
       last_name: lastName,
-      role: 'user'
+      role: 'operator'
     })
 
     // Generate JWT token
@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
         username: newUser.username,
         role: newUser.role 
       },
-      process.env.JWT_SECRET || 'fallback-secret',
+      process.env.JWT_SECRET!,
       { expiresIn: '7d' }
     )
 

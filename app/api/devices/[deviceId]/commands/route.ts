@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { dbHelpers } from '@/lib/database'
+import { requireOperator } from '@/lib/auth-roles'
 
 // GET device commands (for ESP32 to poll)
 export async function GET(
@@ -54,11 +55,15 @@ export async function GET(
   }
 }
 
-// POST new command for device (from dashboard)
+// POST new command for device (from dashboard) — requires operator or admin role
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ deviceId: string }> }
 ) {
+  // Role check: only operators and admins can send device commands
+  const auth = requireOperator(request)
+  if (auth.error) return auth.error
+
   try {
     const { deviceId } = await params
     const commandData = await request.json()

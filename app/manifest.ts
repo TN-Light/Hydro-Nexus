@@ -2,9 +2,9 @@ import type { MetadataRoute } from "next"
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "Hydro Nexus - Precision Agriculture",
-    short_name: "HydroNexus",
-    description: "AI-powered precision agriculture platform for exotic crop cultivation",
+    name: "QBM-HydroNet - Quantum-Bio-Mycorrhizal Hydroponic Network",
+    short_name: "QBM-HydroNet",
+    description: "Maximize curcumin & capsaicin yield through AMF symbiosis, PAW stress protocols, and precision IoT monitoring.",
     start_url: "/",
     display: "standalone",
     background_color: "#fefdf9",

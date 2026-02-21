@@ -48,10 +48,10 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
     // Load dismissed alerts from localStorage on mount
     if (typeof window !== 'undefined') {
       try {
-        const userData = localStorage.getItem('hydro-nexus-user')
+        const userData = localStorage.getItem('qbm-hydronet-user')
         if (userData) {
           const user = JSON.parse(userData)
-          const stored = localStorage.getItem(`hydro-nexus-dismissed-alerts-${user.username}`)
+          const stored = localStorage.getItem(`qbm-hydronet-dismissed-alerts-${user.username}`)
           if (stored) {
             const data = JSON.parse(stored)
             // Filter out alerts older than 24 hours
@@ -77,7 +77,7 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
   const saveDismissedAlerts = useCallback((alertIds: Set<string>) => {
     if (typeof window !== 'undefined') {
       try {
-        const userData = localStorage.getItem('hydro-nexus-user')
+        const userData = localStorage.getItem('qbm-hydronet-user')
         if (userData) {
           const user = JSON.parse(userData)
           const dismissedData: Record<string, number> = {}
@@ -86,7 +86,7 @@ export function AlertPanel({ alerts }: AlertPanelProps) {
             dismissedData[id] = now
           })
           localStorage.setItem(
-            `hydro-nexus-dismissed-alerts-${user.username}`,
+            `qbm-hydronet-dismissed-alerts-${user.username}`,
             JSON.stringify(dismissedData)
           )
         }

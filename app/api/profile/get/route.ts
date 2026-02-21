@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
     // Get the token from Authorization header or cookie
     const authHeader = request.headers.get('authorization')
     const token = authHeader?.replace('Bearer ', '') || 
-                  request.cookies.get('hydro-nexus-token')?.value
+                  request.cookies.get('qbm-hydronet-token')?.value
 
     if (!token) {
       return NextResponse.json(
@@ -17,7 +17,7 @@ export async function GET(request: NextRequest) {
     }
 
     // Verify JWT token
-    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
     const userId = decoded.userId
 
     // Get user profile from database
@@ -40,12 +40,19 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Profile get error:', error)
-    
-    if (error.name === 'JsonWebTokenError') {
-      return NextResponse.json(
-        { error: 'Invalid authentication token' },
+
+    if (error?.name === 'TokenExpiredError' || error?.name === 'JsonWebTokenError') {
+      const response = NextResponse.json(
+        {
+          error:
+            error?.name === 'TokenExpiredError'
+              ? 'Authentication token expired'
+              : 'Invalid authentication token',
+        },
         { status: 401 }
       )
+      response.cookies.set('qbm-hydronet-token', '', { path: '/', maxAge: 0, sameSite: 'strict' })
+      return response
     }
 
     return NextResponse.json(

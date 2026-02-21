@@ -43,7 +43,7 @@ export async function POST(request: NextRequest) {
         username: user.username,
         role: user.role 
       },
-      process.env.JWT_SECRET || 'fallback-secret',
+      process.env.JWT_SECRET!,
       { expiresIn: '7d' }
     )
 

@@ -5,6 +5,9 @@
 -- This version works with existing data
 -- =====================================================
 
+-- Ensure TimescaleDB is available for hypertables
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+
 -- STEP 1: Create room_sensors table if it doesn't exist
 CREATE TABLE IF NOT EXISTS room_sensors (
     reading_id BIGSERIAL PRIMARY KEY,

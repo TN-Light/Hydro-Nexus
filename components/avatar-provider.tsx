@@ -19,7 +19,7 @@ export function AvatarProvider({ children }: { children: React.ReactNode }) {
     if (!user) return
     
     try {
-      const token = localStorage.getItem('hydro-nexus-token')
+      const token = localStorage.getItem('qbm-hydronet-token')
       if (!token) return
 
       const response = await fetch('/api/profile/get', {

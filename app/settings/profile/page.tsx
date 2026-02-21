@@ -52,7 +52,7 @@ export default function ProfilePage() {
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('hydro-nexus-token')}`
+            'Authorization': `Bearer ${localStorage.getItem('qbm-hydronet-token')}`
           },
           body: JSON.stringify({
             firstName: firstName || '',
@@ -115,7 +115,7 @@ export default function ProfilePage() {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
-              'Authorization': `Bearer ${localStorage.getItem('hydro-nexus-token')}`
+              'Authorization': `Bearer ${localStorage.getItem('qbm-hydronet-token')}`
             },
             body: JSON.stringify({
               avatarData: result
@@ -311,12 +311,12 @@ export default function ProfilePage() {
                 <div className="text-xs sm:text-sm text-black-950/70">Need Attention</div>
               </div>
             </div>
-            <Link href="/devices" className="w-full sm:w-auto">
+            <Link href="/stress-protocol" className="w-full sm:w-auto">
               <Button
                 variant="outline"
                 className="w-full sm:w-auto border-green-200 hover:border-green-400 bg-transparent text-sm sm:text-base"
               >
-                Manage Devices
+                Stress Protocol
               </Button>
             </Link>
           </div>

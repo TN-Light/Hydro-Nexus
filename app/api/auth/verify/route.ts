@@ -15,7 +15,7 @@ export async function POST(request: NextRequest) {
     const token = authHeader.substring(7)
     
     try {
-      const decoded = jwt.verify(token, process.env.JWT_SECRET || 'fallback-secret') as any
+      const decoded = jwt.verify(token, process.env.JWT_SECRET!) as any
       
       // Get fresh user data from database
       const user = await dbHelpers.findUserByUsername(decoded.username)

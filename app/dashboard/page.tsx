@@ -17,32 +17,53 @@ import {
   getPHStatus, 
   getECStatus, 
   getMoistureStatus, 
-  getWaterLevelStatus 
+  getWaterLevelStatus,
+  getAMFSymbiosisStatus,
+  calculateBioactiveIndex,
+  getBioactiveIndexStatus,
+  getPAWStressStatus,
 } from "@/lib/parameter-utils"
-import { Thermometer, Droplets, Zap, Activity, Wind, Beaker } from "lucide-react"
-import { useEffect, useState, useMemo, memo, Suspense } from "react"
-import { redirect } from "next/navigation"
+import { QBM_CROPS } from "@/lib/crop-database"
+import { Thermometer, Droplets, Zap, Activity, Wind, Beaker, FlaskConical, Waves, Award } from "lucide-react"
+import { useEffect, useState, useMemo, useRef, useCallback } from "react"
+import { usePersistedState } from "@/hooks/use-persisted-state"
 import ErrorBoundary from "@/components/error-boundary"
-
-// Memoized components to prevent unnecessary re-renders
-const MemoizedSensorCard = memo(SensorCard)
-const MemoizedQuickActions = memo(QuickActions)
-const MemoizedAlertPanel = memo(AlertPanel)
 
 export default function DashboardPage() {
   const { user, isLoading, isAuthenticated } = useAuth()
   const { sensorData, isConnected, isRealData, alerts } = useRealtime()
   const { toast } = useToast()
-  const [selectedGrowBag, setSelectedGrowBag] = useState("grow-bag-1")
+  const [selectedGrowBag, setSelectedGrowBag] = usePersistedState("dash:selectedGrowBag", "grow-bag-1")
   const [historicalData, setHistoricalData] = useState<any>(null)
   const [isLoadingHistory, setIsLoadingHistory] = useState(false)
   const [crops, setCrops] = useState<any[]>([])
   const [deviceCrops, setDeviceCrops] = useState<Record<string, any>>({})
   const [isChangingCrop, setIsChangingCrop] = useState(false)
+  // QBM: manual phosphorus readings per bag (loaded from DB)
+  const [manualPhosphorus, setManualPhosphorus] = useState<Record<string, number | null>>({})
+  // QBM: accumulated GDD per bag (loaded from DB)
+  const [accumulatedGDD, setAccumulatedGDD] = useState<Record<string, number>>({})
+  // QBM: harvest dates per bag
+  const [harvestDates, setHarvestDates] = useState<Record<string, Date | null>>({})
 
-  // Memoize expensive calculations
+  // Load QBM grow-cycle data from DB for the selected bag
+  useEffect(() => {
+    if (!isAuthenticated || !selectedGrowBag) return
+    fetch(`/api/grow-cycle?deviceId=${selectedGrowBag}`)
+      .then(r => r.ok ? r.json() : null)
+      .then(data => {
+        if (!data) return
+        setManualPhosphorus(prev => ({ ...prev, [selectedGrowBag]: data.phosphorus_ppm ?? null }))
+        setAccumulatedGDD(prev => ({ ...prev, [selectedGrowBag]: parseFloat(data.accumulated_gdd) || 0 }))
+        setHarvestDates(prev => ({ ...prev, [selectedGrowBag]: data.harvest_date ? new Date(data.harvest_date) : null }))
+      })
+      .catch(() => { /* ignore — show defaults */ })
+  }, [isAuthenticated, selectedGrowBag])
   const currentData = useMemo(() => sensorData[selectedGrowBag], [sensorData, selectedGrowBag])
-  const growBagIds = useMemo(() => Object.keys(sensorData), [sensorData])
+
+  // Stabilize growBagIds via JSON key comparison so it doesn't re-trigger fetchDeviceCrops every poll cycle
+  const growBagIdsKey = useMemo(() => JSON.stringify(Object.keys(sensorData).sort()), [sensorData])
+  const growBagIds = useMemo(() => JSON.parse(growBagIdsKey) as string[], [growBagIdsKey])
 
   // Fetch available crops on mount
   useEffect(() => {
@@ -89,7 +110,7 @@ export default function DashboardPage() {
   }, [isAuthenticated, growBagIds])
 
   // Handle crop change for a device
-  const handleCropChange = async (deviceId: string, cropId: number) => {
+  const handleCropChange = async (deviceId: string, cropId: string) => {
     setIsChangingCrop(true)
     try {
       const response = await fetch(`/api/devices/${deviceId}/crop`, {
@@ -109,7 +130,7 @@ export default function DashboardPage() {
 
         toast({
           title: "Crop Updated",
-          description: `Device ${deviceId} is now growing ${crops.find(c => c.id === cropId)?.name}`,
+          description: `Device ${deviceId} is now growing ${crops.find(c => c.id === cropId)?.name ?? cropId}`,
         })
       } else {
         throw new Error('Failed to update crop')
@@ -221,15 +242,15 @@ export default function DashboardPage() {
           <p className="text-muted-foreground">Real-time monitoring for {growBagIds.length} grow bags</p>
         </div>
           <div className="flex items-center gap-2 flex-wrap">
-            <Badge variant={isConnected ? "default" : "destructive"}>
-              {isConnected ? "🟢 Connected" : "🔴 Disconnected"}
-            </Badge>
-            <Badge 
-              variant={isRealData ? "default" : "secondary"}
-              className={isRealData ? "bg-green-600 hover:bg-green-700" : "bg-amber-500 hover:bg-amber-600"}
-            >
-              {isRealData ? "📡 Live ESP32 Data" : "🎭 Demo Mode"}
-            </Badge>
+            {isRealData ? (
+              <Badge className="bg-green-600 hover:bg-green-700 text-white">
+                🟢 ESP32 Connected — Live Data
+              </Badge>
+            ) : (
+              <Badge className="bg-amber-500 hover:bg-amber-600 text-white">
+                🎭 Demo Mode — ESP32 Disconnected
+              </Badge>
+            )}
             <Badge variant="outline">
               Last update: {currentData ? new Date(currentData.timestamp).toLocaleTimeString() : "N/A"}
             </Badge>
@@ -277,7 +298,7 @@ export default function DashboardPage() {
                   </div>
                   <Select
                     value={deviceCrops[selectedGrowBag]?.cropId?.toString() || ""}
-                    onValueChange={(value) => handleCropChange(selectedGrowBag, parseInt(value))}
+                    onValueChange={(value) => handleCropChange(selectedGrowBag, value)}
                     disabled={isChangingCrop}
                   >
                     <SelectTrigger className="w-full sm:w-[200px]">
@@ -311,7 +332,7 @@ export default function DashboardPage() {
               unit="°C"
               icon={Thermometer}
               status={getTemperatureStatus(currentData.roomTemp, selectedGrowBag)}
-              trend={Math.random() > 0.5 ? "up" : "down"}
+              trend={"stable"}
               data={getChartData('roomTemp')}
             />
 
@@ -321,7 +342,7 @@ export default function DashboardPage() {
               unit=""
               icon={Beaker}
               status={getPHStatus(currentData.pH, selectedGrowBag)}
-              trend={Math.random() > 0.5 ? "up" : "down"}
+              trend={"stable"}
               data={getChartData('pH')}
             />
 
@@ -331,7 +352,7 @@ export default function DashboardPage() {
               unit="mS/cm"
               icon={Zap}
               status={getECStatus(currentData.ec, selectedGrowBag)}
-              trend={Math.random() > 0.5 ? "up" : "down"}
+              trend={"stable"}
               data={getChartData('ec')}
             />
 
@@ -341,7 +362,7 @@ export default function DashboardPage() {
               unit="%"
               icon={Droplets}
               status={getMoistureStatus(currentData.moisture)}
-              trend={Math.random() > 0.5 ? "up" : "down"}
+              trend={"stable"}
               data={getChartData('moisture')}
             />
 
@@ -364,7 +385,7 @@ export default function DashboardPage() {
               unit="%"
               icon={Wind}
               status={getHumidityStatus(currentData.humidity, selectedGrowBag)}
-              trend={Math.random() > 0.5 ? "up" : "down"}
+              trend={"stable"}
               data={getChartData('humidity')}
             />
           </div>
@@ -372,6 +393,132 @@ export default function DashboardPage() {
 
         {/* Quick Actions */}
         <QuickActions selectedGrowBag={selectedGrowBag} />
+
+        {/* ═══════════════════════════════════════ */}
+        {/* QBM Intelligence Panel                  */}
+        {/* ═══════════════════════════════════════ */}
+        {(() => {
+          const cropInfo = deviceCrops[selectedGrowBag]
+          const qbmCrop = QBM_CROPS.find(c => c.name === cropInfo?.cropName || c.id === cropInfo?.cropSlug)
+          const phosphorusPpm = manualPhosphorus[selectedGrowBag] ?? null
+          const amfStatus = getAMFSymbiosisStatus(phosphorusPpm)
+          const gdd = accumulatedGDD[selectedGrowBag] ?? 0
+          const gddTarget = qbmCrop?.gdd_profile?.target_gdd_max ?? 2200
+          const gddMin = qbmCrop?.gdd_profile?.target_gdd_min ?? 1800
+          const gddProgress = Math.min(100, Math.round((gdd / gddTarget) * 100))
+          const harvestDate = harvestDates[selectedGrowBag] ?? null
+          const daysUntilHarvest = harvestDate ? Math.round((harvestDate.getTime() - Date.now()) / 86400000) : null
+          const pawStatus = getPAWStressStatus({ isActive: false, h2o2ConcentrationUm: null, applicationsThisWeek: 0, daysUntilHarvest })
+          const bioactiveIndex = calculateBioactiveIndex({
+            gddProgressPercent: gddProgress,
+            pawApplicationsCount: 0,
+            pawApplicationsTarget: 8,
+            pCompliantDays: 0,
+            totalCycleDays: 1,
+          })
+          const bioactiveType = qbmCrop?.bioactive_type === "capsaicin" ? "capsaicin" : "curcumin"
+          const bioStatus = getBioactiveIndexStatus(bioactiveIndex, bioactiveType)
+
+          return (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FlaskConical className="h-5 w-5 text-emerald-600" />
+                  QBM Intelligence — {selectedGrowBag.replace("grow-bag-", "Bag ")}
+                  {qbmCrop && <Badge variant="outline" className="ml-2 text-xs">{qbmCrop.name}</Badge>}
+                </CardTitle>
+                <CardDescription>AMF symbiosis · PAW protocol · Bioactive accumulation index</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+
+                  {/* AMF Status */}
+                  <div className={`p-4 rounded border ${
+                    amfStatus.color === "green" ? "border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30"
+                    : amfStatus.color === "yellow" ? "border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30"
+                    : amfStatus.color === "red" ? "border-red-200 bg-red-50 dark:bg-red-950/30"
+                    : amfStatus.color === "orange" ? "border-orange-200 bg-orange-50 dark:bg-orange-950/30"
+                    : "border-gray-200 bg-gray-50 dark:bg-gray-800/30"
+                  }`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <FlaskConical className="h-4 w-4" />
+                      <span className="text-xs font-semibold uppercase tracking-wide">AMF Symbiosis</span>
+                    </div>
+                    <div className="font-bold text-sm">{amfStatus.label}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{amfStatus.description}</div>
+                    {phosphorusPpm === null && (
+                      <div className="text-xs text-muted-foreground mt-2 italic">
+                        Log P reading in Settings → AMF / P tab
+                      </div>
+                    )}
+                  </div>
+
+                  {/* PAW Protocol */}
+                  <div className={`p-4 rounded border ${
+                    pawStatus.color === "green" ? "border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30"
+                    : pawStatus.color === "yellow" ? "border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30"
+                    : "border-gray-200 bg-gray-50 dark:bg-gray-800/30"
+                  }`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Waves className="h-4 w-4" />
+                      <span className="text-xs font-semibold uppercase tracking-wide">PAW Protocol</span>
+                    </div>
+                    <div className="font-bold text-sm">{pawStatus.label}</div>
+                    <div className="text-xs text-muted-foreground mt-1">{pawStatus.description}</div>
+                    {daysUntilHarvest === null && (
+                      <div className="text-xs text-muted-foreground mt-2 italic">
+                        Set harvest date in Settings → PAW Protocol
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Bioactive Index */}
+                  <div className={`p-4 rounded border ${
+                    bioStatus.color === "green" ? "border-emerald-200 bg-emerald-50 dark:bg-emerald-950/30"
+                    : bioStatus.color === "orange" ? "border-orange-200 bg-orange-50 dark:bg-orange-950/30"
+                    : bioStatus.color === "yellow" ? "border-yellow-200 bg-yellow-50 dark:bg-yellow-950/30"
+                    : "border-gray-200 bg-gray-50 dark:bg-gray-800/30"
+                  }`}>
+                    <div className="flex items-center gap-2 mb-1">
+                      <Award className="h-4 w-4" />
+                      <span className="text-xs font-semibold uppercase tracking-wide">Bioactive Index</span>
+                    </div>
+                    <div className="flex items-end gap-2">
+                      <span className="font-bold text-2xl">{bioactiveIndex}</span>
+                      <span className="text-xs text-muted-foreground mb-1">/ 100</span>
+                    </div>
+                    <div className="font-medium text-sm">{bioStatus.label}</div>
+                    <div className="text-xs text-muted-foreground mt-1">Est. {bioStatus.estimate}</div>
+                    {/* Progress bar */}
+                    <div className="mt-2 h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                      <div className="h-2 rounded-full bg-emerald-500 transition-all" style={{ width: `${bioactiveIndex}%` }} />
+                    </div>
+                  </div>
+
+                </div>
+
+                {/* GDD Progress */}
+                <div className="mt-4 p-3 rounded border border-border bg-muted/30">
+                  <div className="flex justify-between items-center mb-1">
+                    <span className="text-xs font-semibold uppercase tracking-wide">GDD Progress</span>
+                    <span className="text-xs text-muted-foreground">
+                      {gdd.toFixed(0)} / {gddMin}–{gddTarget} °C·days
+                    </span>
+                  </div>
+                  <div className="h-2 rounded-full bg-gray-200 dark:bg-gray-700">
+                    <div
+                      className={`h-2 rounded-full transition-all ${gddProgress >= 100 ? "bg-green-500" : gddProgress > 70 ? "bg-yellow-500" : "bg-blue-500"}`}
+                      style={{ width: `${gddProgress}%` }}
+                    />
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1">
+                    {gddProgress}% · {gdd >= gddMin ? "HARVEST WINDOW" : `${(gddMin - gdd).toFixed(0)} GDD until harvest window`}
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )
+        })()}
 
         {/* Alerts Panel */}
         <AlertPanel alerts={alerts.slice(0, 10)} />

@@ -153,6 +153,11 @@ CREATE TABLE sensor_readings (
     raw_data JSONB -- for any additional sensor data
 );
 
+-- TimescaleDB best practice: primary key/unique indexes should include the time column.
+-- Convert to composite primary key to allow hypertable conversion without errors.
+ALTER TABLE sensor_readings DROP CONSTRAINT IF EXISTS sensor_readings_pkey;
+ALTER TABLE sensor_readings ADD CONSTRAINT sensor_readings_pkey PRIMARY KEY (reading_id, timestamp);
+
 -- Create index on device_id and timestamp for faster queries
 CREATE INDEX idx_sensor_readings_device_timestamp 
 ON sensor_readings(device_id, timestamp);
@@ -173,7 +178,10 @@ CREATE TABLE alerts (
     threshold_type VARCHAR(20), -- 'warning' (±2), 'alert' (±4), 'system_error'
     acknowledged BOOLEAN DEFAULT FALSE,
     acknowledged_by UUID REFERENCES users(user_id) ON DELETE SET NULL,
-    acknowledged_at TIMESTAMP WITH TIME ZONE
+    acknowledged_at TIMESTAMP WITH TIME ZONE,
+    resolved_at TIMESTAMP WITH TIME ZONE,
+    resolved_by UUID REFERENCES users(user_id) ON DELETE SET NULL,
+    dismissed_by UUID[] DEFAULT '{}'
 );
 
 -- Daily aggregated statistics for faster analytics queries
@@ -282,10 +290,12 @@ WHERE sr.timestamp = (
 -- Active alerts view (updated with new severity system)
 CREATE OR REPLACE VIEW active_alerts AS
 SELECT a.alert_id, a.device_id, d.name AS device_name, 
-    a.timestamp, a.message, a.severity, a.parameter, a.value, a.threshold_type
+    a.timestamp, a.message, a.severity, a.parameter, a.value, a.threshold_type,
+    a.dismissed_by
 FROM alerts a
 JOIN devices d ON a.device_id = d.device_id
 WHERE a.acknowledged = FALSE
+  AND a.resolved_at IS NULL
 ORDER BY 
     CASE a.severity 
         WHEN 'error' THEN 1
@@ -504,6 +514,7 @@ EXECUTE FUNCTION auto_check_thresholds();
 -- Create an index for faster alert queries
 CREATE INDEX idx_alerts_device_acknowledged ON alerts(device_id, acknowledged);
 CREATE INDEX idx_alerts_severity_timestamp ON alerts(severity, timestamp DESC);
+CREATE INDEX IF NOT EXISTS idx_alerts_dismissed ON alerts USING GIN (dismissed_by);
 
 -- Create index for faster daily stats queries
 CREATE INDEX idx_daily_stats_device_date ON daily_stats(device_id, date);

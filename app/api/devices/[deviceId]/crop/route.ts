@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { Pool } from 'pg'
+import { QBM_CROPS } from '@/lib/crop-database'
 
 // Database connection pool
 const pool = new Pool({
@@ -10,12 +11,22 @@ const pool = new Pool({
   connectionTimeoutMillis: 2000,
 })
 
+/** Ensure qbm_crop_slug column exists on devices table (cached — runs only once per process) */
+let _columnEnsured = false
+async function ensureColumn() {
+  if (_columnEnsured) return
+  await pool.query(
+    `ALTER TABLE devices ADD COLUMN IF NOT EXISTS qbm_crop_slug VARCHAR(60)`
+  )
+  _columnEnsured = true
+}
+
 /**
  * POST /api/devices/[deviceId]/crop
- * Update the crop type for a specific device
- * 
+ * Assign a QBM crop to a device (by string slug)
+ *
  * Body:
- * - cropId: The crop_id from crop_types table
+ * - cropId: string slug e.g. "turmeric" | "bhut-jolokia" | "aji-charapita" | "kanthari"
  */
 export async function POST(
   request: NextRequest,
@@ -24,47 +35,49 @@ export async function POST(
   try {
     const { deviceId } = await params
     const body = await request.json()
-    const { cropId } = body
+    const { cropId } = body as { cropId: string }
 
     if (!cropId) {
+      return NextResponse.json({ error: 'cropId is required' }, { status: 400 })
+    }
+
+    const crop = QBM_CROPS.find(c => c.id === cropId)
+    if (!crop) {
       return NextResponse.json(
-        { error: 'cropId is required' },
+        { error: `Unknown QBM crop: ${cropId}` },
         { status: 400 }
       )
     }
 
-    console.log(`🌱 Updating device ${deviceId} crop to ${cropId}`)
+    console.log(`🌱 Assigning QBM crop "${cropId}" to device ${deviceId}`)
 
-    // Update device crop_id
-    const query = `
-      UPDATE devices
-      SET crop_id = $1, updated_at = CURRENT_TIMESTAMP
-      WHERE device_id = $2
-      RETURNING device_id, name, crop_id
-    `
+    await ensureColumn()
 
-    const result = await pool.query(query, [cropId, deviceId])
+    const result = await pool.query(
+      `UPDATE devices SET qbm_crop_slug = $1, updated_at = CURRENT_TIMESTAMP
+       WHERE device_id = $2
+       RETURNING device_id, name, qbm_crop_slug`,
+      [cropId, deviceId]
+    )
 
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { error: 'Device not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Device not found' }, { status: 404 })
     }
 
-    console.log(`✅ Device ${deviceId} crop updated to ${cropId}`)
+    console.log(`✅ Device ${deviceId} assigned QBM crop "${cropId}"`)
 
     return NextResponse.json({
       success: true,
       device: result.rows[0],
-      message: 'Crop type updated successfully'
+      crop: { id: crop.id, name: crop.name },
+      message: 'Crop assigned successfully'
     })
 
   } catch (error) {
-    console.error('❌ Error updating device crop:', error)
+    console.error('❌ Error assigning device crop:', error)
     return NextResponse.json(
-      { 
-        error: 'Failed to update device crop',
+      {
+        error: 'Failed to assign device crop',
         details: error instanceof Error ? error.message : 'Unknown error'
       },
       { status: 500 }
@@ -74,7 +87,7 @@ export async function POST(
 
 /**
  * GET /api/devices/[deviceId]/crop
- * Get the current crop type for a device
+ * Get the QBM crop assigned to a device
  */
 export async function GET(
   request: NextRequest,
@@ -83,63 +96,45 @@ export async function GET(
   try {
     const { deviceId } = await params
 
-    console.log(`📋 Fetching crop for device ${deviceId}`)
+    console.log(`📋 Fetching QBM crop for device ${deviceId}`)
 
-    const query = `
-      SELECT 
-        d.device_id,
-        d.name as device_name,
-        d.crop_id,
-        ct.name as crop_name,
-        ct.optimal_ph_min,
-        ct.optimal_ph_max,
-        ct.optimal_ec_min,
-        ct.optimal_ec_max,
-        ct.optimal_temp_min,
-        ct.optimal_temp_max,
-        ct.optimal_humidity_min,
-        ct.optimal_humidity_max,
-        ct.optimal_substrate_moisture_min,
-        ct.optimal_substrate_moisture_max,
-        ct.growing_notes
-      FROM devices d
-      LEFT JOIN crop_types ct ON d.crop_id = ct.crop_id
-      WHERE d.device_id = $1
-    `
+    await ensureColumn()
 
-    const result = await pool.query(query, [deviceId])
+    const result = await pool.query(
+      `SELECT device_id, name, qbm_crop_slug FROM devices WHERE device_id = $1`,
+      [deviceId]
+    )
 
     if (result.rows.length === 0) {
-      return NextResponse.json(
-        { error: 'Device not found' },
-        { status: 404 }
-      )
+      return NextResponse.json({ error: 'Device not found' }, { status: 404 })
     }
 
     const row = result.rows[0]
+    const slug: string | null = row.qbm_crop_slug
+    const crop = slug ? QBM_CROPS.find(c => c.id === slug) : null
 
     return NextResponse.json({
       success: true,
       device: {
         id: row.device_id,
-        name: row.device_name,
-        cropId: row.crop_id,
-        cropName: row.crop_name,
-        optimalRanges: row.crop_id ? {
-          pH: { min: parseFloat(row.optimal_ph_min), max: parseFloat(row.optimal_ph_max) },
-          ec: { min: parseFloat(row.optimal_ec_min), max: parseFloat(row.optimal_ec_max) },
-          temperature: { min: parseFloat(row.optimal_temp_min), max: parseFloat(row.optimal_temp_max) },
-          humidity: { min: parseInt(row.optimal_humidity_min), max: parseInt(row.optimal_humidity_max) },
-          moisture: { min: parseInt(row.optimal_substrate_moisture_min), max: parseInt(row.optimal_substrate_moisture_max) }
+        name: row.name,
+        cropId: slug ?? null,
+        cropName: crop?.name ?? null,
+        optimalRanges: crop ? {
+          pH:          { min: crop.parameters.pH.min,                  max: crop.parameters.pH.max },
+          ec:          { min: crop.parameters.ec.min,                  max: crop.parameters.ec.max },
+          temperature: { min: crop.parameters.temperature.min,         max: crop.parameters.temperature.max },
+          humidity:    { min: crop.parameters.humidity_vegetative.min, max: crop.parameters.humidity_vegetative.max },
+          moisture:    { min: crop.parameters.substrate_moisture.min,  max: crop.parameters.substrate_moisture.max },
         } : null,
-        notes: row.growing_notes
+        notes: crop?.substrate_notes ?? null
       }
     })
 
   } catch (error) {
     console.error('❌ Error fetching device crop:', error)
     return NextResponse.json(
-      { 
+      {
         error: 'Failed to fetch device crop',
         details: error instanceof Error ? error.message : 'Unknown error'
       },

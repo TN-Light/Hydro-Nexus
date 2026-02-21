@@ -51,10 +51,14 @@ COMMENT ON COLUMN user_parameters.crop_id IS 'Links parameters to specific crop 
 COMMENT ON COLUMN user_parameters.parameter_ranges IS 'JSONB storing parameter ranges like: {"temperature": {"min": 20, "max": 28}, "pH": {"min": 5.5, "max": 6.8}, ...}';
 
 -- Insert default parameters for existing users (if any)
-INSERT INTO user_parameters (user_id, device_id, parameter_ranges)
+-- NOTE: ON CONFLICT target must match an existing UNIQUE/EXCLUSION constraint.
+-- This table is unique on (user_id, device_id, crop_id), so we insert crop_id=NULL and
+-- use that as the conflict target.
+INSERT INTO user_parameters (user_id, device_id, crop_id, parameter_ranges)
 SELECT 
     user_id,
     NULL as device_id, -- "all devices" default
+    NULL as crop_id,
     '{
         "temperature": {"min": 20, "max": 28},
         "humidity": {"min": 60, "max": 80},
@@ -69,7 +73,7 @@ SELECT
         "iron": {"min": 2, "max": 5}
     }'::jsonb as parameter_ranges
 FROM users
-ON CONFLICT (user_id, device_id) DO NOTHING;
+ON CONFLICT (user_id, device_id, crop_id) DO NOTHING;
 
 -- Success message
 DO $$

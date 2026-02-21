@@ -1,6 +1,6 @@
 import DashboardLayout from "@/components/dashboard-layout"
 
-export default function DevicesLayout({
+export default function QualityCertificateLayout({
   children,
 }: {
   children: React.ReactNode

@@ -51,11 +51,11 @@ export default function LoginPage() {
         <div className="text-center mb-6 sm:mb-8">
           <Link href="/" className="inline-flex items-center space-x-2 mb-4">
             <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-            <span className="text-xl sm:text-2xl font-bold text-foreground">Hydro Nexus</span>
+            <span className="text-xl sm:text-2xl font-bold text-foreground">QBM-HydroNet</span>
           </Link>
           <h1 className="text-xl sm:text-2xl font-bold text-foreground">Welcome Back</h1>
           <p className="text-muted-foreground mt-2 text-sm sm:text-base">
-            Sign in to your precision agriculture dashboard
+            Sign in to your QBM-HydroNet control system
           </p>
         </div>
 
@@ -143,7 +143,7 @@ export default function LoginPage() {
                 Username: <code className="bg-primary/20 px-1 rounded text-xs">admin</code>
               </p>
               <p className="text-xs sm:text-sm text-primary/90">
-                Password: <code className="bg-primary/20 px-1 rounded text-xs">hydro123</code>
+                Password: <code className="bg-primary/20 px-1 rounded text-xs">Abhi</code>
               </p>
             </div>
           </CardContent>

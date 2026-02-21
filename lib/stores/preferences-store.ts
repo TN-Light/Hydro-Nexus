@@ -45,7 +45,7 @@ interface PreferencesStore {
 // Helper function to get auth token
 const getAuthToken = () => {
   if (typeof window !== 'undefined') {
-    return localStorage.getItem('hydro-nexus-token')
+    return localStorage.getItem('qbm-hydronet-token')
   }
   return null
 }

@@ -180,7 +180,7 @@ export default function AnalyticsPage() {
     if (link.download !== undefined) {
       const url = URL.createObjectURL(blob)
       link.setAttribute('href', url)
-      link.setAttribute('download', `hydro-nexus-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`)
+      link.setAttribute('download', `qbm-hydronet-analytics-${format(new Date(), 'yyyy-MM-dd')}.csv`)
       link.style.visibility = 'hidden'
       document.body.appendChild(link)
       link.click()

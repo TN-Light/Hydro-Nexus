@@ -1,23 +1,14 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { Pool } from 'pg'
-import * as jwt from 'jsonwebtoken'
+import { db } from '@/lib/database'
+import jwt from 'jsonwebtoken'
 
-// Database connection pool
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: process.env.NODE_ENV === 'production' ? { rejectUnauthorized: false } : undefined,
-  max: 20,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
-})
-
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production'
+const JWT_SECRET = process.env.JWT_SECRET!
 
 // Helper function to verify JWT token and get user_id
 function getUserIdFromToken(request: NextRequest): string | null {
   try {
     // Try to get token from cookie first (middleware sets this)
-    let token = request.cookies.get('hydro-nexus-token')?.value
+    let token = request.cookies.get('qbm-hydronet-token')?.value
     
     // Fallback to Authorization header
     if (!token) {
@@ -85,7 +76,7 @@ export async function GET(request: NextRequest) {
       LIMIT 1
     `
 
-    const result = await pool.query(query, [userId, deviceId, cropId ? parseInt(cropId) : null])
+    const result = await db.query(query, [userId, deviceId, cropId ? parseInt(cropId) : null])
 
     if (result.rows.length === 0) {
       // Return default parameters if none exist
@@ -175,7 +166,7 @@ export async function POST(request: NextRequest) {
       RETURNING parameter_id, updated_at
     `
 
-    const result = await pool.query(query, [
+    const result = await db.query(query, [
       userId,
       deviceId, // Can be null for "all devices"
       cropId || null, // Can be null for generic parameters
@@ -201,3 +192,4 @@ export async function POST(request: NextRequest) {
     )
   }
 }
+

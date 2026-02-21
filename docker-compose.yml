@@ -1,0 +1,18 @@
+services:
+  db:
+    image: timescale/timescaledb:latest-pg16
+    container_name: hydro-timescaledb
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hydro123
+      POSTGRES_DB: hydro_nexus
+    volumes:
+      - hydro_timescale_data:/var/lib/postgresql/data
+      - ./db/init:/docker-entrypoint-initdb.d:ro
+      - ./:/workspace:ro
+    restart: unless-stopped
+
+volumes:
+  hydro_timescale_data:

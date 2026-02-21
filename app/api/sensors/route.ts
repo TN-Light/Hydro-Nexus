@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url)
     const deviceId = searchParams.get('deviceId')
 
-    const readings = await dbHelpers.getLatestSensorReadings(deviceId || undefined)
+    const readings = await dbHelpers.getLatestSensorReadings(deviceId ? [deviceId] : undefined)
 
     return NextResponse.json(readings)
 

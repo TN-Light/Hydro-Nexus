@@ -12,7 +12,7 @@ export default function HomePage() {
         <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center space-x-2">
             <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-            <span className="text-xl sm:text-2xl font-bold text-foreground">Hydro Nexus</span>
+            <span className="text-xl sm:text-2xl font-bold text-foreground">QBM-HydroNet</span>
           </div>
           <nav className="hidden md:flex items-center space-x-4 lg:space-x-6">
             <Link
@@ -51,16 +51,16 @@ export default function HomePage() {
       <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8">
         <div className="container mx-auto text-center max-w-screen-xl">
           <Badge className="mb-4 sm:mb-6" variant="secondary">
-            🌱 Precision Agriculture Platform
+            🌱 QBM-HydroNet — Hydroponic Management Platform
           </Badge>
           <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl font-bold text-foreground mb-4 sm:mb-6 leading-tight">
-            Optimize Exotic Crop
+            Intelligent Control for
             <br />
-            <span className="text-primary">Cultivation with AI</span>
+            <span className="text-primary">High-Value Crop Production</span>
           </h1>
           <p className="text-lg sm:text-xl text-muted-foreground mb-6 sm:mb-8 max-w-full sm:max-w-2xl lg:max-w-3xl mx-auto px-4">
-            Harness the power of integrated subsurface drip hydroponics, artificial intelligence, and IoT sensors to
-            maximize yield and minimize resource consumption.
+            Monitor, automate, and optimise your hydroponic facility with real-time sensor data,
+            AI-powered recommendations, and certified quality reporting.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center max-w-md sm:max-w-none mx-auto">
             <Link href="/login" className="w-full sm:w-auto">
@@ -90,10 +90,11 @@ export default function HomePage() {
         <div className="container mx-auto max-w-screen-xl">
           <div className="text-center mb-12 sm:mb-16">
             <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold text-foreground mb-4">
-              Complete Hydroponic Management
+              Complete Hydroponic Facility Management
             </h2>
             <p className="text-lg sm:text-xl text-muted-foreground max-w-full sm:max-w-xl lg:max-w-2xl mx-auto px-4">
-              Everything you need to monitor, analyze, and optimize your precision agriculture operation.
+              Everything you need to manage your grow operation — sensor monitoring, nutrient optimisation,
+              environmental control, and quality certification.
             </p>
           </div>
 
@@ -235,11 +236,10 @@ export default function HomePage() {
       <section className="py-12 sm:py-16 lg:py-20 px-4 sm:px-6 lg:px-8 bg-primary text-primary-foreground">
         <div className="container mx-auto text-center max-w-screen-xl">
           <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-4 sm:mb-6">
-            Ready to Transform Your Agriculture?
+            Ready to Take Control of Your Operation?
           </h2>
           <p className="text-lg sm:text-xl text-primary-foreground/80 mb-6 sm:mb-8 max-w-full sm:max-w-xl lg:max-w-2xl mx-auto px-4">
-            Join the precision agriculture revolution with Hydro Nexus. Start optimizing your exotic crop cultivation
-            today.
+            Join QBM-HydroNet and manage your hydroponic facility with precision monitoring, automated alerts, and verified quality outputs.
           </p>
           <Link href="/login">
             <Button size="lg" variant="secondary" className="px-6 sm:px-8 py-3 sm:py-4">
@@ -257,10 +257,10 @@ export default function HomePage() {
             <div className="sm:col-span-2 md:col-span-1">
               <div className="flex items-center space-x-2 mb-4">
                 <Leaf className="h-5 w-5 sm:h-6 sm:w-6 text-primary" />
-                <span className="text-lg sm:text-xl font-bold text-foreground">Hydro Nexus</span>
+                <span className="text-lg sm:text-xl font-bold text-foreground">QBM-HydroNet</span>
               </div>
               <p className="text-muted-foreground text-sm sm:text-base">
-                Precision agriculture platform for the future of farming.
+                Advanced hydroponic management platform for precision crop cultivation and quality-certified production.
               </p>
             </div>
             <div>
@@ -277,8 +277,8 @@ export default function HomePage() {
                   </Link>
                 </li>
                 <li>
-                  <Link href="/devices" className="hover:text-primary transition-colors">
-                    Devices
+                  <Link href="/stress-protocol" className="hover:text-primary transition-colors">
+                    Stress Protocol
                   </Link>
                 </li>
                 <li>
@@ -340,7 +340,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="border-t mt-6 sm:mt-8 pt-6 sm:pt-8 text-center text-muted-foreground text-sm sm:text-base">
-            <p>&copy; 2024 Hydro Nexus. All rights reserved.</p>
+            <p>&copy; 2026 QBM-HydroNet. All rights reserved.</p>
           </div>
         </div>
       </footer>

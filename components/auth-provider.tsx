@@ -39,25 +39,81 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const router = useRouter()
 
   useEffect(() => {
-    // Check for stored auth token in both localStorage and cookies
-    const token = localStorage.getItem("hydro-nexus-token")
-    const userData = localStorage.getItem("hydro-nexus-user")
-    
-    // Also check cookie for server-side middleware
-    const cookieToken = document.cookie
-      .split('; ')
-      .find(row => row.startsWith('hydro-nexus-token='))
-      ?.split('=')[1]
+    let cancelled = false
 
-    if ((token || cookieToken) && userData) {
-      setUser(JSON.parse(userData))
-      
-      // Ensure both localStorage and cookie are set
-      if (token && !cookieToken) {
-        document.cookie = `hydro-nexus-token=${token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
-      }
+    const clearAuthState = () => {
+      localStorage.removeItem("qbm-hydronet-token")
+      localStorage.removeItem("qbm-hydronet-user")
+      document.cookie = "qbm-hydronet-token=; path=/; max-age=0; SameSite=Strict"
+      setUser(null)
     }
-    setIsLoading(false)
+
+    const bootstrapAuth = async () => {
+      // Check for stored auth token in both localStorage and cookies
+      const token = localStorage.getItem("qbm-hydronet-token")
+      const userData = localStorage.getItem("qbm-hydronet-user")
+
+      // Also check cookie for server-side middleware
+      const cookieToken = document.cookie
+        .split('; ')
+        .find(row => row.startsWith('qbm-hydronet-token='))
+        ?.split('=')[1]
+
+      // If we have cached user data, show it immediately.
+      if ((token || cookieToken) && userData) {
+        try {
+          setUser(JSON.parse(userData))
+        } catch {
+          // ignore parse errors; we'll re-validate below
+        }
+      }
+
+      // Ensure both localStorage and cookie are set (for middleware)
+      if (token && !cookieToken) {
+        document.cookie = `qbm-hydronet-token=${token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
+      }
+
+      // Validate token with the server so expired tokens don't keep the UI "logged in".
+      const effectiveToken = token || cookieToken
+      if (effectiveToken) {
+        try {
+          const response = await fetch('/api/auth/verify', {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${effectiveToken}`,
+            },
+          })
+
+          if (response.ok) {
+            const verifiedUser = await response.json()
+            const nextUserData = {
+              username: verifiedUser.username,
+              role: verifiedUser.role,
+              lastLogin: new Date().toISOString(),
+              firstName: verifiedUser.first_name,
+              lastName: verifiedUser.last_name,
+              email: verifiedUser.email,
+            }
+            localStorage.setItem("qbm-hydronet-user", JSON.stringify(nextUserData))
+            if (!cancelled) setUser(nextUserData)
+          } else if (response.status === 401 || response.status === 404) {
+            clearAuthState()
+            if (window.location.pathname !== '/login') {
+              window.location.href = '/login'
+            }
+          }
+        } catch {
+          // Network/server errors: don't aggressively log out.
+        }
+      }
+
+      if (!cancelled) setIsLoading(false)
+    }
+
+    bootstrapAuth()
+    return () => {
+      cancelled = true
+    }
   }, [])
 
   const login = useCallback(async (username: string, password: string): Promise<boolean> => {
@@ -83,11 +139,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Store token and user data
-        localStorage.setItem("hydro-nexus-token", data.token)
-        localStorage.setItem("hydro-nexus-user", JSON.stringify(userData))
+        localStorage.setItem("qbm-hydronet-token", data.token)
+        localStorage.setItem("qbm-hydronet-user", JSON.stringify(userData))
         
         // Set cookie for middleware
-        document.cookie = `hydro-nexus-token=${data.token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
+        document.cookie = `qbm-hydronet-token=${data.token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
         
         setUser(userData)
         return true
@@ -131,11 +187,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         }
 
         // Store token and user data
-        localStorage.setItem("hydro-nexus-token", responseData.token)
-        localStorage.setItem("hydro-nexus-user", JSON.stringify(userData))
+        localStorage.setItem("qbm-hydronet-token", responseData.token)
+        localStorage.setItem("qbm-hydronet-user", JSON.stringify(userData))
         
         // Set cookie for middleware
-        document.cookie = `hydro-nexus-token=${responseData.token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
+        document.cookie = `qbm-hydronet-token=${responseData.token}; path=/; max-age=${60*60*24*7}; SameSite=Strict`
         
         setUser(userData)
         return true
@@ -151,11 +207,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(() => {
     // Clear localStorage
-    localStorage.removeItem("hydro-nexus-token")
-    localStorage.removeItem("hydro-nexus-user")
+    localStorage.removeItem("qbm-hydronet-token")
+    localStorage.removeItem("qbm-hydronet-user")
     
     // Clear cookie
-    document.cookie = "hydro-nexus-token=; path=/; max-age=0; SameSite=Strict"
+    document.cookie = "qbm-hydronet-token=; path=/; max-age=0; SameSite=Strict"
     
     setUser(null)
     

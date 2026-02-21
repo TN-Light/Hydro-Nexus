@@ -6,7 +6,7 @@ import { useState, useCallback, useEffect } from "react"
 import { useAuth } from "@/components/auth-provider"
 import { useAvatar } from "@/components/avatar-provider"
 import { Button } from "@/components/ui/button"
-import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet"
+import { Sheet, SheetContent, SheetTitle, SheetTrigger } from "@/components/ui/sheet"
 import { Badge } from "@/components/ui/badge"
 import {
   DropdownMenu,
@@ -24,7 +24,6 @@ import {
   Home,
   BarChart3,
   Settings,
-  Smartphone,
   Beaker,
   Bell,
   User,
@@ -33,6 +32,8 @@ import {
   Sun,
   CuboidIcon as Cube,
   ScanLine,
+  FlaskConical,
+  Award,
 } from "lucide-react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -46,7 +47,9 @@ const navigation = [
   { name: "Digital Twin", href: "/digital-twin", icon: Cube },
   { name: "Analytics", href: "/analytics", icon: BarChart3 },
   { name: "Prediction", href: "/prediction", icon: ScanLine },
-  { name: "Devices", href: "/devices", icon: Smartphone },
+  { name: "Crops", href: "/crops", icon: Leaf },
+  { name: "Stress Protocol", href: "/stress-protocol", icon: FlaskConical },
+  { name: "Quality Certificate", href: "/quality-certificate", icon: Award },
   { name: "Optimization", href: "/optimization", icon: Beaker },
   { name: "Settings", href: "/settings", icon: Settings },
 ]
@@ -83,7 +86,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
     <div className={`flex flex-col h-full ${mobile ? "p-4" : "p-4 sm:p-6"}`}>
       <div className="flex items-center space-x-2 mb-6 sm:mb-8">
         <Leaf className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
-        <span className="text-lg sm:text-xl font-bold text-foreground">Hydro Nexus</span>
+        <span className="text-lg sm:text-xl font-bold text-foreground">QBM-HydroNet</span>
       </div>
 
       <nav className="flex-1 space-y-1 sm:space-y-2">
@@ -121,6 +124,7 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       {/* Mobile Sidebar */}
       <Sheet open={mobileMenuOpen} onOpenChange={setMobileMenuOpen}>
         <SheetContent side="left" className="w-64 sm:w-72 p-0 bg-card">
+          <SheetTitle className="sr-only">Navigation Menu</SheetTitle>
           <Sidebar mobile />
         </SheetContent>
       </Sheet>
@@ -129,17 +133,10 @@ function DashboardLayoutContent({ children }: { children: React.ReactNode }) {
       <div className="lg:pl-64 xl:pl-72">
         {/* Top Navigation */}
         <div className="sticky top-0 z-40 flex h-14 sm:h-16 shrink-0 items-center gap-x-4 border-b bg-card/80 backdrop-blur-sm px-4 sm:gap-x-6 sm:px-6 lg:px-8">
-          <Sheet>
-            <SheetTrigger asChild>
-              <Button variant="ghost" size="sm" className="lg:hidden">
-                <Menu className="h-5 w-5" />
-                <span className="sr-only">Open sidebar</span>
-              </Button>
-            </SheetTrigger>
-            <SheetContent side="left" className="w-64 sm:w-72 p-0 bg-card">
-              <Sidebar mobile />
-            </SheetContent>
-          </Sheet>
+          <Button variant="ghost" size="sm" className="lg:hidden" onClick={() => setMobileMenuOpen(true)}>
+            <Menu className="h-5 w-5" />
+            <span className="sr-only">Open sidebar</span>
+          </Button>
 
           <div className="flex flex-1 gap-x-4 self-stretch lg:gap-x-6">
             <div className="flex flex-1 items-center">

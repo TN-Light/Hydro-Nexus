@@ -1,6 +1,9 @@
 -- Complete Working TimescaleDB Schema Fix
 -- Run this after your main schema is created
 
+-- Ensure TimescaleDB is installed (required for hypertables and time_bucket)
+CREATE EXTENSION IF NOT EXISTS timescaledb;
+
 -- Step 1: Check current table structure
 DO $$
 BEGIN
@@ -142,6 +145,45 @@ BEGIN
     FROM sensor_readings sr
     WHERE (device_ids IS NULL OR sr.device_id = ANY(device_ids))
     ORDER BY sr.device_id, sr.timestamp DESC;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Range query used by analytics endpoints (aggregated buckets)
+CREATE OR REPLACE FUNCTION get_sensor_readings_range(
+    device_ids VARCHAR[] DEFAULT NULL,
+    start_time TIMESTAMP WITH TIME ZONE,
+    end_time TIMESTAMP WITH TIME ZONE,
+    interval_minutes INTEGER DEFAULT 60
+)
+RETURNS TABLE (
+    device_id VARCHAR(50),
+    timestamp TIMESTAMP WITH TIME ZONE,
+    room_temp DECIMAL(4,1),
+    ph DECIMAL(4,2),
+    ec DECIMAL(4,2),
+    substrate_moisture INTEGER,
+    water_level_status VARCHAR(20),
+    humidity INTEGER,
+    reading_count BIGINT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        sr.device_id,
+        time_bucket(INTERVAL '1 minute' * interval_minutes, sr.timestamp) AS timestamp,
+        AVG(sr.room_temp)::DECIMAL(4,1) AS room_temp,
+        AVG(sr.ph)::DECIMAL(4,2) AS ph,
+        AVG(sr.ec)::DECIMAL(4,2) AS ec,
+        AVG(sr.substrate_moisture)::INTEGER AS substrate_moisture,
+        (array_agg(sr.water_level_status ORDER BY sr.timestamp DESC))[1] AS water_level_status,
+        AVG(sr.humidity)::INTEGER AS humidity,
+        COUNT(*) AS reading_count
+    FROM sensor_readings sr
+    WHERE sr.timestamp >= start_time
+      AND sr.timestamp <= end_time
+      AND (device_ids IS NULL OR sr.device_id = ANY(device_ids))
+    GROUP BY sr.device_id, time_bucket(INTERVAL '1 minute' * interval_minutes, sr.timestamp)
+    ORDER BY sr.device_id, timestamp;
 END;
 $$ LANGUAGE plpgsql;
 

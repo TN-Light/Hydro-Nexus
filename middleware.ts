@@ -2,17 +2,20 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 export function middleware(request: NextRequest) {
-  // Get the pathname of the request
   const path = request.nextUrl.pathname
   
   // Define which paths are protected (require authentication)
   const protectedPaths = [
     '/dashboard',
     '/analytics',
-    '/devices',
+    '/stress-protocol',
     '/digital-twin',
     '/optimization',
     '/settings',
+    '/prediction',
+    '/crops',
+    '/quality-certificate',
+    '/ai-assistant',
   ]
   
   // Check if the path is protected
@@ -22,18 +25,30 @@ export function middleware(request: NextRequest) {
   
   // If the path is protected, check for authentication
   if (isProtectedPath) {
-    // Get the auth token from cookies
-    const token = request.cookies.get('hydro-nexus-token')?.value
+    const token = request.cookies.get('qbm-hydronet-token')?.value
     
-    // If there is no token, redirect to login
     if (!token) {
-      console.log(`No token found for protected path: ${path}`)
       const url = new URL('/login', request.url)
       url.searchParams.set('from', path)
       return NextResponse.redirect(url)
     }
-    
-    console.log(`Access granted to protected path: ${path}`)
+
+    // Basic JWT structure check (header.payload.signature)
+    // Full cryptographic verification requires jsonwebtoken which isn't edge-compatible,
+    // so we verify the token has 3 base64 parts and the payload hasn't expired.
+    try {
+      const parts = token.split('.')
+      if (parts.length !== 3) throw new Error('Malformed token')
+      const payload = JSON.parse(atob(parts[1]))
+      if (payload.exp && payload.exp * 1000 < Date.now()) {
+        throw new Error('Token expired')
+      }
+    } catch {
+      // Invalid or expired token — redirect to login
+      const response = NextResponse.redirect(new URL('/login', request.url))
+      response.cookies.delete('qbm-hydronet-token')
+      return response
+    }
   }
   
   return NextResponse.next()
@@ -41,7 +56,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    // Match all paths except for login, api routes, static files, etc.
-    '/((?!login|_next/static|_next/image|favicon.ico).*)',
+    '/((?!login|signup|api|_next/static|_next/image|favicon.ico|manifest.json|icons).*)',
   ],
 }
