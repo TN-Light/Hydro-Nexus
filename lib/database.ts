@@ -14,7 +14,10 @@ const pool = connectionString
       connectionString,
       max: 20, // maximum number of clients in the pool
       idleTimeoutMillis: 30000, // close idle clients after 30 seconds
-      connectionTimeoutMillis: 2000, // return error after 2 seconds if connection could not be established
+      connectionTimeoutMillis: 5000, // return error after 5 seconds if connection could not be established
+      ssl: connectionString.includes('neon.tech') || connectionString.includes('sslmode=require')
+        ? { rejectUnauthorized: false }
+        : false,
     })
   : null
 
