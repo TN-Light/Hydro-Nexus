@@ -139,7 +139,7 @@ export async function POST(request: NextRequest) {
     if ((issue || diagnostics.checks.some((c: any) => c.status === 'fail' || c.status === 'warning')) && process.env.GEMINI_API_KEY) {
       try {
         const model = genAI.getGenerativeModel({
-          model: 'gemini-2.0-flash-exp',
+          model: 'gemini-2.0-flash',
           generationConfig: { temperature: 0.3, maxOutputTokens: 400 },
         })
 

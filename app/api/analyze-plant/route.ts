@@ -30,7 +30,7 @@ export async function POST(request: NextRequest) {
     const base64Image = buffer.toString('base64')
 
     // Get Gemini Vision model
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash-exp' })
+    const model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' })
 
     // Craft detailed prompt for plant disease analysis
     const prompt = `You are an expert plant pathologist and agronomist specializing in disease diagnosis for hydroponic and agricultural systems.

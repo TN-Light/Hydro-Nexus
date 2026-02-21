@@ -36,7 +36,7 @@ export async function GET(request: NextRequest) {
   if (process.env.GEMINI_API_KEY) {
     try {
       const model = genAI.getGenerativeModel({
-        model: 'gemini-2.0-flash-exp',
+        model: 'gemini-2.0-flash',
         generationConfig: { temperature: 0.1, maxOutputTokens: 20 },
       })
       const start = Date.now()
@@ -129,7 +129,7 @@ export async function POST(request: NextRequest) {
     }
 
     const model = genAI.getGenerativeModel({
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
       generationConfig: { temperature: 0.7, maxOutputTokens: 200 },
     })
 
@@ -141,7 +141,7 @@ export async function POST(request: NextRequest) {
       success: true,
       response: result.response.text(),
       latencyMs: latency,
-      model: 'gemini-2.0-flash-exp',
+      model: 'gemini-2.0-flash',
     })
   } catch (error: any) {
     console.error('AI Test POST error:', error)

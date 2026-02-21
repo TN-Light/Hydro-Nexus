@@ -207,7 +207,7 @@ export default defineAgent({
     // Create the voice session using FREE Gemini Live API! 🎉
     const session = new voice.AgentSession({
       llm: new google.beta.realtime.RealtimeModel({
-        model: 'gemini-2.0-flash-exp', // FREE Gemini Live API
+        model: 'gemini-2.0-flash', // FREE Gemini Live API
         voice: 'Puck', // Voice options: Puck, Charon, Kore, Fenrir, Aoede
         temperature: 0.8,
         instructions: new QubitAssistant().instructions,
